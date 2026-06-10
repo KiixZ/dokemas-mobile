@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(ls -la resources 2>&1; echo \"---VIEWS---\"; ls -la resources/views 2>&1; echo \"---SRC---\"; ls -la \"C:/Users/k/Downloads\" 2>/dev/null | head; echo \"---ORIG---\"; ls -la \"/d/project-web/zzdokemas-mobile-main/backend/resources/views\" 2>&1)",
-      "Read(//c/Users/k/Downloads/**)",
-      "Read(//d/project-web/zzdokemas-mobile-main/backend/resources/views/**)"
-    ]
-  }
-}
