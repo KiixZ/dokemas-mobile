@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
+import '../auth/login_page.dart';
 import 'dashboard_page.dart';
 
 /// Shell admin: AppBar (back + judul + notif) + bottom navbar.
@@ -43,7 +44,13 @@ class _AdminShellState extends State<AdminShell> {
           Navigator.of(context).pop();
           setState(() => _index = 0);
         },
-        onLogout: () => Navigator.of(context).pop(),
+        onLogout: () {
+          Navigator.of(context).pop();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginPage()),
+          );
+        },
       ),
       appBar: AppBar(
         centerTitle: true,
