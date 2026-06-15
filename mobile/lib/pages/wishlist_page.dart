@@ -4,6 +4,7 @@ import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/wishlist_card.dart';
 import 'itinerary_page.dart';
+import 'profile_page.dart';
 
 /// Halaman Utama Wishlist Saya
 /// Menampilkan daftar destinasi favorit yang disimpan oleh pengguna
@@ -241,6 +242,11 @@ class _WishlistPageState extends State<WishlistPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const ItineraryPage()),
+            );
+          } else if (index == 4) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfilePage()),
             );
           }
         },

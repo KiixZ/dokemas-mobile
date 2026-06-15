@@ -5,6 +5,7 @@ import '../theme/app_text_styles.dart';
 import '../widgets/date_selector.dart';
 import '../widgets/timeline_item.dart';
 import 'wishlist_page.dart';
+import 'profile_page.dart';
 
 class ItineraryPage extends StatefulWidget {
   const ItineraryPage({super.key});
@@ -172,6 +173,11 @@ class _ItineraryPageState extends State<ItineraryPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const WishlistPage()),
+            );
+          } else if (index == 4) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const ProfilePage()),
             );
           }
         },
