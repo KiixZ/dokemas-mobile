@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/beranda.dart';
 import 'theme/app_theme.dart';
 import 'pages/admin/admin_shell.dart';
 import 'pages/itinerary_page.dart';
@@ -16,7 +17,7 @@ class DokemasApp extends StatelessWidget {
       title: 'DOKEMAS Admin',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const ItineraryPage(),
+      home: const HomePage(),
     );
   }
 }

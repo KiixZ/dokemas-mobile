@@ -44,5 +44,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+<<<<<<< HEAD
+
+/lib/main_rizko.dart
+=======
 # Abaikan file testing privat milik Sapta
 lib/main_sapta.dart
+>>>>>>> bbcdfb3a46528c831cc8d2c65fae32c7319ecb6f
