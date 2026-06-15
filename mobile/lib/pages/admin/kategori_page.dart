@@ -3,9 +3,10 @@ import '../../models/category.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import 'tambah_kategori_page.dart';
 
-/// Body kelola kategori: header + daftar kartu kategori.
-/// UI only. Dibungkus AppBar + navbar oleh [AdminShell]. FAB ada di shell.
+/// Halaman penuh kelola kategori (dibuka dari hub Kelola).
+/// UI only.
 class AdminKategoriPage extends StatefulWidget {
   const AdminKategoriPage({super.key});
 
@@ -17,9 +18,33 @@ class _AdminKategoriPageState extends State<AdminKategoriPage> {
   // Salin ke list mutable biar toggle bisa ubah state.
   late final List<Category> _items = List.of(dummyCategories);
 
+  void _openTambah() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TambahKategoriPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Kelola Kategori',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: AppColors.primary),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openTambah,
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: AppColors.onPrimary),
+      ),
+      body: ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         const Text('Category Management', style: AppTextStyles.heading1),
@@ -41,6 +66,7 @@ class _AdminKategoriPageState extends State<AdminKategoriPage> {
         ],
         const SizedBox(height: AppSpacing.xl),
       ],
+      ),
     );
   }
 

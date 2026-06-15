@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import 'dashboard_page.dart';
 import 'destinasi_page.dart';
-import 'kategori_page.dart';
+import 'kelola_page.dart';
+import 'review_page.dart';
 import 'tambah_destinasi_page.dart';
+import 'tambah_fasilitas_page.dart';
 import 'tambah_kategori_page.dart';
+import 'tambah_user_page.dart';
 
 /// Shell admin: AppBar (back + judul + notif) + bottom navbar.
 /// Body ganti sesuai tab. UI only, belum konek backend.
@@ -24,19 +27,17 @@ class _AdminShellState extends State<AdminShell> {
   static const _titles = [
     'Explore Purwokerto',
     'Destinasi',
-    'Kategori',
+    'Kelola',
     'Review',
-    'Itinerary',
     'Profil',
   ];
 
-  // Tiap tab isi body-nya (tanpa Scaffold). Placeholder dulu kecuali Dashboard.
+  // Tiap tab isi body-nya (tanpa Scaffold). Placeholder dulu kecuali Profil.
   final _pages = const [
     AdminDashboardPage(),
     AdminDestinasiPage(),
-    AdminKategoriPage(),
-    _Placeholder(label: 'Kelola Review'),
-    _Placeholder(label: 'Itinerary'),
+    AdminKelolaPage(),
+    AdminReviewPage(),
     _Placeholder(label: 'Profil'),
   ];
 
@@ -52,6 +53,18 @@ class _AdminShellState extends State<AdminShell> {
     );
   }
 
+  void _openTambahFasilitas() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TambahFasilitasPage()),
+    );
+  }
+
+  void _openTambahUser() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TambahUserPage()),
+    );
+  }
+
   /// FAB beda per tab: dashboard = speed-dial, destinasi = tombol tambah.
   Widget? _buildFab() {
     switch (_index) {
@@ -61,7 +74,7 @@ class _AdminShellState extends State<AdminShell> {
             _FabAction(
               icon: Icons.person_add_alt,
               label: 'Tambah User',
-              onTap: () {},
+              onTap: _openTambahUser,
             ),
             _FabAction(
               icon: Icons.add_location_alt_outlined,
@@ -76,7 +89,7 @@ class _AdminShellState extends State<AdminShell> {
             _FabAction(
               icon: Icons.add_business_outlined,
               label: 'Tambah Fasilitas',
-              onTap: () {},
+              onTap: _openTambahFasilitas,
             ),
           ],
         );
@@ -86,13 +99,8 @@ class _AdminShellState extends State<AdminShell> {
           backgroundColor: AppColors.primary,
           child: const Icon(Icons.add, color: AppColors.onPrimary),
         );
-      case 2:
-        return FloatingActionButton(
-          onPressed: _openTambahKategori,
-          backgroundColor: AppColors.primary,
-          child: const Icon(Icons.add, color: AppColors.onPrimary),
-        );
       default:
+        // Tab Kelola & Review pakai FAB di sub-halaman / tanpa FAB.
         return null;
     }
   }
@@ -149,19 +157,14 @@ class _AdminShellState extends State<AdminShell> {
             label: 'Destinasi',
           ),
           NavigationDestination(
-            icon: Icon(Icons.category_outlined),
-            selectedIcon: Icon(Icons.category, color: AppColors.primary),
-            label: 'Kategori',
+            icon: Icon(Icons.tune_outlined),
+            selectedIcon: Icon(Icons.tune, color: AppColors.primary),
+            label: 'Kelola',
           ),
           NavigationDestination(
             icon: Icon(Icons.rate_review_outlined),
             selectedIcon: Icon(Icons.rate_review, color: AppColors.primary),
             label: 'Review',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.route_outlined),
-            selectedIcon: Icon(Icons.route, color: AppColors.primary),
-            label: 'Users',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
