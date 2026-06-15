@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import 'dashboard_page.dart';
@@ -69,10 +71,29 @@ class _AdminShellState extends State<AdminShell> {
       ),
       body: IndexedStack(index: _index, children: _pages),
       floatingActionButton: _index == 0
-          ? FloatingActionButton(
-              onPressed: () {},
-              backgroundColor: AppColors.primary,
-              child: const Icon(Icons.add, color: AppColors.onPrimary),
+          ? _ExpandableFab(
+              actions: [
+                _FabAction(
+                  icon: Icons.person_add_alt,
+                  label: 'Tambah User',
+                  onTap: () {},
+                ),
+                _FabAction(
+                  icon: Icons.add_location_alt_outlined,
+                  label: 'Tambah Destinasi',
+                  onTap: () {},
+                ),
+                _FabAction(
+                  icon: Icons.category_outlined,
+                  label: 'Tambah Kategori',
+                  onTap: () {},
+                ),
+                _FabAction(
+                  icon: Icons.add_business_outlined,
+                  label: 'Tambah Fasilitas',
+                  onTap: () {},
+                ),
+              ],
             )
           : null,
       bottomNavigationBar: NavigationBar(
@@ -128,6 +149,119 @@ class _Placeholder extends StatelessWidget {
         '$label\n(belum dibuat)',
         textAlign: TextAlign.center,
         style: const TextStyle(color: AppColors.textMuted),
+      ),
+    );
+  }
+}
+
+/// Data satu aksi di speed-dial FAB.
+class _FabAction {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _FabAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+}
+
+/// FAB yang saat ditekan mekar jadi beberapa mini-FAB berlabel.
+class _ExpandableFab extends StatefulWidget {
+  final List<_FabAction> actions;
+  const _ExpandableFab({required this.actions});
+
+  @override
+  State<_ExpandableFab> createState() => _ExpandableFabState();
+}
+
+class _ExpandableFabState extends State<_ExpandableFab>
+    with SingleTickerProviderStateMixin {
+  // Ukuran kotak overlay: cukup buat radius arc + tombol.
+  static const double _radius = 124;
+  static const double _box = 200;
+
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 240),
+  );
+  late final Animation<double> _anim =
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOutBack);
+  bool _open = false;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _toggle() {
+    setState(() => _open = !_open);
+    _open ? _ctrl.forward() : _ctrl.reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final actions = widget.actions;
+    return SizedBox(
+      width: _box,
+      height: _box,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.bottomRight,
+        children: [
+          // Tiap aksi disebar di arc kuadran kiri-atas, muterin tombol +.
+          for (int i = 0; i < actions.length; i++)
+            _arcItem(actions[i], i, actions.length),
+          // Tombol utama, tetap di pojok kanan-bawah.
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: FloatingActionButton(
+              heroTag: '_fabMain',
+              onPressed: _toggle,
+              backgroundColor: AppColors.primary,
+              child: AnimatedRotation(
+                turns: _open ? 0.125 : 0, // + -> x saat terbuka
+                duration: const Duration(milliseconds: 240),
+                child: const Icon(Icons.add, color: AppColors.onPrimary),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _arcItem(_FabAction a, int i, int count) {
+    // Sudut dari 90 deg (atas) ke 180 deg (kiri), rata sepanjang busur.
+    final t = count == 1 ? 0.5 : i / (count - 1);
+    final angle = (90 + t * 90) * math.pi / 180; // radian
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, child) {
+        final v = _anim.value.clamp(0.0, 1.0);
+        final dx = _radius * v * -math.cos(angle); // ke kiri
+        final dy = _radius * v * math.sin(angle); // ke atas
+        // Pusat tombol + ~ 28px dari tiap tepi; mini-fab 48 -> offset 24.
+        return Positioned(
+          right: 28 + dx - 20,
+          bottom: 28 + dy - 20,
+          child: Transform.scale(
+            scale: v,
+            child: Opacity(opacity: v, child: child),
+          ),
+        );
+      },
+      child: FloatingActionButton.small(
+        heroTag: a.label,
+        tooltip: a.label,
+        onPressed: () {
+          _toggle();
+          a.onTap();
+        },
+        backgroundColor: AppColors.primary,
+        child: Icon(a.icon, color: AppColors.onPrimary),
       ),
     );
   }
