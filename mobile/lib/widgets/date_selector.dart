@@ -42,7 +42,7 @@ class DateSelector extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppColors.primary
-                    : AppColors.primary.withOpacity(0.15),
+                    : AppColors.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
               ),
               child: Column(
