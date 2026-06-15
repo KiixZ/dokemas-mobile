@@ -5,6 +5,7 @@ import '../../theme/app_colors.dart';
 import 'dashboard_page.dart';
 import 'destinasi_page.dart';
 import 'kelola_page.dart';
+import 'profil_page.dart';
 import 'review_page.dart';
 import 'tambah_destinasi_page.dart';
 import 'tambah_fasilitas_page.dart';
@@ -38,7 +39,7 @@ class _AdminShellState extends State<AdminShell> {
     AdminDestinasiPage(),
     AdminKelolaPage(),
     AdminReviewPage(),
-    _Placeholder(label: 'Profil'),
+    AdminProfilPage(),
   ];
 
   void _openTambahDestinasi() {
@@ -172,22 +173,6 @@ class _AdminShellState extends State<AdminShell> {
             label: 'Profil',
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _Placeholder extends StatelessWidget {
-  final String label;
-  const _Placeholder({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        '$label\n(belum dibuat)',
-        textAlign: TextAlign.center,
-        style: const TextStyle(color: AppColors.textMuted),
       ),
     );
   }
