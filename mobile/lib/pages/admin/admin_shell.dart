@@ -3,6 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import 'dashboard_page.dart';
+import 'destinasi_page.dart';
+import 'kategori_page.dart';
+import 'tambah_destinasi_page.dart';
+import 'tambah_kategori_page.dart';
 
 /// Shell admin: AppBar (back + judul + notif) + bottom navbar.
 /// Body ganti sesuai tab. UI only, belum konek backend.
@@ -29,12 +33,69 @@ class _AdminShellState extends State<AdminShell> {
   // Tiap tab isi body-nya (tanpa Scaffold). Placeholder dulu kecuali Dashboard.
   final _pages = const [
     AdminDashboardPage(),
-    _Placeholder(label: 'Kelola Destinasi'),
-    _Placeholder(label: 'Kelola Kategori'),
+    AdminDestinasiPage(),
+    AdminKategoriPage(),
     _Placeholder(label: 'Kelola Review'),
     _Placeholder(label: 'Itinerary'),
     _Placeholder(label: 'Profil'),
   ];
+
+  void _openTambahDestinasi() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TambahDestinasiPage()),
+    );
+  }
+
+  void _openTambahKategori() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TambahKategoriPage()),
+    );
+  }
+
+  /// FAB beda per tab: dashboard = speed-dial, destinasi = tombol tambah.
+  Widget? _buildFab() {
+    switch (_index) {
+      case 0:
+        return _ExpandableFab(
+          actions: [
+            _FabAction(
+              icon: Icons.person_add_alt,
+              label: 'Tambah User',
+              onTap: () {},
+            ),
+            _FabAction(
+              icon: Icons.add_location_alt_outlined,
+              label: 'Tambah Destinasi',
+              onTap: _openTambahDestinasi,
+            ),
+            _FabAction(
+              icon: Icons.category_outlined,
+              label: 'Tambah Kategori',
+              onTap: _openTambahKategori,
+            ),
+            _FabAction(
+              icon: Icons.add_business_outlined,
+              label: 'Tambah Fasilitas',
+              onTap: () {},
+            ),
+          ],
+        );
+      case 1:
+        return FloatingActionButton(
+          onPressed: _openTambahDestinasi,
+          backgroundColor: AppColors.primary,
+          child: const Icon(Icons.add, color: AppColors.onPrimary),
+        );
+      case 2:
+        return FloatingActionButton(
+          onPressed: _openTambahKategori,
+          backgroundColor: AppColors.primary,
+          child: const Icon(Icons.add, color: AppColors.onPrimary),
+        );
+      default:
+        return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,32 +131,7 @@ class _AdminShellState extends State<AdminShell> {
         ],
       ),
       body: IndexedStack(index: _index, children: _pages),
-      floatingActionButton: _index == 0
-          ? _ExpandableFab(
-              actions: [
-                _FabAction(
-                  icon: Icons.person_add_alt,
-                  label: 'Tambah User',
-                  onTap: () {},
-                ),
-                _FabAction(
-                  icon: Icons.add_location_alt_outlined,
-                  label: 'Tambah Destinasi',
-                  onTap: () {},
-                ),
-                _FabAction(
-                  icon: Icons.category_outlined,
-                  label: 'Tambah Kategori',
-                  onTap: () {},
-                ),
-                _FabAction(
-                  icon: Icons.add_business_outlined,
-                  label: 'Tambah Fasilitas',
-                  onTap: () {},
-                ),
-              ],
-            )
-          : null,
+      floatingActionButton: _buildFab(),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
