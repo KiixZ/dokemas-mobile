@@ -2,15 +2,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
-import 'dashboard_page.dart';
-import 'destinasi_page.dart';
-import 'kelola_page.dart';
-import 'profil_page.dart';
-import 'review_page.dart';
-import 'tambah_destinasi_page.dart';
-import 'tambah_fasilitas_page.dart';
-import 'tambah_kategori_page.dart';
-import 'tambah_user_page.dart';
+import 'dashboard/dashboard_page.dart';
+import 'destinasi/destinasi_page.dart';
+import 'destinasi/tambah_destinasi_page.dart';
+import 'fasilitas/tambah_fasilitas_page.dart';
+import 'kategori/tambah_kategori_page.dart';
+import 'kelola/kelola_page.dart';
+import 'profil/profil_page.dart';
+import 'review/review_page.dart';
+import 'user/tambah_user_page.dart';
 
 /// Shell admin: AppBar (back + judul + notif) + bottom navbar.
 /// Body ganti sesuai tab. UI only, belum konek backend.
@@ -22,7 +22,6 @@ class AdminShell extends StatefulWidget {
 }
 
 class _AdminShellState extends State<AdminShell> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
   int _index = 0;
 
   static const _titles = [
@@ -109,21 +108,9 @@ class _AdminShellState extends State<AdminShell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
-      drawer: _AdminSidebar(
-        onDashboard: () {
-          Navigator.of(context).pop();
-          setState(() => _index = 0);
-        },
-        onLogout: () => Navigator.of(context).pop(),
-      ),
       appBar: AppBar(
         centerTitle: true,
         automaticallyImplyLeading: false,
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-        ),
         title: Text(
           _titles[_index],
           style: const TextStyle(
@@ -286,66 +273,6 @@ class _ExpandableFabState extends State<_ExpandableFab>
         },
         backgroundColor: AppColors.primary,
         child: Icon(a.icon, color: AppColors.onPrimary),
-      ),
-    );
-  }
-}
-
-/// Sidebar admin ringkas: ke Dashboard atau Logout.
-class _AdminSidebar extends StatelessWidget {
-  final VoidCallback onDashboard;
-  final VoidCallback onLogout;
-
-  const _AdminSidebar({required this.onDashboard, required this.onLogout});
-
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-      backgroundColor: AppColors.surface,
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              color: AppColors.primary,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: AppColors.onPrimary,
-                    child: Icon(Icons.terrain, color: AppColors.primary),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'DOKEMAS Admin',
-                    style: TextStyle(
-                      color: AppColors.onPrimary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.dashboard_outlined,
-                  color: AppColors.primary),
-              title: const Text('Dashboard'),
-              onTap: onDashboard,
-            ),
-            const Spacer(),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout, color: AppColors.danger),
-              title: const Text('Logout',
-                  style: TextStyle(color: AppColors.danger)),
-              onTap: onLogout,
-            ),
-          ],
-        ),
       ),
     );
   }

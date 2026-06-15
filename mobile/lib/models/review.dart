@@ -1,7 +1,8 @@
 import '../theme/app_colors.dart';
 
 /// Status moderasi review.
-enum ReviewStatus { public, reported, hidden }
+/// pending = baru masuk dari user, nunggu di-Accept/Reject admin.
+enum ReviewStatus { pending, public, reported, hidden }
 
 /// Model review/ulasan user (UI only, belum konek backend).
 class Review {
@@ -49,6 +50,23 @@ const reviewAvatarColors = [
 
 /// Data dummy kelola review.
 const dummyReviews = [
+  Review(
+    name: 'Rina Marlina',
+    date: 'Oct 25, 2023',
+    rating: 4.0,
+    destination: 'Curug Cipendok',
+    comment:
+        'Air terjunnya tinggi banget dan airnya seger. Akses jalan agak licin pas musim hujan, hati-hati.',
+    status: ReviewStatus.pending,
+  ),
+  Review(
+    name: 'Agus Pratama',
+    date: 'Oct 25, 2023',
+    rating: 2.0,
+    destination: 'Taman Andhang Pangrenan',
+    comment: 'Tempatnya kurang terawat, banyak sampah di area pinggir.',
+    status: ReviewStatus.pending,
+  ),
   Review(
     name: 'Budi Santoso',
     date: 'Oct 24, 2023',

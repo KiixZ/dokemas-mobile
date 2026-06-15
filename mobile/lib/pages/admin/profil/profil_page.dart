@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../models/app_user.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_spacing.dart';
-import '../../theme/app_text_styles.dart';
+import '../../../models/app_user.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_text_styles.dart';
 import 'edit_profil_page.dart';
 
 /// Body profil admin: kartu identitas + menu akun + logout.

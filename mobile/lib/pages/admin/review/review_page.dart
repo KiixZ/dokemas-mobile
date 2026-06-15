@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../models/review.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_spacing.dart';
-import '../../theme/app_text_styles.dart';
+import '../../../models/review.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_text_styles.dart';
 
 /// Body kelola review: header + search + filter + daftar kartu + pagination.
 /// UI only. Dibungkus AppBar + navbar oleh [AdminShell].
@@ -24,7 +24,7 @@ class _AdminReviewPageState extends State<AdminReviewPage> {
     return _items.where((r) {
       final okFilter = switch (_filter) {
         'Reported' => r.status == ReviewStatus.reported,
-        'Pending Review' => r.status == ReviewStatus.hidden,
+        'Pending Review' => r.status == ReviewStatus.pending,
         _ => true,
       };
       final okQuery = _query.isEmpty ||
@@ -174,6 +174,7 @@ class _ReviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hidden = review.status == ReviewStatus.hidden;
     final reported = review.status == ReviewStatus.reported;
+    final pending = review.status == ReviewStatus.pending;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -281,7 +282,22 @@ class _ReviewCard extends StatelessWidget {
               _StatusLabel(status: review.status),
               Row(
                 children: [
-                  if (hidden || reported)
+                  if (pending) ...[
+                    // Review baru: setujui (publik) atau tolak (sembunyikan).
+                    _ActionBtn(
+                      icon: Icons.check,
+                      color: AppColors.success,
+                      tooltip: 'Accept',
+                      onTap: onShow,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    _ActionBtn(
+                      icon: Icons.close,
+                      color: AppColors.danger,
+                      tooltip: 'Reject',
+                      onTap: onHide,
+                    ),
+                  ] else if (hidden || reported)
                     _ActionBtn(
                       icon: Icons.visibility_outlined,
                       color: AppColors.primary,
@@ -346,6 +362,7 @@ class _StatusLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (status) {
+      ReviewStatus.pending => ('Pending', AppColors.warning),
       ReviewStatus.public => ('Public', AppColors.primary),
       ReviewStatus.reported => ('Reported', AppColors.danger),
       ReviewStatus.hidden => ('Hidden', AppColors.textMuted),

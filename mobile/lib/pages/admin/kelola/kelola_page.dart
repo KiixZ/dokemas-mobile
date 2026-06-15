@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_spacing.dart';
-import '../../theme/app_text_styles.dart';
-import 'fasilitas_page.dart';
-import 'kategori_page.dart';
-import 'user_page.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_text_styles.dart';
+import '../fasilitas/fasilitas_page.dart';
+import '../kategori/kategori_page.dart';
+import '../user/user_page.dart';
 
 /// Hub "Kelola": pintu masuk ke master data (Kategori, Fasilitas, User).
 /// Body tab di [AdminShell]. UI only.
