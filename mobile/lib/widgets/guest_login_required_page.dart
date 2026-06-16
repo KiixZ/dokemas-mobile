@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../pages/auth/login_page.dart';
+import '../pages/auth/register_page.dart';
 
 /// Konten "harus login" buat tab guest yang ke-gate (wishlist/itinerary/profile).
 /// Navbar disediakan oleh shell (GuestMainScreen), bukan di sini.
@@ -15,11 +17,17 @@ class GuestLoginRequiredPage extends StatelessWidget {
     required this.description,
   });
 
-  // Halaman login/register belum ada di branch ini.
-  // Sementara kasih feedback; ganti ke Navigator pas page-nya siap.
-  void _comingSoon(BuildContext context, String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Halaman $label belum tersedia')),
+  void _openLogin(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
+  }
+
+  void _openRegister(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RegisterPage()),
     );
   }
 
@@ -97,7 +105,7 @@ class GuestLoginRequiredPage extends StatelessWidget {
                       width: double.infinity,
                       height: 46,
                       child: ElevatedButton(
-                        onPressed: () => _comingSoon(context, 'Login'),
+                        onPressed: () => _openLogin(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: AppColors.onPrimary,
@@ -135,7 +143,7 @@ class GuestLoginRequiredPage extends StatelessWidget {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => _comingSoon(context, 'Daftar'),
+                          onTap: () => _openRegister(context),
                           child: const Text(
                             'Daftar',
                             style: TextStyle(
