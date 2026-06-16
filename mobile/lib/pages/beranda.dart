@@ -1,14 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/components/filter_bottom_sheet.dart'; // Sesuaikan "dokemas_mobile" dengan nama projekmu
+import 'package:mobile/components/filter_bottom_sheet.dart'; 
 import '../theme/app_colors.dart';
 
-class HomePage extends StatelessWidget {
+// 1. MENGUBAH HOMEPAGE MENJADI STATEFULWIDGET
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  // Variabel untuk melacak kategori mana yang sedang aktif (Default: 'Alam')
+  String _selectedCategory = 'Alam';
+
+  // Data list kategori dipindahkan ke tingkat State agar bisa diakses dinamis
+  final List<Map<String, dynamic>> _categories = [
+    {'name': 'Alam', 'icon': Icons.terrain},
+    {'name': 'Keluarga', 'icon': Icons.people},
+    {'name': 'Kuliner', 'icon': Icons.restaurant},
+    {'name': 'Edukasi', 'icon': Icons.school},
+    {'name': 'Religi', 'icon': Icons.church},
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, // Background abu-abu sangat muda
+      backgroundColor: AppColors.background, 
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -22,7 +40,7 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 25),
               _buildSectionTitle('Kategori Wisata', 'Lihat Semua'),
               const SizedBox(height: 15),
-              _buildCategoryList(),
+              _buildCategoryList(), // Memanggil fungsi kategori yang sudah interaktif
               const SizedBox(height: 25),
               _buildSectionTitle('Rekomendasi Untuk Kamu', ''),
               const SizedBox(height: 15),
@@ -36,7 +54,6 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
-      // Navbar disediakan oleh shell (MainScreen / GuestMainScreen).
     );
   }
 
@@ -46,7 +63,7 @@ class HomePage extends StatelessWidget {
       children: [
         const CircleAvatar(
           radius: 24,
-          backgroundImage: NetworkImage('https://via.placeholder.com/150'), // Ganti dengan aset foto profil nanti
+          backgroundImage: NetworkImage('https://via.placeholder.com/150'), 
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -90,7 +107,7 @@ class HomePage extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withValues(alpha: 0.1), // Menggunakan .withValues() versi terbaru
                 spreadRadius: 1,
                 blurRadius: 5,
               ),
@@ -115,7 +132,7 @@ class HomePage extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(
@@ -132,7 +149,7 @@ class HomePage extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         InkWell(
-          onTap: () => showFilterBottomSheet(context), // <--- MEMANGGIL FUNGSI FILTER
+          onTap: () => showFilterBottomSheet(context), 
           borderRadius: BorderRadius.circular(12),
           child: Container(
             height: 50,
@@ -174,39 +191,43 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  // 4. CATEGORY LIST SECTION
+  // 4. CATEGORY LIST SECTION (SUDAH DIPERBAIKI & INTERAKTIF)
   Widget _buildCategoryList() {
-    final categories = [
-      {'name': 'Alam', 'icon': Icons.terrain, 'active': true},
-      {'name': 'Keluarga', 'icon': Icons.people, 'active': false},
-      {'name': 'Kuliner', 'icon': Icons.restaurant, 'active': false},
-      {'name': 'Edukasi', 'icon': Icons.school, 'active': false},
-      {'name': 'Religi', 'icon': Icons.church, 'active': false},
-    ];
-
     return SizedBox(
       height: 90,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: categories.length,
+        itemCount: _categories.length,
         itemBuilder: (context, index) {
-          final item = categories[index];
-          final isActive = item['active'] as bool;
+          final item = _categories[index];
+          // Validasi status aktif dicocokkan dengan isi variabel _selectedCategory
+          final isActive = _selectedCategory == item['name'];
 
           return Padding(
-            padding: const EdgeInsets.only(right:15.0),
+            padding: const EdgeInsets.only(right: 15.0),
             child: Column(
               children: [
-                Container(
-                  height: 60,
-                  width: 60,
-                  decoration: BoxDecoration(
-                    color: isActive ? AppColors.primary : AppColors.primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    item['icon'] as IconData,
-                    color: isActive ? Colors.white : AppColors.primaryDark,
+                // MEMBUNGKUS CONTAINER DENGAN INKWELL AGAR BISA DIKETUK
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedCategory = item['name'] as String;
+                    });
+                    print('Kategori Terpilih: $_selectedCategory');
+                  },
+                  borderRadius: BorderRadius.circular(30),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200), // Efek transisi warna halus
+                    height: 60,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: isActive ? AppColors.primary : AppColors.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      item['icon'] as IconData,
+                      color: isActive ? Colors.white : AppColors.primaryDark,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -215,7 +236,7 @@ class HomePage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                    color: Colors.black87,
+                    color: isActive ? AppColors.primary : Colors.black87,
                   ),
                 ),
               ],
@@ -234,13 +255,12 @@ class HomePage extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         image: const DecorationImage(
-          image: NetworkImage('https://via.placeholder.com/400x250'), // Ganti dengan gambar Baturraden asli nanti
+          image: NetworkImage('https://via.placeholder.com/400x250'), 
           fit: BoxFit.cover,
         ),
       ),
       child: Stack(
         children: [
-          // Gradien gelap di bawah gambar agar teks terbaca jelas
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
@@ -249,25 +269,23 @@ class HomePage extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: [
                   Colors.transparent,
-                  Colors.black.withOpacity(0.7),
+                  Colors.black.withValues(alpha: 0.7),
                 ],
               ),
             ),
           ),
-          // Tombol Wishlist Atas Kanan
           Positioned(
             top: 15,
             right: 15,
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.favorite, color: Colors.teal, size: 20),
             ),
           ),
-          // Informasi Konten di Bawah
           Positioned(
             bottom: 15,
             left: 15,
@@ -354,7 +372,7 @@ class HomePage extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withOpacity(0.05),
+                  color: Colors.grey.withValues(alpha: 0.05),
                   spreadRadius: 1,
                   blurRadius: 5,
                 ),
@@ -370,7 +388,7 @@ class HomePage extends StatelessWidget {
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                         image: DecorationImage(
-                          image: NetworkImage('https://via.placeholder.com/150'), // Ganti gambar asli nanti
+                          image: NetworkImage('https://via.placeholder.com/150'), 
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -381,7 +399,7 @@ class HomePage extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.4),
+                          color: Colors.black.withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
