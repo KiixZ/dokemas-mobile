@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'theme/app_theme.dart';
-import 'pages/admin/admin_shell.dart';
-import 'pages/itinerary_page.dart';
+import 'pages/guest/guest_wishlist_page.dart';
+import 'pages/guest/guest_itinerary_page.dart';
+import 'pages/guest/guest_profile_page.dart';
 
 void main() {
   runApp(const DokemasApp());
@@ -13,10 +14,15 @@ class DokemasApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'DOKEMAS Admin',
+      title: 'DOKEMAS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const ItineraryPage(),
+      initialRoute: '/guest-profile',
+      routes: {
+        '/guest-wishlist': (_) => const GuestWishlistPage(),
+        '/guest-itinerary': (_) => const GuestItineraryPage(),
+        '/guest-profile': (_) => const GuestProfilePage(),
+      },
     );
   }
 }

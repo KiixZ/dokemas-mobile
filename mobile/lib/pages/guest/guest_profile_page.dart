@@ -7,7 +7,7 @@ class GuestProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const GuestLoginRequiredPage(
-      icon: Icons.favorite_border,
+      icon: Icons.person_outline,
       title: 'Profile Saya',
       description:
           'Kelola akun dan aktivitas wisatamu\ndengan mudah.',

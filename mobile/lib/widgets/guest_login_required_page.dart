@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 
 class GuestLoginRequiredPage extends StatelessWidget {
   final IconData icon;
@@ -14,20 +15,29 @@ class GuestLoginRequiredPage extends StatelessWidget {
     required this.selectedIndex,
   });
 
+  // Halaman login/register belum ada di branch ini.
+  // Sementara kasih feedback; ganti ke Navigator pas page-nya siap.
+  void _comingSoon(BuildContext context, String label) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Halaman $label belum tersedia')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FD),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 22),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 155),
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 22, vertical: 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                     Stack(
                       alignment: Alignment.center,
                       clipBehavior: Clip.none,
@@ -35,15 +45,15 @@ class GuestLoginRequiredPage extends StatelessWidget {
                         Container(
                           width: 96,
                           height: 96,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEAF2FF),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
                         ),
                         Icon(
                           icon,
                           size: 43,
-                          color: const Color(0xFF00796B),
+                          color: AppColors.primary,
                         ),
                         Positioned(
                           top: 5,
@@ -52,26 +62,26 @@ class GuestLoginRequiredPage extends StatelessWidget {
                             width: 19,
                             height: 19,
                             decoration: const BoxDecoration(
-                              color: Color(0xFF19C7B7),
+                              color: AppColors.primaryLight,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.star,
-                              color: Colors.white,
+                              color: AppColors.onPrimary,
                               size: 10,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 62),
+                    const SizedBox(height: 40),
                     Text(
                       title,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF102033),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -82,7 +92,7 @@ class GuestLoginRequiredPage extends StatelessWidget {
                         fontSize: 12,
                         height: 1.55,
                         fontWeight: FontWeight.w400,
-                        color: Color(0xFF7B8493),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -90,10 +100,10 @@ class GuestLoginRequiredPage extends StatelessWidget {
                       width: double.infinity,
                       height: 46,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => _comingSoon(context, 'Login'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00796B),
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.onPrimary,
                           elevation: 5,
                           shadowColor: Colors.black26,
                           shape: RoundedRectangleBorder(
@@ -124,23 +134,24 @@ class GuestLoginRequiredPage extends StatelessWidget {
                           'Belum punya akun? ',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF7B8493),
+                            color: AppColors.textSecondary,
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () => _comingSoon(context, 'Daftar'),
                           child: const Text(
                             'Daftar',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF00796B),
+                              color: AppColors.primary,
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -196,9 +207,9 @@ class _GuestBottomNav extends StatelessWidget {
     return Container(
       height: 61,
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         border: Border(
-          top: BorderSide(color: Color(0xFFE9EDF3), width: 1),
+          top: BorderSide(color: AppColors.border, width: 1),
         ),
       ),
       child: Row(
@@ -214,9 +225,7 @@ class _GuestBottomNav extends StatelessWidget {
                 Icon(
                   menus[index]['icon'] as IconData,
                   size: 20,
-                  color: isActive
-                      ? const Color(0xFF00796B)
-                      : const Color(0xFF8C97A6),
+                  color: isActive ? AppColors.primary : AppColors.textMuted,
                 ),
                 const SizedBox(height: 3),
                 Text(
@@ -224,9 +233,7 @@ class _GuestBottomNav extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                    color: isActive
-                        ? const Color(0xFF00796B)
-                        : const Color(0xFF8C97A6),
+                    color: isActive ? AppColors.primary : AppColors.textMuted,
                   ),
                 ),
               ],
