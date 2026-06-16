@@ -44,5 +44,3 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Abaikan file testing privat milik Sapta
-lib/main_sapta.dart

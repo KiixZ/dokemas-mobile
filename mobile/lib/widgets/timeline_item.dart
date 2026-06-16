@@ -49,7 +49,7 @@ class TimelineItem extends StatelessWidget {
                     color: AppColors.primary,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: AppColors.primaryLight.withOpacity(0.3),
+                      color: AppColors.primaryLight.withValues(alpha: 0.3),
                       width: 2,
                     ),
                   ),
@@ -75,12 +75,12 @@ class TimelineItem extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppSpacing.radius),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.textPrimary.withOpacity(0.05),
+                      color: AppColors.textPrimary.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
                   ],
-                  border: Border.all(color: AppColors.border.withOpacity(0.5)),
+                  border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,7 +184,7 @@ class TimelineItem extends StatelessWidget {
                               ),
                               label: const Text('Lihat Rute'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary.withOpacity(0.1),
+                                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                                 foregroundColor: AppColors.primary,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
