@@ -110,6 +110,14 @@ class _LoginPageState extends State<LoginPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Tombol Back
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
                         // Logo Bulat Minimalis
                         Center(
                           child: Container(
