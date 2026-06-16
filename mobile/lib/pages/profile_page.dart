@@ -1,8 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
-import '../edit_profile_page.dart';
+import 'edit_profile_page.dart';
 
 /// Halaman Profil Pengguna
 /// Menampilkan biografi ringkas pengguna, menu akun, aktivitas, pengaturan, dan dukungan.
@@ -17,6 +18,12 @@ class _ProfilePageState extends State<ProfilePage> {
   // State untuk switch tombol interaktif
   bool _isNotificationEnabled = true;
   bool _isDarkModeEnabled = false;
+
+  String _currentName = 'Saputra';
+  String _currentEmail = 'saputra@example.com';
+  String _currentAvatarUrl =
+      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop';
+  String? _localImagePath;
 
   // Method untuk menampilkan dialog konfirmasi keluar
   void _showLogoutDialog() {
@@ -78,21 +85,21 @@ class _ProfilePageState extends State<ProfilePage> {
         titleSpacing: AppSpacing.md,
         title: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 18,
-              backgroundImage: NetworkImage(
-                'https://i.pravatar.cc/150?img=11', // Profile pic kustom
-              ),
+              backgroundImage: _localImagePath != null
+                  ? FileImage(File(_localImagePath!)) as ImageProvider
+                  : NetworkImage(_currentAvatarUrl),
             ),
             const SizedBox(width: AppSpacing.sm),
             RichText(
               text: TextSpan(
                 style: AppTextStyles.title,
-                children: const [
-                  TextSpan(text: 'Halo, '),
+                children: [
+                  const TextSpan(text: 'Halo, '),
                   TextSpan(
-                    text: 'Saputra ',
-                    style: TextStyle(
+                    text: _currentName,
+                    style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                     ),
@@ -167,17 +174,17 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ],
                       ),
-                      child: const CircleAvatar(
+                      child: CircleAvatar(
                         radius: 46,
-                        backgroundImage: NetworkImage(
-                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop',
-                        ),
+                        backgroundImage: _localImagePath != null
+                            ? FileImage(File(_localImagePath!)) as ImageProvider
+                            : NetworkImage(_currentAvatarUrl),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     // Nama
                     Text(
-                      'Saputra',
+                      _currentName,
                       style: AppTextStyles.heading2.copyWith(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -215,7 +222,29 @@ class _ProfilePageState extends State<ProfilePage> {
                 _SettingsTile(
                   icon: Icons.person_outline_rounded,
                   title: 'Edit Profil',
-                  onTap: () => _showPlaceholderSnackBar('Edit Profil'),
+                  onTap: () async {
+                    // Pindah ke halaman edit sambil mengirimkan data profil saat ini
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditProfilePage(
+                          currentName: _currentName,
+                          currentEmail: _currentEmail,
+                          currentAvatarUrl: _currentAvatarUrl,
+                          localImagePath: _localImagePath,
+                        ),
+                      ),
+                    );
+
+                    // Jika membawa data pulang saat halaman edit ditutup, update layar utama
+                    if (result != null && result is Map<String, dynamic>) {
+                      setState(() {
+                        _currentName = result['name'];
+                        _currentEmail = result['email'];
+                        _localImagePath = result['imagePath'];
+                      });
+                    }
+                  },
                 ),
                 _SettingsTile(
                   icon: Icons.lock_outline_rounded,
