@@ -11,7 +11,6 @@ class GuestProfilePage extends StatelessWidget {
       title: 'Profile Saya',
       description:
           'Kelola akun dan aktivitas wisatamu\ndengan mudah.',
-      selectedIndex: 4,
     );
   }
 }

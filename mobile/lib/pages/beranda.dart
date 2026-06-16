@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/components/filter_bottom_sheet.dart'; // Sesuaikan "dokemas_mobile" dengan nama projekmu
+import '../theme/app_colors.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -7,7 +8,7 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xfff7f9fc), // Background abu-abu sangat muda
+      backgroundColor: AppColors.background, // Background abu-abu sangat muda
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -35,7 +36,7 @@ class HomePage extends StatelessWidget {
           ),
         ),
       ),
-      //bottomNavigationBar: _buildBottomNavigationBar(),
+      // Navbar disediakan oleh shell (MainScreen / GuestMainScreen).
     );
   }
 
@@ -59,7 +60,7 @@ class HomePage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xff063940),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   Text('👋', style: TextStyle(fontSize: 18)),
@@ -68,7 +69,7 @@ class HomePage extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: const [
-                  Icon(Icons.location_on, size: 16, color: Color(0xff00a896)),
+                  Icon(Icons.location_on, size: 16, color: AppColors.primary),
                   SizedBox(width: 4),
                   Text(
                     'Purwokerto, Jawa Tengah',
@@ -97,7 +98,7 @@ class HomePage extends StatelessWidget {
           ),
           child: const Icon(
             Icons.notifications_none_outlined,
-            color: Color(0xff028090),
+            color: AppColors.primary,
           ),
         ),
       ],
@@ -119,7 +120,7 @@ class HomePage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(
               children: const [
-                Icon(Icons.search, color: Color(0xff028090)),
+                Icon(Icons.search, color: AppColors.primary),
                 SizedBox(width: 10),
                 Text(
                   'Mau liburan kemana hari ini?',
@@ -137,7 +138,7 @@ class HomePage extends StatelessWidget {
             height: 50,
             width: 50,
             decoration: BoxDecoration(
-              color: const Color(0xff05668d),
+              color: AppColors.primaryDark,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.tune, color: Colors.white),
@@ -157,7 +158,7 @@ class HomePage extends StatelessWidget {
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: Color(0xff05668d),
+            color: AppColors.primaryDark,
           ),
         ),
         if (actionText.isNotEmpty)
@@ -166,7 +167,7 @@ class HomePage extends StatelessWidget {
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: Color(0xff028090),
+              color: AppColors.primary,
             ),
           ),
       ],
@@ -200,12 +201,12 @@ class HomePage extends StatelessWidget {
                   height: 60,
                   width: 60,
                   decoration: BoxDecoration(
-                    color: isActive ? const Color(0xff028090) : const Color(0xffe8f1f2),
+                    color: isActive ? AppColors.primary : AppColors.primary.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     item['icon'] as IconData,
-                    color: isActive ? Colors.white : const Color(0xff05668d),
+                    color: isActive ? Colors.white : AppColors.primaryDark,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -306,7 +307,7 @@ class HomePage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xff028090),
+                    color: AppColors.primary,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
@@ -415,7 +416,7 @@ class HomePage extends StatelessWidget {
                       Text(
                         item['price']!,
                         style: const TextStyle(
-                          color: Color(0xff028090),
+                          color: AppColors.primary,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                         ),

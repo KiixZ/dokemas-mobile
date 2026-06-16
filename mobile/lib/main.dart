@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/beranda.dart';
+import 'pages/main_screen.dart';
 import 'theme/app_theme.dart';
-import 'pages/guest/guest_wishlist_page.dart';
-import 'pages/guest/guest_itinerary_page.dart';
-import 'pages/guest/guest_profile_page.dart';
 
 void main() {
   runApp(const DokemasApp());
@@ -18,12 +15,10 @@ class DokemasApp extends StatelessWidget {
       title: 'DOKEMAS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      initialRoute: '/guest-profile',
-      routes: {
-        '/guest-wishlist': (_) => const GuestWishlistPage(),
-        '/guest-itinerary': (_) => const GuestItineraryPage(),
-        '/guest-profile': (_) => const GuestProfilePage(),
-      },
+      // Preview shell SUDAH login.
+      // Balik ke guest: import 'pages/guest_main_screen.dart' lalu
+      // home: const GuestMainScreen().
+      home: const MainScreen(),
     );
   }
 }

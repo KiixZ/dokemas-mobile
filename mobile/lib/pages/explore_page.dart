@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/components/filter_bottom_sheet.dart';
+import '../theme/app_colors.dart';
 
 class ExplorePage extends StatelessWidget {
   const ExplorePage({super.key});
@@ -7,7 +8,7 @@ class ExplorePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xfff7f9fc), // Konsisten dengan Beranda
+      backgroundColor: AppColors.background, // Konsisten dengan Beranda
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -21,7 +22,7 @@ class ExplorePage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xff05668d),
+                  color: AppColors.primaryDark,
                 ),
               ),
             ),
@@ -63,7 +64,7 @@ class ExplorePage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: const Row(
               children: [
-                Icon(Icons.search, color: Color(0xff028090)),
+                Icon(Icons.search, color: AppColors.primary),
                 SizedBox(width: 10),
                 Expanded(
                   child: TextField(
@@ -91,7 +92,7 @@ class ExplorePage extends StatelessWidget {
             height: 50,
             width: 50,
             decoration: BoxDecoration(
-              color: const Color(0xff05668d),
+              color: AppColors.primaryDark,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(Icons.tune, color: Colors.white),
@@ -116,7 +117,7 @@ Widget _buildQuickTags() {
             margin: const EdgeInsets.only(right: 10),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xff028090) : Colors.white,
+              color: isSelected ? AppColors.primary : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isSelected ? Colors.transparent : Colors.grey.withValues(alpha: 0.2),
@@ -281,7 +282,7 @@ Widget _buildQuickTags() {
                     Text(
                       item['price']!,
                       style: const TextStyle(
-                        color: Color(0xff028090),
+                        color: AppColors.primary,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
+/// Konten "harus login" buat tab guest yang ke-gate (wishlist/itinerary/profile).
+/// Navbar disediakan oleh shell (GuestMainScreen), bukan di sini.
 class GuestLoginRequiredPage extends StatelessWidget {
   final IconData icon;
   final String title;
   final String description;
-  final int selectedIndex;
 
   const GuestLoginRequiredPage({
     super.key,
     required this.icon,
     required this.title,
     required this.description,
-    required this.selectedIndex,
   });
 
   // Halaman login/register belum ada di branch ini.
@@ -28,15 +28,12 @@ class GuestLoginRequiredPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 22, vertical: 32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+        child: Center(
+          child: SingleChildScrollView(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 22, vertical: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
                     children: [
                     Stack(
                       alignment: Alignment.center,
@@ -150,97 +147,11 @@ class GuestLoginRequiredPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    ],
-                  ),
-                ),
+                ],
               ),
             ),
-            _GuestBottomNav(selectedIndex: selectedIndex),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-}
-
-class _GuestBottomNav extends StatelessWidget {
-  final int selectedIndex;
-
-  const _GuestBottomNav({
-    required this.selectedIndex,
-  });
-
-  void _navigate(BuildContext context, int index) {
-    if (index == selectedIndex) return;
-
-    if (index == 2) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/guest-wishlist',
-        (route) => false,
-      );
-    } else if (index == 3) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/guest-itinerary',
-        (route) => false,
-      );
-    } else if (index == 4) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/guest-profile',
-        (route) => false,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final menus = [
-      {'icon': Icons.home_outlined, 'label': 'Home'},
-      {'icon': Icons.search, 'label': 'Search'},
-      {'icon': Icons.favorite_border, 'label': 'Wishlist'},
-      {'icon': Icons.calendar_month_outlined, 'label': 'Itinerary'},
-      {'icon': Icons.person_outline, 'label': 'Profile'},
-    ];
-
-    return Container(
-      height: 61,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(
-          top: BorderSide(color: AppColors.border, width: 1),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(menus.length, (index) {
-          final isActive = index == selectedIndex;
-
-          return GestureDetector(
-            onTap: () => _navigate(context, index),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  menus[index]['icon'] as IconData,
-                  size: 20,
-                  color: isActive ? AppColors.primary : AppColors.textMuted,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  menus[index]['label'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                    color: isActive ? AppColors.primary : AppColors.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
     );
   }
 }
