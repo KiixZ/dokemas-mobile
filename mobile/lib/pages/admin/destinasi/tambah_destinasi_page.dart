@@ -4,9 +4,11 @@ import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
 
-/// Form tambah destinasi baru (UI only, belum simpan ke backend).
+/// Form tambah/edit destinasi (UI only, belum simpan ke backend).
+/// Kirim [existing] buat mode edit (field ter-isi).
 class TambahDestinasiPage extends StatefulWidget {
-  const TambahDestinasiPage({super.key});
+  final Destination? existing;
+  const TambahDestinasiPage({super.key, this.existing});
 
   @override
   State<TambahDestinasiPage> createState() => _TambahDestinasiPageState();
@@ -14,18 +16,38 @@ class TambahDestinasiPage extends StatefulWidget {
 
 class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nama = TextEditingController();
-  final _area = TextEditingController();
-  final _harga = TextEditingController();
+  late final _nama =
+      TextEditingController(text: widget.existing?.name ?? '');
+  late final _area =
+      TextEditingController(text: widget.existing?.area ?? '');
+  late final _harga =
+      TextEditingController(text: widget.existing?.price.toString() ?? '');
   final _deskripsi = TextEditingController();
-  final _lat = TextEditingController();
-  final _lng = TextEditingController();
+  late final _lat =
+      TextEditingController(text: widget.existing?.lat?.toString() ?? '');
+  late final _lng =
+      TextEditingController(text: widget.existing?.lng?.toString() ?? '');
 
-  String? _kategori;
-  bool _active = true;
-  TimeOfDay _openHour = const TimeOfDay(hour: 8, minute: 0);
-  TimeOfDay _closeHour = const TimeOfDay(hour: 17, minute: 0);
-  final Set<String> _facilities = {};
+  late String? _kategori = widget.existing?.category;
+  late bool _active = widget.existing?.active ?? true;
+  late TimeOfDay _openHour =
+      _parseTime(widget.existing?.openHour) ?? const TimeOfDay(hour: 8, minute: 0);
+  late TimeOfDay _closeHour =
+      _parseTime(widget.existing?.closeHour) ?? const TimeOfDay(hour: 17, minute: 0);
+  late final Set<String> _facilities = {...?widget.existing?.facilities};
+
+  bool get _isEdit => widget.existing != null;
+
+  /// "08:30" -> TimeOfDay. null kalau gagal.
+  TimeOfDay? _parseTime(String? s) {
+    if (s == null) return null;
+    final parts = s.split(':');
+    if (parts.length != 2) return null;
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null) return null;
+    return TimeOfDay(hour: h, minute: m);
+  }
 
   @override
   void dispose() {
@@ -62,7 +84,11 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
     // UI only: balik ke list, kasih notif sukses.
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Destinasi "${_nama.text}" ditambah (dummy)')),
+      SnackBar(
+        content: Text(_isEdit
+            ? 'Destinasi "${_nama.text}" diperbarui (dummy)'
+            : 'Destinasi "${_nama.text}" ditambah (dummy)'),
+      ),
     );
   }
 
@@ -70,9 +96,9 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Tambah Destinasi',
-          style: TextStyle(
+        title: Text(
+          _isEdit ? 'Edit Destinasi' : 'Tambah Destinasi',
+          style: const TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -252,7 +278,7 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
               child: ElevatedButton.icon(
                 onPressed: _save,
                 icon: const Icon(Icons.save_outlined),
-                label: const Text('Simpan Destinasi'),
+                label: Text(_isEdit ? 'Simpan Perubahan' : 'Simpan Destinasi'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.onPrimary,

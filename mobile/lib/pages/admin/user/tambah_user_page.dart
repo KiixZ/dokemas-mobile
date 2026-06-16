@@ -4,9 +4,11 @@ import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
 
-/// Form tambah user baru (UI only, belum simpan ke backend).
+/// Form tambah/edit user (UI only, belum simpan ke backend).
+/// Kirim [existing] buat mode edit (field ter-isi).
 class TambahUserPage extends StatefulWidget {
-  const TambahUserPage({super.key});
+  final AppUser? existing;
+  const TambahUserPage({super.key, this.existing});
 
   @override
   State<TambahUserPage> createState() => _TambahUserPageState();
@@ -14,13 +16,17 @@ class TambahUserPage extends StatefulWidget {
 
 class _TambahUserPageState extends State<TambahUserPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nama = TextEditingController();
-  final _email = TextEditingController();
+  late final _nama =
+      TextEditingController(text: widget.existing?.name ?? '');
+  late final _email =
+      TextEditingController(text: widget.existing?.email ?? '');
   final _password = TextEditingController();
 
-  UserRole _role = UserRole.user;
-  bool _active = true;
+  late UserRole _role = widget.existing?.role ?? UserRole.user;
+  late bool _active = widget.existing?.active ?? true;
   bool _obscure = true;
+
+  bool get _isEdit => widget.existing != null;
 
   @override
   void dispose() {
@@ -34,7 +40,11 @@ class _TambahUserPageState extends State<TambahUserPage> {
     if (!_formKey.currentState!.validate()) return;
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('User "${_nama.text}" ditambah (dummy)')),
+      SnackBar(
+        content: Text(_isEdit
+            ? 'User "${_nama.text}" diperbarui (dummy)'
+            : 'User "${_nama.text}" ditambah (dummy)'),
+      ),
     );
   }
 
@@ -42,9 +52,9 @@ class _TambahUserPageState extends State<TambahUserPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Tambah User',
-          style: TextStyle(
+        title: Text(
+          _isEdit ? 'Edit User' : 'Tambah User',
+          style: const TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -86,7 +96,10 @@ class _TambahUserPageState extends State<TambahUserPage> {
             TextFormField(
               controller: _password,
               obscureText: _obscure,
-              decoration: _dec('Minimal 6 karakter').copyWith(
+              decoration: _dec(_isEdit
+                      ? 'Kosongkan jika tidak diubah'
+                      : 'Minimal 6 karakter')
+                  .copyWith(
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscure ? Icons.visibility_off : Icons.visibility,
@@ -96,6 +109,8 @@ class _TambahUserPageState extends State<TambahUserPage> {
                 ),
               ),
               validator: (v) {
+                // Edit + kosong = password tidak diubah.
+                if (_isEdit && (v == null || v.isEmpty)) return null;
                 if (v == null || v.isEmpty) return 'Password wajib diisi';
                 if (v.length < 6) return 'Minimal 6 karakter';
                 return null;
@@ -141,7 +156,7 @@ class _TambahUserPageState extends State<TambahUserPage> {
               child: ElevatedButton.icon(
                 onPressed: _save,
                 icon: const Icon(Icons.save_outlined),
-                label: const Text('Simpan User'),
+                label: Text(_isEdit ? 'Simpan Perubahan' : 'Simpan User'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.onPrimary,

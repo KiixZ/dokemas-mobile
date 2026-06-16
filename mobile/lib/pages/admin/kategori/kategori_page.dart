@@ -24,6 +24,12 @@ class _AdminKategoriPageState extends State<AdminKategoriPage> {
     );
   }
 
+  void _openEdit(Category cat) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => TambahKategoriPage(existing: cat)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,7 +65,7 @@ class _AdminKategoriPageState extends State<AdminKategoriPage> {
             cat: _items[i],
             onToggle: (v) =>
                 setState(() => _items[i] = _items[i].copyWith(active: v)),
-            onEdit: () {},
+            onEdit: () => _openEdit(_items[i]),
             onDelete: () => _confirmDelete(_items[i]),
           ),
           const SizedBox(height: AppSpacing.md),

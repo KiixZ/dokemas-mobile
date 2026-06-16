@@ -33,6 +33,12 @@ class _AdminUserPageState extends State<AdminUserPage> {
     );
   }
 
+  void _openEdit(AppUser user) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => TambahUserPage(existing: user)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final items = _visible;
@@ -101,7 +107,7 @@ class _AdminUserPageState extends State<AdminUserPage> {
                               () => _items[idx] = _items[idx].copyWith(active: v));
                         }
                       },
-                      onEdit: () {},
+                      onEdit: () => _openEdit(items[i]),
                       onDelete: () => _confirmDelete(items[i]),
                     ),
                   ),
