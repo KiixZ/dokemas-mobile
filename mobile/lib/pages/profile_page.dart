@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
+import 'package:mobile/edit_profile_page.dart';
 
 /// Halaman Profil Pengguna
 /// Menampilkan biografi ringkas pengguna, menu akun, aktivitas, pengaturan, dan dukungan.
@@ -17,6 +19,12 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isNotificationEnabled = true;
   bool _isDarkModeEnabled = false;
 
+  String _currentName = 'Saputra';
+  String _currentEmail = 'saputra@example.com';
+  String _currentAvatarUrl =
+      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop';
+  String? _localImagePath;
+
   // Method untuk menampilkan dialog konfirmasi keluar
   void _showLogoutDialog() {
     showDialog(
@@ -29,7 +37,9 @@ class _ProfilePageState extends State<ProfilePage> {
           'Konfirmasi Keluar',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        content: const Text('Apakah Anda yakin ingin keluar dari akun DOKEMAS?'),
+        content: const Text(
+          'Apakah Anda yakin ingin keluar dari akun DOKEMAS?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -54,7 +64,10 @@ class _ProfilePageState extends State<ProfilePage> {
             },
             child: const Text(
               'Keluar',
-              style: TextStyle(color: AppColors.danger, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: AppColors.danger,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -72,21 +85,24 @@ class _ProfilePageState extends State<ProfilePage> {
         titleSpacing: AppSpacing.md,
         title: Row(
           children: [
-            const CircleAvatar(
+            CircleAvatar(
               radius: 18,
-              backgroundImage: NetworkImage(
-                'https://i.pravatar.cc/150?img=11', // Profile pic kustom
-              ),
+              backgroundImage: _localImagePath != null
+                  ? FileImage(File(_localImagePath!)) as ImageProvider
+                  : NetworkImage(_currentAvatarUrl),
             ),
             const SizedBox(width: AppSpacing.sm),
             RichText(
               text: TextSpan(
                 style: AppTextStyles.title,
-                children: const [
-                  TextSpan(text: 'Halo, '),
+                children: [
+                  const TextSpan(text: 'Halo, '),
                   TextSpan(
-                    text: 'Saputra ',
-                    style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                    text: _currentName,
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   TextSpan(text: '👋'),
                 ],
@@ -158,17 +174,17 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ],
                       ),
-                      child: const CircleAvatar(
+                      child: CircleAvatar(
                         radius: 46,
-                        backgroundImage: NetworkImage(
-                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop',
-                        ),
+                        backgroundImage: _localImagePath != null
+                            ? FileImage(File(_localImagePath!)) as ImageProvider
+                            : NetworkImage(_currentAvatarUrl),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     // Nama
                     Text(
-                      'Saputra',
+                      _currentName,
                       style: AppTextStyles.heading2.copyWith(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -206,7 +222,29 @@ class _ProfilePageState extends State<ProfilePage> {
                 _SettingsTile(
                   icon: Icons.person_outline_rounded,
                   title: 'Edit Profil',
-                  onTap: () => _showPlaceholderSnackBar('Edit Profil'),
+                  onTap: () async {
+                    // Pindah ke halaman edit sambil mengirimkan data profil saat ini
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditProfilePage(
+                          currentName: _currentName,
+                          currentEmail: _currentEmail,
+                          currentAvatarUrl: _currentAvatarUrl,
+                          localImagePath: _localImagePath,
+                        ),
+                      ),
+                    );
+
+                    // Jika membawa data pulang saat halaman edit ditutup, update layar utama
+                    if (result != null && result is Map<String, dynamic>) {
+                      setState(() {
+                        _currentName = result['name'];
+                        _currentEmail = result['email'];
+                        _localImagePath = result['imagePath'];
+                      });
+                    }
+                  },
                 ),
                 _SettingsTile(
                   icon: Icons.lock_outline_rounded,
@@ -316,9 +354,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFEF2F2), // Merah transparan kustom
-                  border: Border.all(
-                    color: const Color(0xFFFEE2E2),
-                  ),
+                  border: Border.all(color: const Color(0xFFFEE2E2)),
                   borderRadius: BorderRadius.circular(AppSpacing.radius),
                 ),
                 child: Row(
@@ -366,10 +402,7 @@ class _SettingsSection extends StatelessWidget {
   final String title;
   final List<Widget> tiles;
 
-  const _SettingsSection({
-    required this.title,
-    required this.tiles,
-  });
+  const _SettingsSection({required this.title, required this.tiles});
 
   @override
   Widget build(BuildContext context) {
@@ -402,9 +435,7 @@ class _SettingsSection extends StatelessWidget {
                 offset: const Offset(0, 2),
               ),
             ],
-            border: Border.all(
-              color: AppColors.border.withValues(alpha: 0.5),
-            ),
+            border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppSpacing.radius),
@@ -454,11 +485,7 @@ class _SettingsTile extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.primary,
-                size: 20,
-              ),
+              child: Icon(icon, color: AppColors.primary, size: 20),
             ),
             const SizedBox(width: AppSpacing.md),
             // Judul Menu
