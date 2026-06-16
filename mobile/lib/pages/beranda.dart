@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/components/filter_bottom_sheet.dart'; 
+import 'package:mobile/components/filter_bottom_sheet.dart';
 import '../theme/app_colors.dart';
+import 'notification_page.dart';
+import 'explore_page.dart';
 
 // 1. MENGUBAH HOMEPAGE MENJADI STATEFULWIDGET
 class HomePage extends StatefulWidget {
@@ -26,7 +28,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, 
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -58,12 +60,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   // 1. HEADER SECTION
+  // 1. HEADER SECTION (NOTIFIKASI SUDAH AKTIF)
   Widget _buildHeader() {
     return Row(
       children: [
         const CircleAvatar(
           radius: 24,
-          backgroundImage: NetworkImage('https://via.placeholder.com/150'), 
+          backgroundImage: NetworkImage('https://via.placeholder.com/150'),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -90,35 +93,51 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(width: 4),
                   Text(
                     'Purwokerto, Jawa Tengah',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
                   ),
                 ],
               ),
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withValues(alpha: 0.1), // Menggunakan .withValues() versi terbaru
-                spreadRadius: 1,
-                blurRadius: 5,
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.notifications_none_outlined,
-            color: AppColors.primary,
+
+        // MEMBUNGKUS TOMBOL LONCENG AGAR BISA DIKLIK
+        InkWell(
+          onTap: () {
+            // Memanggil fungsi pop-up dialog
+            _showNotificationDialog(context);
+          },
+          borderRadius: BorderRadius.circular(
+            24,
+          ), // Efek klik membulat pas di tombol
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withValues(alpha: 0.1),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.notifications_none_outlined,
+              color: AppColors.primary,
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  // SEKARANG BERFUNGSI PINDAH HALAMAN (Tetap void)
+  void _showNotificationDialog(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const NotificationPage()),
     );
   }
 
@@ -136,20 +155,40 @@ class _HomePageState extends State<HomePage> {
             ),
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(
-              children: const [
-                Icon(Icons.search, color: AppColors.primary),
-                SizedBox(width: 10),
-                Text(
-                  'Mau liburan kemana hari ini?',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
+              children: [
+                const Icon(Icons.search, color: AppColors.primary),
+                const SizedBox(width: 10),
+Expanded(
+  child: TextField(
+    onSubmitted: (query) {
+      if (query.isNotEmpty) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ExplorePage(searchQuery: query),
+          ),
+        );
+      }
+    },
+    decoration: const InputDecoration(
+      hintText: 'Mau liburan kemana hari ini?',
+      hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+      border: InputBorder.none,
+      enabledBorder: InputBorder.none,
+      focusedBorder: InputBorder.none,
+      filled: true,
+      fillColor: Colors.transparent, // <-- Menghilangkan kotak dalam
+      contentPadding: EdgeInsets.symmetric(vertical: 12), // Teks pas di tengah vertikal
+    ),
+  ),
+),
               ],
             ),
           ),
         ),
         const SizedBox(width: 12),
         InkWell(
-          onTap: () => showFilterBottomSheet(context), 
+          onTap: () => showFilterBottomSheet(context),
           borderRadius: BorderRadius.circular(12),
           child: Container(
             height: 50,
@@ -217,11 +256,15 @@ class _HomePageState extends State<HomePage> {
                   },
                   borderRadius: BorderRadius.circular(30),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200), // Efek transisi warna halus
+                    duration: const Duration(
+                      milliseconds: 200,
+                    ), // Efek transisi warna halus
                     height: 60,
                     width: 60,
                     decoration: BoxDecoration(
-                      color: isActive ? AppColors.primary : AppColors.primary.withValues(alpha: 0.12),
+                      color: isActive
+                          ? AppColors.primary
+                          : AppColors.primary.withValues(alpha: 0.12),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -255,7 +298,7 @@ class _HomePageState extends State<HomePage> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         image: const DecorationImage(
-          image: NetworkImage('https://via.placeholder.com/400x250'), 
+          image: NetworkImage('https://via.placeholder.com/400x250'),
           fit: BoxFit.cover,
         ),
       ),
@@ -311,19 +354,32 @@ class _HomePageState extends State<HomePage> {
                       children: const [
                         Icon(Icons.star, color: Colors.amber, size: 16),
                         SizedBox(width: 4),
-                        Text('4.8', style: TextStyle(color: Colors.white, fontSize: 12)),
+                        Text(
+                          '4.8',
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        ),
                         SizedBox(width: 6),
                         Text('•', style: TextStyle(color: Colors.white)),
                         SizedBox(width: 6),
-                        Icon(Icons.directions_car, color: Colors.white, size: 16),
+                        Icon(
+                          Icons.directions_car,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                         SizedBox(width: 4),
-                        Text('15 mnt', style: TextStyle(color: Colors.white, fontSize: 12)),
+                        Text(
+                          '15 mnt',
+                          style: TextStyle(color: Colors.white, fontSize: 12),
+                        ),
                       ],
                     ),
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(8),
@@ -386,9 +442,13 @@ class _HomePageState extends State<HomePage> {
                     Container(
                       height: 120,
                       decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
                         image: DecorationImage(
-                          image: NetworkImage('https://via.placeholder.com/150'), 
+                          image: NetworkImage(
+                            'https://via.placeholder.com/150',
+                          ),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -397,18 +457,29 @@ class _HomePageState extends State<HomePage> {
                       top: 8,
                       right: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 12),
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 12,
+                            ),
                             const SizedBox(width: 2),
                             Text(
                               item['rating']!,
-                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
@@ -423,12 +494,18 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Text(
                         item['name']!,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         item['location']!,
-                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(

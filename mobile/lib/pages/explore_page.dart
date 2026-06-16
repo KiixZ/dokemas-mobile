@@ -2,13 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:mobile/components/filter_bottom_sheet.dart';
 import '../theme/app_colors.dart';
 
-class ExplorePage extends StatelessWidget {
-  const ExplorePage({super.key});
+class ExplorePage extends StatefulWidget {
+  final String? searchQuery; // Menerima lemparan teks dari beranda
+
+  const ExplorePage({super.key, this.searchQuery});
+
+  @override
+  State<ExplorePage> createState() => _ExplorePageState();
+}
+
+class _ExplorePageState extends State<ExplorePage> {
+  late TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Inisialisasi controller dengan teks pencarian dari Beranda jika ada
+    _searchController = TextEditingController(text: widget.searchQuery ?? '');
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, // Konsisten dengan Beranda
+      backgroundColor: AppColors.background, // Tetap konsisten dengan Beranda
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,10 +50,10 @@ class ExplorePage extends StatelessWidget {
             ),
             const SizedBox(height: 15),
 
-            // 2. Search Bar & Filter (Mengirim 'context' ke dalam fungsi)
+            // 2. Search Bar & Filter (Sesuai dengan desain Beranda tanpa kotak ganda)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: _buildSearchBar(context), // <--- SEKARANG SUDAH ADA CONTEXT
+              child: _buildSearchBar(context),
             ),
             const SizedBox(height: 15),
 
@@ -49,8 +71,8 @@ class ExplorePage extends StatelessWidget {
     );
   }
 
-  // REUSABLE SEARCH BAR
-  Widget _buildSearchBar(BuildContext context) { // <--- Menerima parameter BuildContext
+  // SEARCH BAR CLEAN DAN PROFESIONAL (SAMA DENGAN BERANDA)
+  Widget _buildSearchBar(BuildContext context) {
     return Row(
       children: [
         Expanded(
@@ -62,17 +84,23 @@ class ExplorePage extends StatelessWidget {
               border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.search, color: AppColors.primary),
-                SizedBox(width: 10),
+                const Icon(Icons.search, color: AppColors.primary),
+                const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
-                    decoration: InputDecoration(
+                    controller: _searchController, // Hubungkan ke controller
+                    style: const TextStyle(fontSize: 14, color: Colors.black),
+                    decoration: const InputDecoration(
                       hintText: 'Cari tempat wisata terdekat...',
                       hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
                       border: InputBorder.none,
-                      isDense: true,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: true,
+                      fillColor: Colors.transparent, // Menghilangkan kotak dalam pengganggu
+                      contentPadding: EdgeInsets.symmetric(vertical: 12), // Teks pas di tengah
                     ),
                   ),
                 ),
@@ -82,10 +110,10 @@ class ExplorePage extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         
-        // SEKARANG ICONS.TUNE SUDAH DIBUNGKUS INKWELL AGAR BISA DIKLIK
+        // Tombol Filter
         InkWell(
           onTap: () {
-            showFilterBottomSheet(context); // <--- Memanggil Filter Global Komponen
+            showFilterBottomSheet(context);
           },
           borderRadius: BorderRadius.circular(12),
           child: Container(
@@ -103,7 +131,7 @@ class ExplorePage extends StatelessWidget {
   }
 
   // QUICK TAGS / FILTER KATEGORI SINGKAT
-Widget _buildQuickTags() {
+  Widget _buildQuickTags() {
     final tags = ['Semua', 'Terpopuler', 'Dekat Kamu', 'Murah Meriah', 'Alam'];
     return SizedBox(
       height: 40,
@@ -139,7 +167,7 @@ Widget _buildQuickTags() {
     );
   }
 
-  // GRID DESTINASI (2 KOLOM)
+  // GRID DESTINASI (MEMPERBAIKI ERROR ITEMBUILDER)
   Widget _buildDestinationGrid() {
     final exploreItems = [
       {

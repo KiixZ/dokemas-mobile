@@ -248,7 +248,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 _SettingsTile(
                   icon: Icons.lock_outline_rounded,
                   title: 'Ganti Password',
-                  onTap: () => _showPlaceholderSnackBar('Ganti Password'),
+                  onTap: () {
+                    // Navigasi ke halaman Ganti Password
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChangePasswordPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
