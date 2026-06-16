@@ -4,6 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import 'edit_profile_page.dart';
+import 'change_password_page.dart';
 
 /// Halaman Profil Pengguna
 /// Menampilkan biografi ringkas pengguna, menu akun, aktivitas, pengaturan, dan dukungan.
@@ -249,7 +250,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 _SettingsTile(
                   icon: Icons.lock_outline_rounded,
                   title: 'Ganti Password',
-                  onTap: () => _showPlaceholderSnackBar('Ganti Password'),
+                  onTap: () {
+                    // Navigasi ke halaman Ganti Password
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChangePasswordPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
