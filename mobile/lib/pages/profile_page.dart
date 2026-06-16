@@ -5,9 +5,8 @@ import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import 'edit_profile_page.dart';
 import 'riwayat_itinerary_page.dart';
+import 'ulasan_saya_page.dart';
 
-/// Halaman Profil Pengguna
-/// Menampilkan biografi ringkas pengguna, menu akun, aktivitas, pengaturan, dan dukungan.
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -16,7 +15,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // State untuk switch tombol interaktif
   bool _isNotificationEnabled = true;
   bool _isDarkModeEnabled = false;
 
@@ -26,7 +24,6 @@ class _ProfilePageState extends State<ProfilePage> {
       'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop';
   String? _localImagePath;
 
-  // Method untuk menampilkan dialog konfirmasi keluar
   void _showLogoutDialog() {
     showDialog(
       context: context,
@@ -38,9 +35,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'Konfirmasi Keluar',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        content: const Text(
-          'Apakah Anda yakin ingin keluar dari akun DOKEMAS?',
-        ),
+        content: const Text('Apakah Anda yakin ingin keluar dari akun DOKEMAS?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -76,6 +71,16 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  void _showPlaceholderSnackBar(String featureName) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Membuka $featureName (Placeholder)'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,7 +110,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  TextSpan(text: '👋'),
+                  const TextSpan(text: '👋'),
                 ],
               ),
             ),
@@ -139,7 +144,6 @@ class _ProfilePageState extends State<ProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. KARTU PROFIL UTAMA
             Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
@@ -159,7 +163,6 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Center(
                 child: Column(
                   children: [
-                    // Avatar dengan bingkai premium
                     Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -183,7 +186,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    // Nama
                     Text(
                       _currentName,
                       style: AppTextStyles.heading2.copyWith(
@@ -192,7 +194,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xs),
-                    // Lokasi
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -216,7 +217,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: AppSpacing.sm),
 
-            // 2. SEKSI AKUN SAYA
             _SettingsSection(
               title: 'AKUN SAYA',
               tiles: [
@@ -224,7 +224,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   icon: Icons.person_outline_rounded,
                   title: 'Edit Profil',
                   onTap: () async {
-                    // Pindah ke halaman edit sambil mengirimkan data profil saat ini
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -237,7 +236,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     );
 
-                    // Jika membawa data pulang saat halaman edit ditutup, update layar utama
                     if (result != null && result is Map<String, dynamic>) {
                       setState(() {
                         _currentName = result['name'];
@@ -263,7 +261,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
 
-            // 3. SEKSI AKTIVITAS
             _SettingsSection(
               title: 'AKTIVITAS',
               tiles: [
@@ -274,7 +271,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RiwayatItineraryPage(),
+                        builder: (context) => const RiwayatItineraryPage(),
                       ),
                     );
                   },
@@ -282,12 +279,18 @@ class _ProfilePageState extends State<ProfilePage> {
                 _SettingsTile(
                   icon: Icons.star_border_rounded,
                   title: 'Ulasan Saya',
-                  onTap: () => _showPlaceholderSnackBar('Ulasan Saya'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const UlasanSayaPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
 
-            // 4. SEKSI PENGATURAN
             _SettingsSection(
               title: 'PENGATURAN',
               tiles: [
@@ -343,7 +346,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ],
             ),
 
-            // 5. SEKSI DUKUNGAN
             _SettingsSection(
               title: 'DUKUNGAN',
               tiles: [
@@ -361,7 +363,6 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: AppSpacing.lg),
 
-            // 6. TOMBOL KELUAR (LOGOUT)
             InkWell(
               onTap: _showLogoutDialog,
               borderRadius: BorderRadius.circular(AppSpacing.radius),
@@ -369,13 +370,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF2F2), // Merah transparan kustom
+                  color: const Color(0xFFFEF2F2),
                   border: Border.all(color: const Color(0xFFFEE2E2)),
                   borderRadius: BorderRadius.circular(AppSpacing.radius),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Icon(
                       Icons.logout_rounded,
                       color: AppColors.danger,
@@ -398,22 +399,10 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
-      // Navbar disediakan oleh shell (MainScreen).
-    );
-  }
-
-  void _showPlaceholderSnackBar(String featureName) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Membuka $featureName (Placeholder)'),
-        duration: const Duration(seconds: 2),
-      ),
     );
   }
 }
 
-/// Widget Kustom Seksi Pengaturan (Seksi Berisi Settings Tiles)
 class _SettingsSection extends StatelessWidget {
   final String title;
   final List<Widget> tiles;
@@ -469,7 +458,6 @@ class _SettingsSection extends StatelessWidget {
   }
 }
 
-/// Widget Kustom Baris Pilihan Menu Pengaturan
 class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -494,7 +482,6 @@ class _SettingsTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Kontainer Ikon Kiri (Warna Latar Primary Transparan)
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -504,7 +491,6 @@ class _SettingsTile extends StatelessWidget {
               child: Icon(icon, color: AppColors.primary, size: 20),
             ),
             const SizedBox(width: AppSpacing.md),
-            // Judul Menu
             Expanded(
               child: Text(
                 title,
@@ -514,7 +500,6 @@ class _SettingsTile extends StatelessWidget {
                 ),
               ),
             ),
-            // Widget Trailing (default Chevron Kanan)
             trailing ??
                 const Icon(
                   Icons.chevron_right_rounded,
