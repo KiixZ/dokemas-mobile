@@ -1,33 +1,48 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
+import '../pages/auth/login_page.dart';
+import '../pages/auth/register_page.dart';
 
+/// Konten "harus login" buat tab guest yang ke-gate (wishlist/itinerary/profile).
+/// Navbar disediakan oleh shell (GuestMainScreen), bukan di sini.
 class GuestLoginRequiredPage extends StatelessWidget {
   final IconData icon;
   final String title;
   final String description;
-  final int selectedIndex;
 
   const GuestLoginRequiredPage({
     super.key,
     required this.icon,
     required this.title,
     required this.description,
-    required this.selectedIndex,
   });
+
+  void _openLogin(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginPage()),
+    );
+  }
+
+  void _openRegister(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RegisterPage()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FD),
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 22),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 155),
+        child: Center(
+          child: SingleChildScrollView(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 22, vertical: 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+                    children: [
                     Stack(
                       alignment: Alignment.center,
                       clipBehavior: Clip.none,
@@ -35,15 +50,15 @@ class GuestLoginRequiredPage extends StatelessWidget {
                         Container(
                           width: 96,
                           height: 96,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEAF2FF),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
                         ),
                         Icon(
                           icon,
                           size: 43,
-                          color: const Color(0xFF00796B),
+                          color: AppColors.primary,
                         ),
                         Positioned(
                           top: 5,
@@ -52,26 +67,26 @@ class GuestLoginRequiredPage extends StatelessWidget {
                             width: 19,
                             height: 19,
                             decoration: const BoxDecoration(
-                              color: Color(0xFF19C7B7),
+                              color: AppColors.primaryLight,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
                               Icons.star,
-                              color: Colors.white,
+                              color: AppColors.onPrimary,
                               size: 10,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 62),
+                    const SizedBox(height: 40),
                     Text(
                       title,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
-                        color: Color(0xFF102033),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -82,7 +97,7 @@ class GuestLoginRequiredPage extends StatelessWidget {
                         fontSize: 12,
                         height: 1.55,
                         fontWeight: FontWeight.w400,
-                        color: Color(0xFF7B8493),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -90,10 +105,10 @@ class GuestLoginRequiredPage extends StatelessWidget {
                       width: double.infinity,
                       height: 46,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => _openLogin(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00796B),
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.onPrimary,
                           elevation: 5,
                           shadowColor: Colors.black26,
                           shape: RoundedRectangleBorder(
@@ -124,116 +139,27 @@ class GuestLoginRequiredPage extends StatelessWidget {
                           'Belum punya akun? ',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF7B8493),
+                            color: AppColors.textSecondary,
                           ),
                         ),
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () => _openRegister(context),
                           child: const Text(
                             'Daftar',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w800,
-                              color: Color(0xFF00796B),
+                              color: AppColors.primary,
                             ),
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
-            _GuestBottomNav(selectedIndex: selectedIndex),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-}
-
-class _GuestBottomNav extends StatelessWidget {
-  final int selectedIndex;
-
-  const _GuestBottomNav({
-    required this.selectedIndex,
-  });
-
-  void _navigate(BuildContext context, int index) {
-    if (index == selectedIndex) return;
-
-    if (index == 2) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/guest-wishlist',
-        (route) => false,
-      );
-    } else if (index == 3) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/guest-itinerary',
-        (route) => false,
-      );
-    } else if (index == 4) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        '/guest-profile',
-        (route) => false,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final menus = [
-      {'icon': Icons.home_outlined, 'label': 'Home'},
-      {'icon': Icons.search, 'label': 'Search'},
-      {'icon': Icons.favorite_border, 'label': 'Wishlist'},
-      {'icon': Icons.calendar_month_outlined, 'label': 'Itinerary'},
-      {'icon': Icons.person_outline, 'label': 'Profile'},
-    ];
-
-    return Container(
-      height: 61,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Color(0xFFE9EDF3), width: 1),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(menus.length, (index) {
-          final isActive = index == selectedIndex;
-
-          return GestureDetector(
-            onTap: () => _navigate(context, index),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  menus[index]['icon'] as IconData,
-                  size: 20,
-                  color: isActive
-                      ? const Color(0xFF00796B)
-                      : const Color(0xFF8C97A6),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  menus[index]['label'] as String,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                    color: isActive
-                        ? const Color(0xFF00796B)
-                        : const Color(0xFF8C97A6),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
     );
   }
 }

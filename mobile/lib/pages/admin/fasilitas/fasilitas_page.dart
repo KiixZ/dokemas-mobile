@@ -23,6 +23,12 @@ class _AdminFasilitasPageState extends State<AdminFasilitasPage> {
     );
   }
 
+  void _openEdit(Facility fac) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => TambahFasilitasPage(existing: fac)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +64,7 @@ class _AdminFasilitasPageState extends State<AdminFasilitasPage> {
               fac: _items[i],
               onToggle: (v) =>
                   setState(() => _items[i] = _items[i].copyWith(active: v)),
-              onEdit: () {},
+              onEdit: () => _openEdit(_items[i]),
               onDelete: () => _confirmDelete(_items[i]),
             ),
             const SizedBox(height: AppSpacing.md),

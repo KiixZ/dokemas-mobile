@@ -3,6 +3,7 @@ import '../../../models/destination.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
+import 'tambah_destinasi_page.dart';
 
 /// Body kelola destinasi: search + filter kategori + daftar kartu.
 /// UI only. Dibungkus AppBar + navbar oleh [AdminShell]. FAB ada di shell.
@@ -114,12 +115,18 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
                       const SizedBox(height: AppSpacing.md),
                   itemBuilder: (context, i) => _DestinationCard(
                     dest: items[i],
-                    onEdit: () {},
+                    onEdit: () => _openEdit(items[i]),
                     onDelete: () => _confirmDelete(context, items[i]),
                   ),
                 ),
         ),
       ],
+    );
+  }
+
+  void _openEdit(Destination dest) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => TambahDestinasiPage(existing: dest)),
     );
   }
 

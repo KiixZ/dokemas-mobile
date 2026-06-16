@@ -4,9 +4,11 @@ import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
 
-/// Form tambah fasilitas baru (UI only, belum simpan ke backend).
+/// Form tambah/edit fasilitas (UI only, belum simpan ke backend).
+/// Kirim [existing] buat mode edit (field ter-isi).
 class TambahFasilitasPage extends StatefulWidget {
-  const TambahFasilitasPage({super.key});
+  final Facility? existing;
+  const TambahFasilitasPage({super.key, this.existing});
 
   @override
   State<TambahFasilitasPage> createState() => _TambahFasilitasPageState();
@@ -14,9 +16,12 @@ class TambahFasilitasPage extends StatefulWidget {
 
 class _TambahFasilitasPageState extends State<TambahFasilitasPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nama = TextEditingController();
-  IconData _icon = facilityIconOptions.first;
-  bool _active = true;
+  late final _nama =
+      TextEditingController(text: widget.existing?.name ?? '');
+  late IconData _icon = widget.existing?.icon ?? facilityIconOptions.first;
+  late bool _active = widget.existing?.active ?? true;
+
+  bool get _isEdit => widget.existing != null;
 
   @override
   void dispose() {
@@ -28,7 +33,11 @@ class _TambahFasilitasPageState extends State<TambahFasilitasPage> {
     if (!_formKey.currentState!.validate()) return;
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Fasilitas "${_nama.text}" ditambah (dummy)')),
+      SnackBar(
+        content: Text(_isEdit
+            ? 'Fasilitas "${_nama.text}" diperbarui (dummy)'
+            : 'Fasilitas "${_nama.text}" ditambah (dummy)'),
+      ),
     );
   }
 
@@ -36,9 +45,9 @@ class _TambahFasilitasPageState extends State<TambahFasilitasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Tambah Fasilitas',
-          style: TextStyle(
+        title: Text(
+          _isEdit ? 'Edit Fasilitas' : 'Tambah Fasilitas',
+          style: const TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -143,7 +152,7 @@ class _TambahFasilitasPageState extends State<TambahFasilitasPage> {
               child: ElevatedButton.icon(
                 onPressed: _save,
                 icon: const Icon(Icons.save_outlined),
-                label: const Text('Simpan Fasilitas'),
+                label: Text(_isEdit ? 'Simpan Perubahan' : 'Simpan Fasilitas'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.onPrimary,

@@ -4,9 +4,11 @@ import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
 
-/// Form tambah kategori baru (UI only, belum simpan ke backend).
+/// Form tambah/edit kategori (UI only, belum simpan ke backend).
+/// Kirim [existing] buat mode edit (field ter-isi).
 class TambahKategoriPage extends StatefulWidget {
-  const TambahKategoriPage({super.key});
+  final Category? existing;
+  const TambahKategoriPage({super.key, this.existing});
 
   @override
   State<TambahKategoriPage> createState() => _TambahKategoriPageState();
@@ -14,9 +16,12 @@ class TambahKategoriPage extends StatefulWidget {
 
 class _TambahKategoriPageState extends State<TambahKategoriPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nama = TextEditingController();
-  IconData _icon = categoryIconOptions.first;
-  bool _active = true;
+  late final _nama =
+      TextEditingController(text: widget.existing?.name ?? '');
+  late IconData _icon = widget.existing?.icon ?? categoryIconOptions.first;
+  late bool _active = widget.existing?.active ?? true;
+
+  bool get _isEdit => widget.existing != null;
 
   @override
   void dispose() {
@@ -28,7 +33,11 @@ class _TambahKategoriPageState extends State<TambahKategoriPage> {
     if (!_formKey.currentState!.validate()) return;
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Kategori "${_nama.text}" ditambah (dummy)')),
+      SnackBar(
+        content: Text(_isEdit
+            ? 'Kategori "${_nama.text}" diperbarui (dummy)'
+            : 'Kategori "${_nama.text}" ditambah (dummy)'),
+      ),
     );
   }
 
@@ -36,9 +45,9 @@ class _TambahKategoriPageState extends State<TambahKategoriPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Tambah Kategori',
-          style: TextStyle(
+        title: Text(
+          _isEdit ? 'Edit Kategori' : 'Tambah Kategori',
+          style: const TextStyle(
             color: AppColors.primary,
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -146,7 +155,7 @@ class _TambahKategoriPageState extends State<TambahKategoriPage> {
               child: ElevatedButton.icon(
                 onPressed: _save,
                 icon: const Icon(Icons.save_outlined),
-                label: const Text('Simpan Kategori'),
+                label: Text(_isEdit ? 'Simpan Perubahan' : 'Simpan Kategori'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.onPrimary,

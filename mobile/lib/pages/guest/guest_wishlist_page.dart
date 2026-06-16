@@ -11,7 +11,6 @@ class GuestWishlistPage extends StatelessWidget {
       title: 'Wishlist Saya',
       description:
           'Simpan destinasi impianmu dengan\nmasuk ke akun Explore Purwokerto.',
-      selectedIndex: 2,
     );
   }
 }

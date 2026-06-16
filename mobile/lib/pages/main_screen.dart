@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'beranda.dart';       // Import halaman beranda kamu
 import 'explore_page.dart';  // Import halaman explore kamu
+import 'wishlist_page.dart';
+import 'itinerary_page.dart';
+import 'profile_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,12 +16,12 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   // Daftar halaman yang akan ditampilkan sesuai index tab bawah
-  final List<Widget> _pages = [
-    const HomePage(),    // Index 0 (Home)
-    const ExplorePage(), // Index 1 (Explore)
-    const Center(child: Text('Halaman Favorite (Belum Dibuat)')),  // Index 2
-    const Center(child: Text('Halaman Itinerary (Belum Dibuat)')), // Index 3
-    const Center(child: Text('Halaman Profile (Belum Dibuat)')),   // Index 4
+  final List<Widget> _pages = const [
+    HomePage(),      // Index 0 (Home)
+    ExplorePage(),   // Index 1 (Explore)
+    WishlistPage(),  // Index 2 (Favorite/Wishlist)
+    ItineraryPage(), // Index 3 (Itinerary)
+    ProfilePage(),   // Index 4 (Profile)
   ];
 
   @override

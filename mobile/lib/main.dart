@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/beranda.dart';
-import 'package:mobile/pages/auth/login_page.dart';
+import 'pages/guest_main_screen.dart';
 import 'theme/app_theme.dart';
-import 'pages/admin/admin_shell.dart';
-import 'pages/itinerary_page.dart';
 
 void main() {
   runApp(const DokemasApp());
@@ -15,10 +12,13 @@ class DokemasApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'DOKEMAS Admin',
+      title: 'DOKEMAS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const HomePage(),
+      // Shell BELUM login (guest).
+      // Preview versi login: import 'pages/main_screen.dart' lalu
+      // home: const MainScreen().
+      home: const GuestMainScreen(),
     );
   }
 }

@@ -11,7 +11,6 @@ class GuestItineraryPage extends StatelessWidget {
       title: 'Rencana Perjalanan',
       description:
           'Masuk untuk mulai merencanakan\npetualanganmu di Purwokerto.\nSimpan tempat favorit dan buat\njadwal perjalanan.',
-      selectedIndex: 3,
     );
   }
 }
