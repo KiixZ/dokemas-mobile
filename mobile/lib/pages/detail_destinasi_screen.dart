@@ -1,7 +1,45 @@
 import 'package:flutter/material.dart';
 
 class DetailDestinasiScreen extends StatelessWidget {
-  const DetailDestinasiScreen({Key? key}) : super(key: key);
+  final String title;
+  final String imageUrl;
+  final String rating;
+  final String reviewCount;
+  final String location;
+  final String price;
+  final String distance;
+  final String openingHours;
+  final String description;
+  final List<Map<String, dynamic>> facilities;
+  final String reviewerName;
+  final String reviewerTime;
+  final String reviewerText;
+
+  const DetailDestinasiScreen({
+    Key? key,
+    this.title = 'Baturraden',
+    this.imageUrl =
+        'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=500&auto=format&fit=crop',
+    this.rating = '4.8',
+    this.reviewCount = '1.2k ulasan',
+    this.location = 'Purwokerto Utara, Banyumas',
+    this.price = 'Rp25.000',
+    this.distance = '12 km',
+    this.openingHours = '08:00 -\n17:00',
+    this.description =
+        'Nikmati udara segar pegunungan dan panorama alam yang memukau di Baturraden. Terletak di lereng Gunung Slamet, destinasi ini menawarkan kombinasi sempurna antara air terjun yang jernih, hutan pinus yang rindang, dan sumber air panas alami. Tempat yang ideal untuk melarikan diri dari hiruk-pikuk kota dan menyatu kembali dengan alam.',
+    this.facilities = const [
+      {'icon': Icons.local_parking, 'label': 'Parkir'},
+      {'icon': Icons.wc, 'label': 'Toilet'},
+      {'icon': Icons.mosque, 'label': 'Mushola'},
+      {'icon': Icons.camera_alt_outlined, 'label': 'Spot Foto'},
+      {'icon': Icons.restaurant, 'label': 'Tempat Makan'},
+    ],
+    this.reviewerName = 'Siti Rahmawati',
+    this.reviewerTime = '2 hari yang lalu',
+    this.reviewerText =
+        'Tempatnya sangat sejuk dan bersih. Air terjunnya indah banget buat foto-foto. Fasilitas lengkap, parkiran luas. Recommended banget buat liburan bareng keluarga.',
+  }) : super(key: key);
 
   // Fungsi untuk memunculkan Pop-up Modal Tambah ke Itinerary (image_92da84.png)
   void _showTambahItineraryDialog(BuildContext context) {
@@ -314,9 +352,9 @@ class DetailDestinasiScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Nama Destinasi & Rating
-                          const Text(
-                            'Baturraden',
-                            style: TextStyle(
+                          Text(
+                            title,
+                            style: const TextStyle(
                               fontSize: 26,
                               fontWeight: FontWeight.bold,
                               color: Color(0xff0d1e3d),
@@ -332,16 +370,16 @@ class DetailDestinasiScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 4),
                               RichText(
-                                text: const TextSpan(
-                                  text: '4.8 ',
-                                  style: TextStyle(
+                                text: TextSpan(
+                                  text: '$rating ',
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xff0d1e3d),
                                   ),
                                   children: [
                                     TextSpan(
-                                      text: '(1.2k ulasan)',
-                                      style: TextStyle(
+                                      text: '($reviewCount)',
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.normal,
                                         color: Colors.grey,
                                       ),
@@ -352,18 +390,17 @@ class DetailDestinasiScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          // Lokasi
                           Row(
-                            children: const [
+                            children: [
                               Icon(
                                 Icons.location_on_outlined,
                                 color: Colors.grey,
                                 size: 18,
                               ),
-                              SizedBox(width: 4),
+                              const SizedBox(width: 4),
                               Text(
-                                'Purwokerto Utara, Banyumas',
-                                style: TextStyle(
+                                location,
+                                style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 14,
                                 ),
@@ -379,7 +416,7 @@ class DetailDestinasiScreen extends StatelessWidget {
                                 child: _buildInfoCard(
                                   Icons.confirmation_number_outlined,
                                   'HARGA TIKET',
-                                  'Rp25.000',
+                                  price,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -387,7 +424,7 @@ class DetailDestinasiScreen extends StatelessWidget {
                                 child: _buildInfoCard(
                                   Icons.timeline,
                                   'JARAK',
-                                  '12 km',
+                                  distance,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -395,7 +432,7 @@ class DetailDestinasiScreen extends StatelessWidget {
                                 child: _buildInfoCard(
                                   Icons.access_time,
                                   'JAM BUKA',
-                                  '08:00 -\n17:00',
+                                  openingHours,
                                 ),
                               ),
                             ],
@@ -413,7 +450,7 @@ class DetailDestinasiScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Nikmati udara segar pegunungan dan panorama alam yang memukau di Baturraden. Terletak di lereng Gunung Slamet, destinasi ini menawarkan kombinasi sempurna antara air terjun yang jernih, hutan pinus yang rindang, dan sumber air panas alami. Tempat yang ideal untuk melarikan diri dari hiruk-pikuk kota dan menyatu kembali dengan alam.',
+                            description,
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[700],
@@ -436,17 +473,12 @@ class DetailDestinasiScreen extends StatelessWidget {
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              _buildFacilityChip(Icons.local_parking, 'Parkir'),
-                              _buildFacilityChip(Icons.wc, 'Toilet'),
-                              _buildFacilityChip(Icons.mosque, 'Mushola'),
-                              _buildFacilityChip(
-                                Icons.camera_alt_outlined,
-                                'Spot Foto',
-                              ),
-                              _buildFacilityChip(
-                                Icons.restaurant,
-                                'Tempat Makan',
-                              ),
+                              ...facilities.map((facility) {
+                                return _buildFacilityChip(
+                                  facility['icon'] as IconData,
+                                  facility['label'] as String,
+                                );
+                              }),
                             ],
                           ),
                           const SizedBox(height: 24),
@@ -691,18 +723,18 @@ class DetailDestinasiScreen extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      'Siti Rahmawati',
-                      style: TextStyle(
+                      reviewerName,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Color(0xff0d1e3d),
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      '2 hari yang lalu',
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                      reviewerTime,
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -718,7 +750,7 @@ class DetailDestinasiScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Tempatnya sangat sejuk dan bersih. Air terjunnya indah banget buat foto-foto. Fasilitas lengkap, parkiran luas. Recommended banget buat liburan bareng keluarga.',
+            reviewerText,
             style: TextStyle(
               fontSize: 13,
               color: Colors.grey[800],

@@ -5,6 +5,7 @@ import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import 'edit_profile_page.dart';
 import 'riwayat_itinerary_page.dart';
+import 'change_password_page.dart';
 
 /// Halaman Profil Pengguna
 /// Menampilkan biografi ringkas pengguna, menu akun, aktivitas, pengaturan, dan dukungan.

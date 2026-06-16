@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/components/filter_bottom_sheet.dart';
+import 'package:mobile/pages/detail_destinasi_screen.dart';
 import '../theme/app_colors.dart';
 
 class ExplorePage extends StatefulWidget {
@@ -62,9 +63,7 @@ class _ExplorePageState extends State<ExplorePage> {
             const SizedBox(height: 10),
 
             // 4. Grid Hasil Destinasi
-            Expanded(
-              child: _buildDestinationGrid(),
-            ),
+            Expanded(child: _buildDestinationGrid()),
           ],
         ),
       ),
@@ -99,8 +98,11 @@ class _ExplorePageState extends State<ExplorePage> {
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       filled: true,
-                      fillColor: Colors.transparent, // Menghilangkan kotak dalam pengganggu
-                      contentPadding: EdgeInsets.symmetric(vertical: 12), // Teks pas di tengah
+                      fillColor: Colors
+                          .transparent, // Menghilangkan kotak dalam pengganggu
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 12,
+                      ), // Teks pas di tengah
                     ),
                   ),
                 ),
@@ -109,7 +111,7 @@ class _ExplorePageState extends State<ExplorePage> {
           ),
         ),
         const SizedBox(width: 12),
-        
+
         // Tombol Filter
         InkWell(
           onTap: () {
@@ -148,7 +150,9 @@ class _ExplorePageState extends State<ExplorePage> {
               color: isSelected ? AppColors.primary : Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isSelected ? Colors.transparent : Colors.grey.withValues(alpha: 0.2),
+                color: isSelected
+                    ? Colors.transparent
+                    : Colors.grey.withValues(alpha: 0.2),
               ),
             ),
             child: Center(
@@ -173,44 +177,74 @@ class _ExplorePageState extends State<ExplorePage> {
       {
         'name': 'Lokawisata Baturraden',
         'location': 'Baturraden',
+        'fullLocation': 'Baturraden, Banyumas',
         'price': 'Rp 25.000',
         'rating': '4.8',
-        'image': 'https://via.placeholder.com/150'
+        'reviewCount': '1.2k ulasan',
+        'distance': '15 mnt',
+        'openingHours': '08:00 -\n17:00',
+        'description': 'Nikmati udara segar pegunungan dan panorama alam yang memukau di Baturraden. Terletak di lereng Gunung Slamet, destinasi ini menawarkan kombinasi sempurna antara air terjun yang jernih, hutan pinus yang rindang, dan sumber air panas alami.',
+        'image': 'https://via.placeholder.com/150',
       },
       {
         'name': 'Menara Pandang',
         'location': 'Purwokerto Timur',
+        'fullLocation': 'Purwokerto Timur, Banyumas',
         'price': 'Rp 15.000',
         'rating': '4.9',
-        'image': 'https://via.placeholder.com/150'
+        'reviewCount': '856 ulasan',
+        'distance': '5 km',
+        'openingHours': '09:00 -\n21:00',
+        'description': 'Menara Pandang Purwokerto merupakan landmark ikonik yang menawarkan pemandangan kota Purwokerto dari ketinggian. Cocok untuk menikmati sunset dan suasana kota di malam hari.',
+        'image': 'https://via.placeholder.com/150',
       },
       {
         'name': 'Taman Balai Kemambang',
         'location': 'Purwokerto Utara',
+        'fullLocation': 'Purwokerto Utara, Banyumas',
         'price': 'Rp 10.000',
         'rating': '4.6',
-        'image': 'https://via.placeholder.com/150'
+        'reviewCount': '632 ulasan',
+        'distance': '3 km',
+        'openingHours': '06:00 -\n18:00',
+        'description': 'Taman Balai Kemambang adalah taman kota yang asri dan teduh, cocok untuk bersantai bersama keluarga. Dilengkapi dengan kolam ikan, area bermain anak, dan jogging track yang nyaman.',
+        'image': 'https://via.placeholder.com/150',
       },
       {
         'name': 'Hutan Pinus Limpakuwus',
         'location': 'Sumbang',
+        'fullLocation': 'Sumbang, Banyumas',
         'price': 'Rp 20.000',
         'rating': '4.7',
-        'image': 'https://via.placeholder.com/150'
+        'reviewCount': '478 ulasan',
+        'distance': '20 km',
+        'openingHours': '07:00 -\n17:00',
+        'description': 'Hutan Pinus Limpakuwus menawarkan suasana sejuk dan tenang di antara pepohonan pinus yang menjulang tinggi. Tempat sempurna untuk camping, piknik keluarga, dan foto-foto instagramable.',
+        'image': 'https://via.placeholder.com/150',
       },
       {
         'name': 'Curug Jenggala',
         'location': 'Baturraden',
+        'fullLocation': 'Baturraden, Banyumas',
         'price': 'Rp 10.000',
         'rating': '4.8',
-        'image': 'https://via.placeholder.com/150'
+        'reviewCount': '920 ulasan',
+        'distance': '18 km',
+        'openingHours': '07:00 -\n16:00',
+        'description': 'Curug Jenggala adalah air terjun tersembunyi dengan keindahan alam yang masih asri. Perjalanan trekking menuju air terjun ini merupakan petualangan tersendiri yang menyenangkan.',
+        'image': 'https://via.placeholder.com/150',
       },
       {
         'name': 'The Village Purwokerto',
         'location': 'Baturraden',
+        'fullLocation': 'Baturraden, Banyumas',
         'price': 'Rp 25.000',
         'rating': '4.5',
-        'image': 'https://via.placeholder.com/150'
+        'reviewCount': '345 ulasan',
+        'distance': '14 km',
+        'openingHours': '09:00 -\n20:00',
+        'description': 'The Village Purwokerto adalah destinasi wisata modern yang menggabungkan keindahan alam pegunungan dengan konsep desa wisata. Tersedia berbagai wahana, spot foto, dan kuliner khas.',
+        'image': 'https://via.placeholder.com/150',
       },
     ];
 
@@ -225,100 +259,138 @@ class _ExplorePageState extends State<ExplorePage> {
       itemCount: exploreItems.length,
       itemBuilder: (context, index) {
         final item = exploreItems[index];
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withValues(alpha: 0.05),
-                spreadRadius: 1,
-                blurRadius: 5,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Stack(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                        image: DecorationImage(
-                          image: NetworkImage(item['image']!),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 12),
-                            const SizedBox(width: 2),
-                            Text(
-                              item['rating']!,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DetailDestinasiScreen(
+                  title: item['name']!,
+                  rating: item['rating']!,
+                  reviewCount: item['reviewCount']!,
+                  location: item['fullLocation']!,
+                  price: item['price']!,
+                  distance: item['distance']!,
+                  openingHours: item['openingHours']!,
+                  description: item['description']!,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item['name']!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on, size: 12, color: Colors.grey),
-                        const SizedBox(width: 2),
-                        Expanded(
-                          child: Text(
-                            item['location']!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.grey, fontSize: 11),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withValues(alpha: 0.05),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(16),
+                          ),
+                          image: DecorationImage(
+                            image: NetworkImage(item['image']!),
+                            fit: BoxFit.cover,
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      item['price']!,
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
                       ),
-                    ),
-                  ],
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 12,
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                item['rating']!,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item['name']!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.location_on,
+                            size: 12,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              item['location']!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        item['price']!,
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },

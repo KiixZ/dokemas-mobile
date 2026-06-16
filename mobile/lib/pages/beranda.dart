@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/components/filter_bottom_sheet.dart';
+import 'package:mobile/pages/detail_destinasi_screen.dart';
 import '../theme/app_colors.dart';
-import 'notification_page.dart';
-import 'explore_page.dart';
 
 // 1. MENGUBAH HOMEPAGE MENJADI STATEFULWIDGET
 class HomePage extends StatefulWidget {
@@ -60,7 +59,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   // 1. HEADER SECTION
-  // 1. HEADER SECTION (NOTIFIKASI SUDAH AKTIF)
   Widget _buildHeader() {
     return Row(
       children: [
@@ -100,44 +98,27 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-
-        // MEMBUNGKUS TOMBOL LONCENG AGAR BISA DIKLIK
-        InkWell(
-          onTap: () {
-            // Memanggil fungsi pop-up dialog
-            _showNotificationDialog(context);
-          },
-          borderRadius: BorderRadius.circular(
-            24,
-          ), // Efek klik membulat pas di tombol
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withValues(alpha: 0.1),
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.notifications_none_outlined,
-              color: AppColors.primary,
-            ),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withValues(
+                  alpha: 0.1,
+                ), // Menggunakan .withValues() versi terbaru
+                spreadRadius: 1,
+                blurRadius: 5,
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.notifications_none_outlined,
+            color: AppColors.primary,
           ),
         ),
       ],
-    );
-  }
-
-  // SEKARANG BERFUNGSI PINDAH HALAMAN (Tetap void)
-  void _showNotificationDialog(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const NotificationPage()),
     );
   }
 
@@ -155,33 +136,13 @@ class _HomePageState extends State<HomePage> {
             ),
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(
-              children: [
-                const Icon(Icons.search, color: AppColors.primary),
-                const SizedBox(width: 10),
-Expanded(
-  child: TextField(
-    onSubmitted: (query) {
-      if (query.isNotEmpty) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ExplorePage(searchQuery: query),
-          ),
-        );
-      }
-    },
-    decoration: const InputDecoration(
-      hintText: 'Mau liburan kemana hari ini?',
-      hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-      border: InputBorder.none,
-      enabledBorder: InputBorder.none,
-      focusedBorder: InputBorder.none,
-      filled: true,
-      fillColor: Colors.transparent, // <-- Menghilangkan kotak dalam
-      contentPadding: EdgeInsets.symmetric(vertical: 12), // Teks pas di tengah vertikal
-    ),
-  ),
-),
+              children: const [
+                Icon(Icons.search, color: AppColors.primary),
+                SizedBox(width: 10),
+                Text(
+                  'Mau liburan kemana hari ini?',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
               ],
             ),
           ),
@@ -292,111 +253,131 @@ Expanded(
 
   // 5. RECOMMENDATION CARD (Baturraden)
   Widget _buildRecommendationCard() {
-    return Container(
-      height: 240,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        image: const DecorationImage(
-          image: NetworkImage('https://via.placeholder.com/400x250'),
-          fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const DetailDestinasiScreen(
+              title: 'Lokawisata Baturraden',
+              imageUrl: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=500&auto=format&fit=crop',
+              rating: '4.8',
+              reviewCount: '1.2k ulasan',
+              location: 'Baturraden, Banyumas',
+              price: 'Rp25.000',
+              distance: '15 mnt',
+              openingHours: '08:00 -\n17:00',
+              description: 'Nikmati udara segar pegunungan dan panorama alam yang memukau di Baturraden. Terletak di lereng Gunung Slamet, destinasi ini menawarkan kombinasi sempurna antara air terjun yang jernih, hutan pinus yang rindang, dan sumber air panas alami. Tempat yang ideal untuk melarikan diri dari hiruk-pikuk kota dan menyatu kembali dengan alam.',
+            ),
+          ),
+        );
+      },
+      child: Container(
+        height: 240,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          image: const DecorationImage(
+            image: NetworkImage('https://via.placeholder.com/400x250'),
+            fit: BoxFit.cover,
+          ),
         ),
-      ),
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.7),
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.7),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 15,
+              right: 15,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.favorite, color: Colors.teal, size: 20),
+              ),
+            ),
+            Positioned(
+              bottom: 15,
+              left: 15,
+              right: 15,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Lokawisata Baturraden',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: const [
+                          Icon(Icons.star, color: Colors.amber, size: 16),
+                          SizedBox(width: 4),
+                          Text(
+                            '4.8',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                          SizedBox(width: 6),
+                          Text('•', style: TextStyle(color: Colors.white)),
+                          SizedBox(width: 6),
+                          Icon(
+                            Icons.directions_car,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            '15 mnt',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Rp 25.000',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-          Positioned(
-            top: 15,
-            right: 15,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.7),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.favorite, color: Colors.teal, size: 20),
-            ),
-          ),
-          Positioned(
-            bottom: 15,
-            left: 15,
-            right: 15,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Lokawisata Baturraden',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: const [
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        SizedBox(width: 4),
-                        Text(
-                          '4.8',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
-                        ),
-                        SizedBox(width: 6),
-                        Text('•', style: TextStyle(color: Colors.white)),
-                        SizedBox(width: 6),
-                        Icon(
-                          Icons.directions_car,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          '15 mnt',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Rp 25.000',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -406,120 +387,151 @@ Expanded(
     final destinations = [
       {
         'name': 'Menara Pandang...',
+        'fullName': 'Menara Pandang Purwokerto',
         'location': 'Pusat Kota',
+        'fullLocation': 'Purwokerto Timur, Banyumas',
         'price': 'Rp 15.000',
         'rating': '4.9',
+        'reviewCount': '856 ulasan',
+        'distance': '5 km',
+        'openingHours': '09:00 -\n21:00',
+        'description': 'Menara Pandang Purwokerto merupakan landmark ikonik yang menawarkan pemandangan kota Purwokerto dari ketinggian. Cocok untuk menikmati sunset dan suasana kota di malam hari dengan lampu-lampu yang gemerlap.',
       },
       {
         'name': 'Taman Balai...',
+        'fullName': 'Taman Balai Kemambang',
         'location': 'Taman Kota',
+        'fullLocation': 'Purwokerto Utara, Banyumas',
         'price': 'Rp 10.000',
         'rating': '4.6',
+        'reviewCount': '632 ulasan',
+        'distance': '3 km',
+        'openingHours': '06:00 -\n18:00',
+        'description': 'Taman Balai Kemambang adalah taman kota yang asri dan teduh, cocok untuk bersantai bersama keluarga. Dilengkapi dengan kolam ikan, area bermain anak, dan jogging track yang nyaman.',
       },
     ];
 
     return Row(
       children: destinations.map((item) {
         return Expanded(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withValues(alpha: 0.05),
-                  spreadRadius: 1,
-                  blurRadius: 5,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailDestinasiScreen(
+                    title: item['fullName']!,
+                    rating: item['rating']!,
+                    reviewCount: item['reviewCount']!,
+                    location: item['fullLocation']!,
+                    price: item['price']!,
+                    distance: item['distance']!,
+                    openingHours: item['openingHours']!,
+                    description: item['description']!,
+                  ),
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Stack(
-                  children: [
-                    Container(
-                      height: 120,
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(16),
-                        ),
-                        image: DecorationImage(
-                          image: NetworkImage(
-                            'https://via.placeholder.com/150',
-                          ),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              color: Colors.amber,
-                              size: 12,
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              item['rating']!,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withValues(alpha: 0.05),
+                    spreadRadius: 1,
+                    blurRadius: 5,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
                     children: [
-                      Text(
-                        item['name']!,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                      Container(
+                        height: 120,
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(16),
+                          ),
+                          image: DecorationImage(
+                            image: NetworkImage(
+                              'https://via.placeholder.com/150',
+                            ),
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item['location']!,
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        item['price']!,
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 12,
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                item['rating']!,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['name']!,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          item['location']!,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          item['price']!,
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
