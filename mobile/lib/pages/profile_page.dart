@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -18,12 +17,6 @@ class _ProfilePageState extends State<ProfilePage> {
   // State untuk switch tombol interaktif
   bool _isNotificationEnabled = true;
   bool _isDarkModeEnabled = false;
-
-  String _currentName = 'Saputra';
-  String _currentEmail = 'saputra@example.com';
-  String _currentAvatarUrl =
-      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop';
-  String? _localImagePath;
 
   // Method untuk menampilkan dialog konfirmasi keluar
   void _showLogoutDialog() {
@@ -85,21 +78,21 @@ class _ProfilePageState extends State<ProfilePage> {
         titleSpacing: AppSpacing.md,
         title: Row(
           children: [
-            CircleAvatar(
+            const CircleAvatar(
               radius: 18,
-              backgroundImage: _localImagePath != null
-                  ? FileImage(File(_localImagePath!)) as ImageProvider
-                  : NetworkImage(_currentAvatarUrl),
+              backgroundImage: NetworkImage(
+                'https://i.pravatar.cc/150?img=11', // Profile pic kustom
+              ),
             ),
             const SizedBox(width: AppSpacing.sm),
             RichText(
               text: TextSpan(
                 style: AppTextStyles.title,
-                children: [
-                  const TextSpan(text: 'Halo, '),
+                children: const [
+                  TextSpan(text: 'Halo, '),
                   TextSpan(
-                    text: _currentName,
-                    style: const TextStyle(
+                    text: 'Saputra ',
+                    style: TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                     ),
@@ -174,17 +167,17 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ],
                       ),
-                      child: CircleAvatar(
+                      child: const CircleAvatar(
                         radius: 46,
-                        backgroundImage: _localImagePath != null
-                            ? FileImage(File(_localImagePath!)) as ImageProvider
-                            : NetworkImage(_currentAvatarUrl),
+                        backgroundImage: NetworkImage(
+                          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop',
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     // Nama
                     Text(
-                      _currentName,
+                      'Saputra',
                       style: AppTextStyles.heading2.copyWith(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -222,29 +215,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 _SettingsTile(
                   icon: Icons.person_outline_rounded,
                   title: 'Edit Profil',
-                  onTap: () async {
-                    // Pindah ke halaman edit sambil mengirimkan data profil saat ini
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditProfilePage(
-                          currentName: _currentName,
-                          currentEmail: _currentEmail,
-                          currentAvatarUrl: _currentAvatarUrl,
-                          localImagePath: _localImagePath,
-                        ),
-                      ),
-                    );
-
-                    // Jika membawa data pulang saat halaman edit ditutup, update layar utama
-                    if (result != null && result is Map<String, dynamic>) {
-                      setState(() {
-                        _currentName = result['name'];
-                        _currentEmail = result['email'];
-                        _localImagePath = result['imagePath'];
-                      });
-                    }
-                  },
+                  onTap: () => _showPlaceholderSnackBar('Edit Profil'),
                 ),
                 _SettingsTile(
                   icon: Icons.lock_outline_rounded,
