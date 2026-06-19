@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile/components/filter_bottom_sheet.dart';
 import 'package:mobile/pages/detail_destinasi_screen.dart';
 import '../theme/app_colors.dart';
+import 'notification_page.dart';
+import 'package:mobile/pages/explore_page.dart';
 
 // 1. MENGUBAH HOMEPAGE MENJADI STATEFULWIDGET
 class HomePage extends StatefulWidget {
@@ -24,6 +26,96 @@ class _HomePageState extends State<HomePage> {
     {'name': 'Religi', 'icon': Icons.church},
   ];
 
+  // FUNGSI UNTUK MENAMPILKAN POP-UP SEMUA KATEGORI
+  void _showAllCategoriesDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Semua Kategori',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryDark,
+                  fontSize: 18,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.grey),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3, // Menampilkan 3 item per baris
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 15,
+                childAspectRatio: 0.85,
+              ),
+              itemCount: _categories.length,
+              itemBuilder: (context, index) {
+                final item = _categories[index];
+                final isActive = _selectedCategory == item['name'];
+
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedCategory = item['name'] as String;
+                    });
+                    Navigator.of(context).pop(); // Tutup pop-up setelah memilih
+                    print('Kategori Terpilih dari Pop-up: $_selectedCategory');
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 50,
+                        width: 50,
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? AppColors.primary
+                              : AppColors.primary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          item['icon'] as IconData,
+                          color: isActive ? Colors.white : AppColors.primaryDark,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        item['name'] as String,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                          color: isActive ? AppColors.primary : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,15 +131,35 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20),
               _buildSearchBar(context),
               const SizedBox(height: 25),
-              _buildSectionTitle('Kategori Wisata', 'Lihat Semua'),
+              
+              // KATEGORI WISATA -> Memunculkan Pop-up Dialog
+              _buildSectionTitle(
+                'Kategori Wisata', 
+                'Lihat Semua',
+                onActionTap: () => _showAllCategoriesDialog(),
+              ),
               const SizedBox(height: 15),
-              _buildCategoryList(), // Memanggil fungsi kategori yang sudah interaktif
+              _buildCategoryList(), 
               const SizedBox(height: 25),
+              
               _buildSectionTitle('Rekomendasi Untuk Kamu', ''),
               const SizedBox(height: 15),
               _buildRecommendationCard(),
               const SizedBox(height: 25),
-              _buildSectionTitle('Destinasi Populer', 'Eksplor'),
+              
+              // DESTINASI POPULER -> Berpindah ke ExplorePage
+              _buildSectionTitle(
+                'Destinasi Populer', 
+                'Eksplor',
+                onActionTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ExplorePage(),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 15),
               _buildPopularDestinations(),
               const SizedBox(height: 25),
@@ -58,7 +170,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 1. HEADER SECTION
+  // 1. HEADER SECTION (TOMBOL NOTIFIKASI AKTIF)
   Widget _buildHeader() {
     return Row(
       children: [
@@ -98,31 +210,40 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withValues(
-                  alpha: 0.1,
-                ), // Menggunakan .withValues() versi terbaru
-                spreadRadius: 1,
-                blurRadius: 5,
+        InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationPage(),
               ),
-            ],
-          ),
-          child: const Icon(
-            Icons.notifications_none_outlined,
-            color: AppColors.primary,
+            );
+          },
+          borderRadius: BorderRadius.circular(50),
+          child: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withValues(alpha: 0.1),
+                  spreadRadius: 1,
+                  blurRadius: 5,
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.notifications_none_outlined,
+              color: AppColors.primary,
+            ),
           ),
         ),
       ],
     );
   }
 
-  // 2. SEARCH BAR SECTION
+  // 2. SEARCH BAR SECTION (SUDAH AKTIF & INTERAKTIF)
   Widget _buildSearchBar(BuildContext context) {
     return Row(
       children: [
@@ -136,12 +257,34 @@ class _HomePageState extends State<HomePage> {
             ),
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(
-              children: const [
-                Icon(Icons.search, color: AppColors.primary),
-                SizedBox(width: 10),
-                Text(
-                  'Mau liburan kemana hari ini?',
-                  style: TextStyle(color: Colors.grey, fontSize: 14),
+              children: [
+                const Icon(Icons.search, color: AppColors.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    onSubmitted: (query) {
+                      if (query.isNotEmpty) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ExplorePage(searchQuery: query),
+                          ),
+                        );
+                      }
+                    },
+                    textInputAction: TextInputAction.search,
+                    style: const TextStyle(fontSize: 14, color: Colors.black),
+                    decoration: const InputDecoration(
+                      hintText: 'Mau liburan kemana hari ini?',
+                      hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      contentPadding: EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -165,8 +308,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 3. SECTION TITLE GENERATOR
-  Widget _buildSectionTitle(String title, String actionText) {
+  // 3. SECTION TITLE GENERATOR (MENDUKUNG CUSTOM CALLBACK ACTION)
+  Widget _buildSectionTitle(String title, String actionText, {VoidCallback? onActionTap}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -179,12 +322,19 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         if (actionText.isNotEmpty)
-          Text(
-            actionText,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
+          InkWell(
+            onTap: onActionTap, // Memanggil fungsi dinamis yang disuntikkan dari atas
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              child: Text(
+                actionText,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
             ),
           ),
       ],
@@ -200,14 +350,12 @@ class _HomePageState extends State<HomePage> {
         itemCount: _categories.length,
         itemBuilder: (context, index) {
           final item = _categories[index];
-          // Validasi status aktif dicocokkan dengan isi variabel _selectedCategory
           final isActive = _selectedCategory == item['name'];
 
           return Padding(
             padding: const EdgeInsets.only(right: 15.0),
             child: Column(
               children: [
-                // MEMBUNGKUS CONTAINER DENGAN INKWELL AGAR BISA DIKETUK
                 InkWell(
                   onTap: () {
                     setState(() {
@@ -217,9 +365,7 @@ class _HomePageState extends State<HomePage> {
                   },
                   borderRadius: BorderRadius.circular(30),
                   child: AnimatedContainer(
-                    duration: const Duration(
-                      milliseconds: 200,
-                    ), // Efek transisi warna halus
+                    duration: const Duration(milliseconds: 200),
                     height: 60,
                     width: 60,
                     decoration: BoxDecoration(
