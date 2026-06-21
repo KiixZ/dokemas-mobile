@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'beranda.dart';       // Import halaman beranda kamu
-import 'explore_page.dart';  // Import halaman explore kamu
+import 'beranda.dart'; // Import halaman beranda kamu
+import 'explore_page.dart'; // Import halaman explore kamu
 import 'wishlist_page.dart';
 import 'itinerary_page.dart';
 import 'profile_page.dart';
+import 'notification_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,11 +18,11 @@ class _MainScreenState extends State<MainScreen> {
 
   // Daftar halaman yang akan ditampilkan sesuai index tab bawah
   final List<Widget> _pages = const [
-    HomePage(),      // Index 0 (Home)
-    ExplorePage(),   // Index 1 (Explore)
-    WishlistPage(),  // Index 2 (Favorite/Wishlist)
+    HomePage(), // Index 0 (Home)
+    ExplorePage(), // Index 1 (Explore)
+    WishlistPage(), // Index 2 (Favorite/Wishlist)
     ItineraryPage(), // Index 3 (Itinerary)
-    ProfilePage(),   // Index 4 (Profile)
+    ProfilePage(), // Index 4 (Profile)
   ];
 
   @override
@@ -29,7 +30,7 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       // Body akan otomatis berubah mengikuti tombol yang ditekan
       body: _pages[_currentIndex],
-      
+
       // Bottom Navigation Bar tunggal yang mengontrol semua halaman
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
@@ -46,14 +47,8 @@ class _MainScreenState extends State<MainScreen> {
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_filled),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Explore',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Explore'),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border),
             label: 'Favorite',
