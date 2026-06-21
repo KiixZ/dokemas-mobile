@@ -83,32 +83,45 @@ class WishlistCard extends StatelessWidget {
               ),
             ),
 
-            // Top Right: Favorite Button (Tombol Hati dengan lingkaran semi-transparan)
-            Positioned(
-              top: AppSpacing.md,
-              right: AppSpacing.md,
+            // Ripple tap effect overlay
+            Positioned.fill(
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: onFavoritePressed,
-                  customBorder: const CircleBorder(),
-                  child: Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        width: 1,
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                ),
+              ),
+            ),
+
+            // Favorite Icon Button (Posisi kanan atas)
+            Positioned(
+              top: AppSpacing.md,
+              right: AppSpacing.md,
+              child: GestureDetector(
+                behavior: HitTestBehavior
+                    .opaque, // Mengunci klik agar tidak bocor ke kartu
+                onTap:
+                    onFavoritePressed, // Membawa fungsi _removeFavorite ke sini
+                child: Container(
+                  height: 40,
+                  width: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
                       ),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.redAccent : Colors.white,
-                        size: 20,
-                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: isFavorite ? Colors.red : AppColors.textSecondary,
+                      size: 20,
                     ),
                   ),
                 ),
@@ -136,7 +149,9 @@ class WishlistCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.95),
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusSm,
+                          ),
                         ),
                         child: Text(
                           category,
@@ -146,7 +161,7 @@ class WishlistCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                      
+
                       // Rating Badge (Warna Gelap Transparan)
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -155,7 +170,9 @@ class WishlistCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.5),
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusSm,
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -214,17 +231,6 @@ class WishlistCard extends StatelessWidget {
                     ],
                   ),
                 ],
-              ),
-            ),
-            
-            // Ripple tap effect overlay
-            Positioned.fill(
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: onTap,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                ),
               ),
             ),
           ],

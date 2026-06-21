@@ -20,14 +20,12 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(6)],
-            'phone' => ['nullable', 'string', 'max:30'],
         ]);
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => $data['password'],
-            'phone' => $data['phone'] ?? null,
             'role' => 'user',
         ]);
 
@@ -80,7 +78,6 @@ class AuthController extends Controller
 
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
             'avatar' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'password' => ['sometimes', 'confirmed', Password::min(6)],
         ]);
