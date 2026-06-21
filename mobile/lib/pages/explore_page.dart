@@ -14,12 +14,19 @@ class ExplorePage extends StatefulWidget {
 
 class _ExplorePageState extends State<ExplorePage> {
   late TextEditingController _searchController;
+  String _currentQuery = '';
+  
+  // 1. Tambahkan state untuk melacak kategori yang dipilih (Default: 'Semua')
+  String _selectedCategory = 'Semua';
+
+  // Daftar tags/kategori tetap yang digunakan di aplikasi
+  final List<String> _tags = ['Semua', 'Terpopuler', 'Dekat Kamu', 'Murah Meriah', 'Alam'];
 
   @override
   void initState() {
     super.initState();
-    // Inisialisasi controller dengan teks pencarian dari Beranda jika ada
     _searchController = TextEditingController(text: widget.searchQuery ?? '');
+    _currentQuery = widget.searchQuery ?? '';
   }
 
   @override
@@ -31,7 +38,7 @@ class _ExplorePageState extends State<ExplorePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, // Tetap konsisten dengan Beranda
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,18 +58,18 @@ class _ExplorePageState extends State<ExplorePage> {
             ),
             const SizedBox(height: 15),
 
-            // 2. Search Bar & Filter (Sesuai dengan desain Beranda tanpa kotak ganda)
+            // 2. Search Bar & Filter
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: _buildSearchBar(context),
             ),
             const SizedBox(height: 15),
 
-            // 3. Tab Kategori Kecil/Tags Cepat
+            // 3. Tab Kategori Kecil / Tags Cepat (Sekarang Interaktif)
             _buildQuickTags(),
             const SizedBox(height: 10),
 
-            // 4. Grid Hasil Destinasi
+            // 4. Grid Hasil Destinasi (Otomatis ter-filter)
             Expanded(child: _buildDestinationGrid()),
           ],
         ),
@@ -70,7 +77,7 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  // SEARCH BAR CLEAN DAN PROFESIONAL (SAMA DENGAN BERANDA)
+  // SEARCH BAR
   Widget _buildSearchBar(BuildContext context) {
     return Row(
       children: [
@@ -89,7 +96,18 @@ class _ExplorePageState extends State<ExplorePage> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
-                    controller: _searchController, // Hubungkan ke controller
+                    controller: _searchController,
+                    onChanged: (value) {
+                      if (value.isEmpty) {
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        }
+                      } else {
+                        setState(() {
+                          _currentQuery = value;
+                        });
+                      }
+                    },
                     style: const TextStyle(fontSize: 14, color: Colors.black),
                     decoration: const InputDecoration(
                       hintText: 'Cari tempat wisata terdekat...',
@@ -98,11 +116,8 @@ class _ExplorePageState extends State<ExplorePage> {
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       filled: true,
-                      fillColor: Colors
-                          .transparent, // Menghilangkan kotak dalam pengganggu
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 12,
-                      ), // Teks pas di tengah
+                      fillColor: Colors.transparent,
+                      contentPadding: EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
@@ -112,7 +127,7 @@ class _ExplorePageState extends State<ExplorePage> {
         ),
         const SizedBox(width: 12),
 
-        // Tombol Filter
+        // Tombol Filter Bottom Sheet
         InkWell(
           onTap: () {
             showFilterBottomSheet(context);
@@ -132,36 +147,46 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  // QUICK TAGS / FILTER KATEGORI SINGKAT
+  // QUICK TAGS / FILTER KATEGORI SINGKAT (BERFUNGSI)
   Widget _buildQuickTags() {
-    final tags = ['Semua', 'Terpopuler', 'Dekat Kamu', 'Murah Meriah', 'Alam'];
     return SizedBox(
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: tags.length,
+        itemCount: _tags.length,
         itemBuilder: (context, index) {
-          final isSelected = index == 0; // 'Semua' aktif secara default
-          return Container(
-            margin: const EdgeInsets.only(right: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isSelected
-                    ? Colors.transparent
-                    : Colors.grey.withValues(alpha: 0.2),
+          final tag = _tags[index];
+          // Validasi status aktif dicocokkan dengan nilai variabel state _selectedCategory
+          final isSelected = _selectedCategory == tag; 
+          
+          return GestureDetector(
+            onTap: () {
+              // Ubah state kategori saat salah satu tag diklik
+              setState(() {
+                _selectedCategory = tag;
+              });
+            },
+            child: Container(
+              margin: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected
+                      ? Colors.transparent
+                      : Colors.grey.withValues(alpha: 0.2),
+                ),
               ),
-            ),
-            child: Center(
-              child: Text(
-                tags[index],
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? Colors.white : Colors.grey[700],
+              child: Center(
+                child: Text(
+                  tag,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? Colors.white : Colors.grey[700],
+                  ),
                 ),
               ),
             ),
@@ -171,8 +196,9 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  // GRID DESTINASI (MEMPERBAIKI ERROR ITEMBUILDER)
+  // GRID DESTINASI GABUNGAN LOGIKA FILTER CARI & TABS KATEGORI
   Widget _buildDestinationGrid() {
+    // Menambahkan field 'tags' dummy pada data mentah agar bisa difilter oleh Quick Tags
     final exploreItems = [
       {
         'name': 'Lokawisata Baturraden',
@@ -183,8 +209,9 @@ class _ExplorePageState extends State<ExplorePage> {
         'reviewCount': '1.2k ulasan',
         'distance': '15 mnt',
         'openingHours': '08:00 -\n17:00',
-        'description': 'Nikmati udara segar pegunungan dan panorama alam yang memukau di Baturraden. Terletak di lereng Gunung Slamet, destinasi ini menawarkan kombinasi sempurna antara air terjun yang jernih, hutan pinus yang rindang, dan sumber air panas alami.',
-        'image': 'https://via.placeholder.com/150',
+        'description': 'Nikmati udara segar pegunungan dan panorama alam yang memukau di Baturraden...',
+        'image': 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=300',
+        'tags': ['Terpopuler', 'Dekat Kamu', 'Alam'],
       },
       {
         'name': 'Menara Pandang',
@@ -195,8 +222,9 @@ class _ExplorePageState extends State<ExplorePage> {
         'reviewCount': '856 ulasan',
         'distance': '5 km',
         'openingHours': '09:00 -\n21:00',
-        'description': 'Menara Pandang Purwokerto merupakan landmark ikonik yang menawarkan pemandangan kota Purwokerto dari ketinggian. Cocok untuk menikmati sunset dan suasana kota di malam hari.',
-        'image': 'https://via.placeholder.com/150',
+        'description': 'Menara Pandang Purwokerto merupakan landmark ikonik...',
+        'image': 'https://images.unsplash.com/photo-1596422846543-75c6fc18a523?w=300',
+        'tags': ['Terpopuler', 'Murah Meriah'],
       },
       {
         'name': 'Taman Balai Kemambang',
@@ -207,8 +235,9 @@ class _ExplorePageState extends State<ExplorePage> {
         'reviewCount': '632 ulasan',
         'distance': '3 km',
         'openingHours': '06:00 -\n18:00',
-        'description': 'Taman Balai Kemambang adalah taman kota yang asri dan teduh, cocok untuk bersantai bersama keluarga. Dilengkapi dengan kolam ikan, area bermain anak, dan jogging track yang nyaman.',
-        'image': 'https://via.placeholder.com/150',
+        'description': 'Taman Balai Kemambang adalah taman kota yang asri...',
+        'image': 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=300',
+        'tags': ['Dekat Kamu', 'Murah Meriah'],
       },
       {
         'name': 'Hutan Pinus Limpakuwus',
@@ -219,8 +248,9 @@ class _ExplorePageState extends State<ExplorePage> {
         'reviewCount': '478 ulasan',
         'distance': '20 km',
         'openingHours': '07:00 -\n17:00',
-        'description': 'Hutan Pinus Limpakuwus menawarkan suasana sejuk dan tenang di antara pepohonan pinus yang menjulang tinggi. Tempat sempurna untuk camping, piknik keluarga, dan foto-foto instagramable.',
-        'image': 'https://via.placeholder.com/150',
+        'description': 'Hutan Pinus Limpakuwus menawarkan suasana sejuk...',
+        'image': 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=300',
+        'tags': ['Terpopuler', 'Alam'],
       },
       {
         'name': 'Curug Jenggala',
@@ -231,8 +261,9 @@ class _ExplorePageState extends State<ExplorePage> {
         'reviewCount': '920 ulasan',
         'distance': '18 km',
         'openingHours': '07:00 -\n16:00',
-        'description': 'Curug Jenggala adalah air terjun tersembunyi dengan keindahan alam yang masih asri. Perjalanan trekking menuju air terjun ini merupakan petualangan tersendiri yang menyenangkan.',
-        'image': 'https://via.placeholder.com/150',
+        'description': 'Curug Jenggala adalah air terjun tersembunyi...',
+        'image': 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=300',
+        'tags': ['Murah Meriah', 'Alam'],
       },
       {
         'name': 'The Village Purwokerto',
@@ -243,10 +274,38 @@ class _ExplorePageState extends State<ExplorePage> {
         'reviewCount': '345 ulasan',
         'distance': '14 km',
         'openingHours': '09:00 -\n20:00',
-        'description': 'The Village Purwokerto adalah destinasi wisata modern yang menggabungkan keindahan alam pegunungan dengan konsep desa wisata. Tersedia berbagai wahana, spot foto, dan kuliner khas.',
-        'image': 'https://via.placeholder.com/150',
+        'description': 'The Village Purwokerto adalah destinasi wisata modern...',
+        'image': 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=300',
+        'tags': ['Dekat Kamu'],
       },
     ];
+
+    // Proses Penyaringan Berantai (Query Search & Tag Kategori)
+    final filteredItems = exploreItems.where((item) {
+      final name = item['name'].toString().toLowerCase();
+      final location = item['location'].toString().toLowerCase();
+      final query = _currentQuery.toLowerCase();
+      final tagsList = item['tags'] as List<String>;
+
+      // Aturan 1: Validasi kecocokan Search Bar
+      bool matchesSearch = name.contains(query) || location.contains(query);
+
+      // Aturan 2: Validasi kecocokan Kategori Tab Atas
+      bool matchesCategory = _selectedCategory == 'Semua' || tagsList.contains(_selectedCategory);
+
+      // Item lolos jika memenuhi kedua kriteria
+      return matchesSearch && matchesCategory;
+    }).toList();
+
+    // Tampilkan pesan kosong jika tidak ada wisata yang lolos filter
+    if (filteredItems.isEmpty) {
+      return const Center(
+        child: Text(
+          'Wisata tidak ditemukan.',
+          style: TextStyle(color: Colors.grey, fontSize: 15),
+        ),
+      );
+    }
 
     return GridView.builder(
       padding: const EdgeInsets.all(20),
@@ -256,23 +315,23 @@ class _ExplorePageState extends State<ExplorePage> {
         crossAxisSpacing: 14,
         mainAxisSpacing: 14,
       ),
-      itemCount: exploreItems.length,
+      itemCount: filteredItems.length,
       itemBuilder: (context, index) {
-        final item = exploreItems[index];
+        final item = filteredItems[index];
         return GestureDetector(
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => DetailDestinasiScreen(
-                  title: item['name']!,
-                  rating: item['rating']!,
-                  reviewCount: item['reviewCount']!,
-                  location: item['fullLocation']!,
-                  price: item['price']!,
-                  distance: item['distance']!,
-                  openingHours: item['openingHours']!,
-                  description: item['description']!,
+                  title: item['name'] as String,
+                  rating: item['rating'] as String,
+                  reviewCount: item['reviewCount'] as String,
+                  location: item['fullLocation'] as String,
+                  price: item['price'] as String,
+                  distance: item['distance'] as String,
+                  openingHours: item['openingHours'] as String,
+                  description: item['description'] as String,
                 ),
               ),
             );
@@ -296,14 +355,19 @@ class _ExplorePageState extends State<ExplorePage> {
                   child: Stack(
                     children: [
                       Container(
-                        decoration: BoxDecoration(
-                          borderRadius: const BorderRadius.vertical(
+                        decoration: const BoxDecoration(
+                          borderRadius: BorderRadius.vertical(
                             top: Radius.circular(16),
                           ),
-                          image: DecorationImage(
-                            image: NetworkImage(item['image']!),
-                            fit: BoxFit.cover,
-                          ),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Image.network(
+                          item['image'] as String,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(color: Colors.grey.shade200),
                         ),
                       ),
                       Positioned(
@@ -327,7 +391,7 @@ class _ExplorePageState extends State<ExplorePage> {
                               ),
                               const SizedBox(width: 2),
                               Text(
-                                item['rating']!,
+                                item['rating'] as String,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,
@@ -347,7 +411,7 @@ class _ExplorePageState extends State<ExplorePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item['name']!,
+                        item['name'] as String,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -366,7 +430,7 @@ class _ExplorePageState extends State<ExplorePage> {
                           const SizedBox(width: 2),
                           Expanded(
                             child: Text(
-                              item['location']!,
+                              item['location'] as String,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -379,7 +443,7 @@ class _ExplorePageState extends State<ExplorePage> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        item['price']!,
+                        item['price'] as String,
                         style: const TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
