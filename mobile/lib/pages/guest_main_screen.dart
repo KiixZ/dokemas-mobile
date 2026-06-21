@@ -17,18 +17,24 @@ class GuestMainScreen extends StatefulWidget {
 class _GuestMainScreenState extends State<GuestMainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    HomePage(), // 0 Home
-    ExplorePage(), // 1 Explore
-    GuestWishlistPage(), // 2 Wishlist (gated)
-    GuestItineraryPage(), // 3 Itinerary (gated)
-    GuestProfilePage(), // 4 Profile (gated)
-  ];
+  void _switchTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> pages = [
+      HomePage(onTabChanged: _switchTab), // 0 Home
+      const ExplorePage(),                // 1 Explore
+      const GuestWishlistPage(),          // 2 Wishlist (gated)
+      const GuestItineraryPage(),         // 3 Itinerary (gated)
+      const GuestProfilePage(),           // 4 Profile (gated)
+    ];
+
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
@@ -38,7 +44,7 @@ class _GuestMainScreenState extends State<GuestMainScreen> {
         selectedFontSize: 12,
         unselectedFontSize: 12,
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: _switchTab,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_filled),

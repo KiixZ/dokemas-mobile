@@ -36,7 +36,6 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
             'role' => ['sometimes', 'in:user,admin'],
-            'phone' => ['nullable', 'string', 'max:30'],
         ]);
 
         $user->update($data);
