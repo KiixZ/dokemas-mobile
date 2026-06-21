@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
@@ -36,9 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
           'Konfirmasi Keluar',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        content: const Text(
-          'Apakah Anda yakin ingin keluar dari akun DOKEMAS?',
-        ),
+        content: const Text('Apakah Anda yakin ingin keluar dari akun DOKEMAS?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -355,12 +354,26 @@ class _ProfilePageState extends State<ProfilePage> {
                 _SettingsTile(
                   icon: Icons.help_outline_rounded,
                   title: 'Pusat Bantuan',
-                  onTap: () => _showPlaceholderSnackBar('Pusat Bantuan'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HelpCenterPage(),
+                      ),
+                    );
+                  },
                 ),
                 _SettingsTile(
                   icon: Icons.privacy_tip_outlined,
                   title: 'Kebijakan Privasi',
-                  onTap: () => _showPlaceholderSnackBar('Kebijakan Privasi'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PrivacyPolicyPage(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -410,7 +423,10 @@ class _SettingsSection extends StatelessWidget {
   final String title;
   final List<Widget> tiles;
 
-  const _SettingsSection({required this.title, required this.tiles});
+  const _SettingsSection({
+    required this.title,
+    required this.tiles,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -443,7 +459,9 @@ class _SettingsSection extends StatelessWidget {
                 offset: const Offset(0, 2),
               ),
             ],
-            border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+            border: Border.all(
+              color: AppColors.border.withValues(alpha: 0.5),
+            ),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppSpacing.radius),
@@ -491,7 +509,11 @@ class _SettingsTile extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
               ),
-              child: Icon(icon, color: AppColors.primary, size: 20),
+              child: Icon(
+                icon,
+                color: AppColors.primary,
+                size: 20,
+              ),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -510,6 +532,88 @@ class _SettingsTile extends StatelessWidget {
                   size: 20,
                 ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class HelpCenterPage extends StatelessWidget {
+  const HelpCenterPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'Pusat Bantuan',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.textPrimary,
+            size: 18,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: const Center(
+        child: Text(
+          'Halaman Pusat Bantuan',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class PrivacyPolicyPage extends StatelessWidget {
+  const PrivacyPolicyPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'Kebijakan Privasi',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.textPrimary,
+            size: 18,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: const Center(
+        child: Text(
+          'Halaman Kebijakan Privasi',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );
