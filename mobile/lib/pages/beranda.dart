@@ -406,14 +406,16 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute(
             builder: (context) => const DetailDestinasiScreen(
               title: 'Lokawisata Baturraden',
-              imageUrl: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=500&auto=format&fit=crop',
+              imageUrl:
+                  'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=500&auto=format&fit=crop',
               rating: '4.8',
               reviewCount: '1.2k ulasan',
               location: 'Baturraden, Banyumas',
               price: 'Rp25.000',
               distance: '15 mnt',
               openingHours: '08:00 -\n17:00',
-              description: 'Nikmati udara segar pegunungan dan panorama alam yang memukau di Baturraden. Terletak di lereng Gunung Slamet, destinasi ini menawarkan kombinasi sempurna antara air terjun yang jernih, hutan pinus yang rindang, dan sumber air panas alami. Tempat yang ideal untuk melarikan diri dari hiruk-pikuk kota dan menyatu kembali dengan alam.',
+              description:
+                  'Nikmati udara segar pegunungan dan panorama alam yang memukau di Baturraden. Terletak di lereng Gunung Slamet, destinasi ini menawarkan kombinasi sempurna antara air terjun yang jernih, hutan pinus yang rindang, dan sumber air panas alami. Tempat yang ideal untuk melarikan diri dari hiruk-pikuk kota dan menyatu kembali dengan alam.',
             ),
           ),
         );
@@ -541,7 +543,8 @@ class _HomePageState extends State<HomePage> {
         'reviewCount': '856 ulasan',
         'distance': '5 km',
         'openingHours': '09:00 -\n21:00',
-        'description': 'Menara Pandang Purwokerto merupakan landmark ikonik yang menawarkan pemandangan kota Purwokerto dari ketinggian. Cocok untuk menikmati sunset dan suasana kota di malam hari dengan lampu-lampu yang gemerlap.',
+        'description':
+            'Menara Pandang Purwokerto merupakan landmark ikonik yang menawarkan pemandangan kota Purwokerto dari ketinggian. Cocok untuk menikmati sunset dan suasana kota di malam hari dengan lampu-lampu yang gemerlap.',
       },
       {
         'name': 'Taman Balai...',
@@ -553,7 +556,8 @@ class _HomePageState extends State<HomePage> {
         'reviewCount': '632 ulasan',
         'distance': '3 km',
         'openingHours': '06:00 -\n18:00',
-        'description': 'Taman Balai Kemambang adalah taman kota yang asri dan teduh, cocok untuk bersantai bersama keluarga. Dilengkapi dengan kolam ikan, area bermain anak, dan jogging track yang nyaman.',
+        'description':
+            'Taman Balai Kemambang adalah taman kota yang asri dan teduh, cocok untuk bersantai bersama keluarga. Dilengkapi dengan kolam ikan, area bermain anak, dan jogging track yang nyaman.',
       },
     ];
 
