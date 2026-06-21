@@ -7,7 +7,8 @@ import 'package:mobile/pages/explore_page.dart';
 
 // 1. MENGUBAH HOMEPAGE MENJADI STATEFULWIDGET
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  final void Function(int)? onTabChanged;
+  const HomePage({Key? key, this.onTabChanged}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -152,12 +153,9 @@ class _HomePageState extends State<HomePage> {
                 'Destinasi Populer', 
                 'Eksplor',
                 onActionTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ExplorePage(),
-                    ),
-                  );
+                  // Pindah ke tab Explore (index 1) di MainScreen
+                  // agar navbar tetap tampil, bukan Navigator.push
+                  widget.onTabChanged?.call(1);
                 },
               ),
               const SizedBox(height: 15),
