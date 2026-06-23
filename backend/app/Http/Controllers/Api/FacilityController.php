@@ -10,7 +10,7 @@ class FacilityController extends Controller
 {
     public function index()
     {
-        return Facility::orderBy('name')->get();
+        return Facility::withCount('destinations')->orderBy('name')->get();
     }
 
     public function store(Request $request)
