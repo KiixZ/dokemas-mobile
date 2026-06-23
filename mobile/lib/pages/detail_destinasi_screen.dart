@@ -16,7 +16,7 @@ class DetailDestinasiScreen extends StatelessWidget {
   final String reviewerText;
 
   const DetailDestinasiScreen({
-    Key? key,
+    super.key,
     this.title = 'Baturraden',
     this.imageUrl =
         'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=500&auto=format&fit=crop',
@@ -39,7 +39,7 @@ class DetailDestinasiScreen extends StatelessWidget {
     this.reviewerTime = '2 hari yang lalu',
     this.reviewerText =
         'Tempatnya sangat sejuk dan bersih. Air terjunnya indah banget buat foto-foto. Fasilitas lengkap, parkiran luas. Recommended banget buat liburan bareng keluarga.',
-  }) : super(key: key);
+  });
 
   // Fungsi untuk memunculkan Pop-up Modal Tambah ke Itinerary (image_92da84.png)
   void _showTambahItineraryDialog(BuildContext context) {
@@ -52,7 +52,7 @@ class DetailDestinasiScreen extends StatelessWidget {
           ),
           contentPadding: EdgeInsets
               .zero, // Mengosongkan padding bawaan agar bisa custom footer
-          content: Container(
+          content: SizedBox(
             width: MediaQuery.of(context).size.width * 0.9,
             // Agar tinggi modal menyesuaikan konten
             child: Column(
@@ -147,7 +147,7 @@ class DetailDestinasiScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         DropdownButtonFormField<String>(
-                          value: 'Pagi', // Nilai default sesuai gambar
+                          initialValue: 'Pagi', // Nilai default sesuai gambar
                           items: <String>['Pagi', 'Siang', 'Sore', 'Malam'].map(
                             (String value) {
                               return DropdownMenuItem<String>(

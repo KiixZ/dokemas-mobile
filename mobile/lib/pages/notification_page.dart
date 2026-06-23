@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 
 class NotificationPage extends StatelessWidget {
-  const NotificationPage({Key? key}) : super(key: key);
+  const NotificationPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -10,21 +10,24 @@ class NotificationPage extends StatelessWidget {
     final List<Map<String, dynamic>> notifications = [
       {
         'title': 'Promo Spesial Liburan!',
-        'description': 'Diskon tiket masuk Lokawisata Baturraden 20% khusus minggu ini. Cek sekarang!',
+        'description':
+            'Diskon tiket masuk Lokawisata Baturraden 20% khusus minggu ini. Cek sekarang!',
         'time': '10 mnt yang lalu',
         'icon': Icons.discount_outlined,
         'isRead': false, // Menandakan belum dibaca (ada indikator warna)
       },
       {
         'title': 'Destinasi Baru di Purwokerto',
-        'description': 'Menara Pandang Teratai menambahkan wahana lampu baru di malam hari. Yuk agendakan!',
+        'description':
+            'Menara Pandang Teratai menambahkan wahana lampu baru di malam hari. Yuk agendakan!',
         'time': '2 jam yang lalu',
         'icon': Icons.place_outlined,
         'isRead': true,
       },
       {
         'title': 'Tips Liburan Aman',
-        'description': 'Tetap jaga barang bawaan Anda selama berkunjung ke tempat wisata alam ya.',
+        'description':
+            'Tetap jaga barang bawaan Anda selama berkunjung ke tempat wisata alam ya.',
         'time': '1 hari yang lalu',
         'icon': Icons.security_outlined,
         'isRead': true,
@@ -53,7 +56,10 @@ class NotificationPage extends StatelessWidget {
       body: notifications.isEmpty
           ? _buildEmptyState() // Jika kosong, tampilkan info kosong
           : ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 15,
+              ),
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final item = notifications[index];
@@ -69,11 +75,15 @@ class NotificationPage extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 15),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16), // Sesuai dengan radius card beranda
+        borderRadius: BorderRadius.circular(
+          16,
+        ), // Sesuai dengan radius card beranda
         border: Border.all(
-          color: item['isRead'] 
-              ? Colors.grey.withValues(alpha: 0.1) 
-              : AppColors.primary.withValues(alpha: 0.2), // Border agak biru/hijau kalau belum dibaca
+          color: item['isRead']
+              ? Colors.grey.withValues(alpha: 0.1)
+              : AppColors.primary.withValues(
+                  alpha: 0.2,
+                ), // Border agak biru/hijau kalau belum dibaca
         ),
         boxShadow: [
           BoxShadow(
@@ -104,7 +114,7 @@ class NotificationPage extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 15),
-            
+
             // Konten Teks Notifikasi
             Expanded(
               child: Column(
@@ -147,10 +157,7 @@ class NotificationPage extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     item['time'] as String,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: Colors.grey,
-                    ),
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
                   ),
                 ],
               ),
