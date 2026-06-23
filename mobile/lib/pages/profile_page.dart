@@ -25,7 +25,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   String _currentName = 'Saputra';
   String _currentEmail = 'saputra@example.com';
-  String _currentAvatarUrl =
+  final String _currentAvatarUrl =
       'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop';
   String? _localImagePath;
 
@@ -334,7 +334,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: 'Notifikasi',
                   trailing: Switch(
                     value: _isNotificationEnabled,
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                     onChanged: (val) {
                       setState(() {
                         _isNotificationEnabled = val;
@@ -370,7 +370,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: 'Mode Gelap',
                   trailing: Switch(
                     value: _isDarkModeEnabled,
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                     onChanged: (val) {
                       setState(() {
                         _isDarkModeEnabled = val;
