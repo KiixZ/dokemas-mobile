@@ -21,7 +21,7 @@ class Destination extends Model
 
     protected function thumbnailUrl(): Attribute
     {
-        return Attribute::get(fn () => $this->thumbnail ? Storage::disk('public')->url($this->thumbnail) : null);
+        return Attribute::get(fn (mixed $value, array $attributes) => !empty($attributes['thumbnail']) ? Storage::disk('public')->url($attributes['thumbnail']) : null);
     }
 
     protected function casts(): array
