@@ -75,7 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
         Route::apiResource('facilities', FacilityController::class)->except(['index']);
         Route::apiResource('destinations', DestinationController::class)->except(['index', 'show']);
-        Route::apiResource('users', AdminUserController::class)->except(['store']);
+        Route::apiResource('users', AdminUserController::class);
 
         // Galeri foto destinasi (upload auto-convert ke WebP)
         Route::post('destinations/{destination}/images', [DestinationController::class, 'uploadImages']);

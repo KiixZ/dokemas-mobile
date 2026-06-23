@@ -4,6 +4,8 @@ class UserModel {
   final String email;
   final String role;
   final String? avatar;
+  final String? createdAt;
+  final bool active; // UI placeholder if not returned from backend
 
   UserModel({
     required this.id,
@@ -11,6 +13,8 @@ class UserModel {
     required this.email,
     required this.role,
     this.avatar,
+    this.createdAt,
+    this.active = true,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +24,8 @@ class UserModel {
       email: json['email'],
       role: json['role'] ?? 'user',
       avatar: json['avatar'],
+      createdAt: json['created_at'],
+      active: true, // Default to true for now
     );
   }
 
@@ -31,5 +37,17 @@ class UserModel {
       'role': role,
       'avatar': avatar,
     };
+  }
+
+  UserModel copyWith({bool? active}) {
+    return UserModel(
+      id: id,
+      name: name,
+      email: email,
+      role: role,
+      avatar: avatar,
+      createdAt: createdAt,
+      active: active ?? this.active,
+    );
   }
 }

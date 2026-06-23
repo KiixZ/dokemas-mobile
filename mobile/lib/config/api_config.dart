@@ -8,5 +8,6 @@ class ApiConfig {
   static const String register = '$baseUrl/register';
   static const String logout = '$baseUrl/logout';
   static const String me = '$baseUrl/me';
-  static const String updateProfile = '$baseUrl/update-profile';
+  static const String updateProfile = '$baseUrl/profile';
+  static const String users = '$baseUrl/admin/users';
 }

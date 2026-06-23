@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'main_screen.dart';
+import 'admin/admin_shell.dart' as admin_shell;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -31,12 +32,22 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const MainScreen(),
-      ),
-    );
+    // Cek apakah admin atau user biasa
+    if (authProvider.isLoggedIn && authProvider.user?.role == 'admin') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const admin_shell.AdminShell(),
+        ),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MainScreen(),
+        ),
+      );
+    }
   }
 
   @override

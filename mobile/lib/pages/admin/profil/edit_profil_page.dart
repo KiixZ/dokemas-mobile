@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import '../../../models/app_user.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../models/user_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
 
 /// Form edit profil admin (UI only, belum simpan ke backend).
 class EditProfilPage extends StatefulWidget {
-  final AppUser user;
+  final UserModel user;
   const EditProfilPage({super.key, required this.user});
 
   @override
@@ -15,22 +17,49 @@ class EditProfilPage extends StatefulWidget {
 
 class _EditProfilPageState extends State<EditProfilPage> {
   final _formKey = GlobalKey<FormState>();
-  late final _nama = TextEditingController(text: widget.user.name);
-  late final _email = TextEditingController(text: widget.user.email);
+  late TextEditingController _nameController = TextEditingController(text: widget.user.name);
+  late TextEditingController _emailController = TextEditingController(text: widget.user.email);
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    _nama.dispose();
-    _email.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
-  void _save() {
-    if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profil tersimpan (dummy)')),
-    );
+  Future<void> _processEditProfil() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+
+      final authProvider = context.read<AuthProvider>();
+      final error = await authProvider.updateProfileInfo(
+        _nameController.text,
+        _emailController.text,
+      );
+
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+
+      if (error == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profil berhasil diperbarui!'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: AppColors.danger,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -61,7 +90,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
                     radius: 48,
                     backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                     child: Text(
-                      widget.user.initial,
+                      widget.user.name.isNotEmpty ? widget.user.name[0].toUpperCase() : '?',
                       style: const TextStyle(
                         color: AppColors.primaryDark,
                         fontSize: 36,
@@ -97,7 +126,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
 
             _Label('Nama Lengkap'),
             TextFormField(
-              controller: _nama,
+              controller: _nameController,
               decoration: _dec('Nama lengkap'),
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? 'Nama wajib diisi' : null,
@@ -106,7 +135,7 @@ class _EditProfilPageState extends State<EditProfilPage> {
 
             _Label('Email'),
             TextFormField(
-              controller: _email,
+              controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: _dec('Email'),
               validator: (v) {
@@ -121,10 +150,9 @@ class _EditProfilPageState extends State<EditProfilPage> {
 
             SizedBox(
               height: 50,
-              child: ElevatedButton.icon(
-                onPressed: _save,
-                icon: const Icon(Icons.save_outlined),
-                label: const Text('Simpan Perubahan'),
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _processEditProfil,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.onPrimary,
@@ -133,6 +161,23 @@ class _EditProfilPageState extends State<EditProfilPage> {
                     borderRadius: BorderRadius.circular(AppSpacing.radius),
                   ),
                 ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.save_outlined),
+                          SizedBox(width: 8),
+                          Text('Simpan Perubahan'),
+                        ],
+                      ),
               ),
             ),
             const SizedBox(height: AppSpacing.md),

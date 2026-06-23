@@ -3,23 +3,29 @@ import '../../../models/app_user.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../models/user_model.dart';
 import 'edit_profil_page.dart';
+import '../../change_password_page.dart';
+import '../../main_screen.dart';
 
 /// Body profil admin: kartu identitas + menu akun + logout.
 /// UI only. Dibungkus AppBar + navbar oleh [AdminShell].
 class AdminProfilPage extends StatelessWidget {
   const AdminProfilPage({super.key});
 
-  // Admin yang lagi login (dummy).
-  static const _me = AppUser(
-    name: 'Rifki Saputra',
-    email: 'rifki@dokemas.id',
-    role: UserRole.admin,
-    joined: 'Jan 2024',
-  );
-
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
+
+    if (user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final initial = user.name.isNotEmpty ? user.name[0].toUpperCase() : '?';
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
@@ -37,7 +43,7 @@ class AdminProfilPage extends StatelessWidget {
                 radius: 40,
                 backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                 child: Text(
-                  _me.initial,
+                  initial,
                   style: const TextStyle(
                     color: AppColors.primaryDark,
                     fontSize: 32,
@@ -46,9 +52,9 @@ class AdminProfilPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              Text(_me.name, style: AppTextStyles.heading2),
+              Text(user.name, style: AppTextStyles.heading2),
               const SizedBox(height: 2),
-              Text(_me.email, style: AppTextStyles.caption),
+              Text(user.email, style: AppTextStyles.caption),
               const SizedBox(height: AppSpacing.sm),
               Container(
                 padding:
@@ -58,7 +64,7 @@ class AdminProfilPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                 ),
                 child: Text(
-                  _me.role.label,
+                  user.role.toUpperCase(),
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 12,
@@ -80,14 +86,18 @@ class AdminProfilPage extends StatelessWidget {
               label: 'Edit Profil',
               onTap: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => EditProfilPage(user: _me),
+                  builder: (_) => EditProfilPage(user: user),
                 ),
               ),
             ),
             _MenuItem(
               icon: Icons.lock_outline,
               label: 'Ubah Password',
-              onTap: () => _soon(context),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const ChangePasswordPage(),
+                ),
+              ),
             ),
           ],
         ),
@@ -171,8 +181,15 @@ class AdminProfilPage extends StatelessWidget {
       ),
     );
     if (yes == true && context.mounted) {
-      // UI only: balik ke root (mis. login). Belum ada auth.
-      Navigator.of(context).popUntil((r) => r.isFirst);
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.logout();
+      if (context.mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false,
+        );
+      }
     }
   }
 }
