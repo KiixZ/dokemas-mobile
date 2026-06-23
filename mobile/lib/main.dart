@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'pages/guest_main_screen.dart';
-import 'pages/main_screen.dart';
 import 'theme/app_theme.dart';
 import 'pages/splash_screen.dart';
 
@@ -17,9 +15,6 @@ class DokemasApp extends StatelessWidget {
       title: 'DOKEMAS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      // Shell BELUM login (guest).
-      // Preview versi login: import 'pages/main_screen.dart' lalu
-      // home: const MainScreen().
       home: const SplashScreen(),
     );
   }

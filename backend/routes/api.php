@@ -16,7 +16,13 @@ use Illuminate\Support\Facades\Route;
 | Public routes (guest)
 |--------------------------------------------------------------------------
 */
+Route::get('register', function () {
+    return response()->json(['message' => 'Method GET not allowed. Use POST to register.'], 405);
+});
 Route::post('register', [AuthController::class, 'register']);
+Route::get('login', function () {
+    return response()->json(['message' => 'Unauthenticated.'], 401);
+})->name('login');
 Route::post('login', [AuthController::class, 'login']);
 
 Route::get('categories', [CategoryController::class, 'index']);
@@ -61,6 +67,9 @@ Route::middleware('auth:sanctum')->group(function () {
     |----------------------------------------------------------------------
     */
     Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::get('/', function () {
+            return response()->json(['message' => 'DOKEMAS Admin API Base Route']);
+        });
         Route::get('dashboard', DashboardController::class);
 
         Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
