@@ -2,7 +2,16 @@ import 'package:flutter/material.dart';
 import '../../../models/destination.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import '../../../theme/app_text_styles.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../config/api_config.dart';
+import '../../../models/category.dart';
+import '../../../models/facility.dart';
 
 /// Form tambah/edit destinasi (UI only, belum simpan ke backend).
 /// Kirim [existing] buat mode edit (field ter-isi).
@@ -16,27 +25,69 @@ class TambahDestinasiPage extends StatefulWidget {
 
 class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
   final _formKey = GlobalKey<FormState>();
-  late final _nama =
-      TextEditingController(text: widget.existing?.name ?? '');
-  late final _area =
-      TextEditingController(text: widget.existing?.area ?? '');
-  late final _harga =
-      TextEditingController(text: widget.existing?.price.toString() ?? '');
+  late final _nama = TextEditingController(text: widget.existing?.name ?? '');
+  late final _area = TextEditingController(text: widget.existing?.area ?? '');
+  late final _harga = TextEditingController(
+    text: widget.existing?.price.toString() ?? '',
+  );
   final _deskripsi = TextEditingController();
-  late final _lat =
-      TextEditingController(text: widget.existing?.lat?.toString() ?? '');
-  late final _lng =
-      TextEditingController(text: widget.existing?.lng?.toString() ?? '');
+  late final _lat = TextEditingController(
+    text: widget.existing?.lat?.toString() ?? '',
+  );
+  late final _lng = TextEditingController(
+    text: widget.existing?.lng?.toString() ?? '',
+  );
 
-  late String? _kategori = widget.existing?.category;
+  int? _categoryId;
   late bool _active = widget.existing?.active ?? true;
   late TimeOfDay _openHour =
-      _parseTime(widget.existing?.openHour) ?? const TimeOfDay(hour: 8, minute: 0);
+      _parseTime(widget.existing?.openHour) ??
+      const TimeOfDay(hour: 8, minute: 0);
   late TimeOfDay _closeHour =
-      _parseTime(widget.existing?.closeHour) ?? const TimeOfDay(hour: 17, minute: 0);
-  late final Set<String> _facilities = {...?widget.existing?.facilities};
+      _parseTime(widget.existing?.closeHour) ??
+      const TimeOfDay(hour: 17, minute: 0);
+  
+  late final Set<int> _selectedFacilities = {
+    ...?widget.existing?.facilities.map((f) => f.id!)
+  };
+
+  final ImagePicker _picker = ImagePicker();
+  final List<XFile> _images = [];
+  
+  List<Category> _categories = [];
+  List<Facility> _facilitiesOptions = [];
+  bool _isLoadingData = true;
+  bool _isSaving = false;
 
   bool get _isEdit => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    _deskripsi.text = widget.existing?.description ?? '';
+    _categoryId = widget.existing?.categoryId;
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      final resCat = await http.get(Uri.parse(ApiConfig.categories));
+      if (resCat.statusCode == 200) {
+        final List<dynamic> catData = jsonDecode(resCat.body);
+        _categories = catData.map((e) => Category.fromJson(e)).toList();
+      }
+
+      final resFac = await http.get(Uri.parse(ApiConfig.facilities));
+      if (resFac.statusCode == 200) {
+        final List<dynamic> facData = jsonDecode(resFac.body);
+        _facilitiesOptions = facData.map((e) => Facility.fromJson(e)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetch cat/fac: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingData = false);
+    }
+  }
 
   /// "08:30" -> TimeOfDay. null kalau gagal.
   TimeOfDay? _parseTime(String? s) {
@@ -79,17 +130,126 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
     }
   }
 
-  void _save() {
+  Future<void> _pickImages() async {
+    try {
+      final pickedFiles = await _picker.pickMultiImage();
+      if (pickedFiles.isNotEmpty) {
+        setState(() {
+          _images.addAll(pickedFiles);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal memilih gambar: $e')));
+      }
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _images.removeAt(index);
+    });
+  }
+
+  Future<void> _deleteExistingImage(DestinationImage img) async {
+    final token = context.read<AuthProvider>().token;
+    try {
+      final res = await http.delete(
+        Uri.parse('${ApiConfig.baseUrl}/admin/destination-images/${img.id}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+      if (res.statusCode == 200) {
+        setState(() {
+          widget.existing!.images.removeWhere((e) => e.id == img.id);
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gambar dihapus')),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error deleting image: $e');
+    }
+  }
+
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    // UI only: balik ke list, kasih notif sukses.
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_isEdit
-            ? 'Destinasi "${_nama.text}" diperbarui (dummy)'
-            : 'Destinasi "${_nama.text}" ditambah (dummy)'),
-      ),
-    );
+    
+    setState(() => _isSaving = true);
+    final token = context.read<AuthProvider>().token;
+
+    final uri = Uri.parse(_isEdit 
+      ? '${ApiConfig.adminDestinations}/${widget.existing!.id}'
+      : ApiConfig.adminDestinations);
+
+    final request = http.MultipartRequest('POST', uri);
+    
+    if (_isEdit) {
+      request.fields['_method'] = 'PUT';
+    }
+
+    request.headers.addAll({
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+    });
+
+    request.fields['name'] = _nama.text.trim();
+    request.fields['address'] = _area.text.trim();
+    if (_categoryId != null) request.fields['category_id'] = _categoryId.toString();
+    request.fields['price'] = _harga.text.trim();
+    request.fields['description'] = _deskripsi.text.trim();
+    request.fields['opening_hours'] = '${_fmtTime(_openHour)} - ${_fmtTime(_closeHour)}';
+    request.fields['latitude'] = _lat.text.trim();
+    request.fields['longitude'] = _lng.text.trim();
+    request.fields['is_popular'] = _active ? '1' : '0';
+
+    int i = 0;
+    for (final facId in _selectedFacilities) {
+      request.fields['facility_ids[$i]'] = facId.toString();
+      i++;
+    }
+
+    if (_images.isNotEmpty) {
+      // Image pertama jadi thumbnail jika create. Jika edit, akan mengganti thumbnail lama (dan menambah galeri).
+      request.files.add(await http.MultipartFile.fromPath('thumbnail', _images[0].path));
+      for (int j = 1; j < _images.length; j++) {
+        request.files.add(await http.MultipartFile.fromPath('images[$j]', _images[j].path));
+      }
+    }
+
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (mounted) setState(() => _isSaving = false);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (!mounted) return;
+        Navigator.of(context).pop(true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_isEdit ? 'Destinasi diperbarui' : 'Destinasi ditambah')),
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal menyimpan: ${response.statusCode}')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isSaving = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -107,14 +267,186 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
         centerTitle: true,
         iconTheme: const IconThemeData(color: AppColors.primary),
       ),
-      body: Form(
+      body: _isLoadingData
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            // Upload gambar (placeholder)
-            _ImagePicker(),
+            // Upload gambar
+            _Label('Foto Destinasi'),
+            if (_images.isEmpty)
+              InkWell(
+                onTap: _pickImages,
+                borderRadius: BorderRadius.circular(AppSpacing.radius),
+                child: Container(
+                  height: 160,
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(AppSpacing.radius),
+                    border: Border.all(
+                      color: AppColors.border,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_photo_alternate_outlined,
+                        size: 40,
+                        color: AppColors.textMuted,
+                      ),
+                      SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Tap untuk unggah gambar',
+                        style: AppTextStyles.caption,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                height: 120,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _images.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == _images.length) {
+                      // Tombol tambah lagi
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: InkWell(
+                          onTap: _pickImages,
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radius,
+                          ),
+                          child: Container(
+                            width: 100,
+                            decoration: BoxDecoration(
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radius,
+                              ),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.add_photo_alternate_outlined,
+                                color: AppColors.textMuted,
+                                size: 30,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    return Stack(
+                      children: [
+                        Container(
+                          width: 120,
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radius,
+                            ),
+                            image: DecorationImage(
+                              image: FileImage(File(_images[index].path)),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 12,
+                          child: InkWell(
+                            onTap: () => _removeImage(index),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
             const SizedBox(height: AppSpacing.lg),
+
+            if (widget.existing != null && widget.existing!.thumbnailUrl.isNotEmpty) ...[
+              _Label('Thumbnail Saat Ini'),
+              Container(
+                height: 160,
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppSpacing.radius),
+                  image: DecorationImage(
+                    image: NetworkImage(widget.existing!.thumbnailUrl),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ],
+
+            if (widget.existing != null && widget.existing!.images.isNotEmpty) ...[
+              _Label('Galeri Saat Ini'),
+              SizedBox(
+                height: 120,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: widget.existing!.images.length,
+                  itemBuilder: (context, index) {
+                    final img = widget.existing!.images[index];
+                    return Stack(
+                      children: [
+                        Container(
+                          width: 120,
+                          margin: const EdgeInsets.only(right: 8, bottom: AppSpacing.md),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(AppSpacing.radius),
+                            image: DecorationImage(
+                              image: NetworkImage(img.imageUrl),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 12,
+                          child: InkWell(
+                            onTap: () => _deleteExistingImage(img),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.delete,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
 
             _Label('Nama Destinasi'),
             TextFormField(
@@ -126,13 +458,13 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
             const SizedBox(height: AppSpacing.md),
 
             _Label('Kategori'),
-            DropdownButtonFormField<String>(
-              initialValue: _kategori,
+            DropdownButtonFormField<int>(
+              value: _categoryId,
               decoration: _dec('Pilih kategori'),
-              items: destinationCategories
-                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+              items: _categories
+                  .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
                   .toList(),
-              onChanged: (v) => setState(() => _kategori = v),
+              onChanged: (v) => setState(() => _categoryId = v),
               validator: (v) => v == null ? 'Pilih kategori' : null,
             ),
             const SizedBox(height: AppSpacing.md),
@@ -190,7 +522,9 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
                   child: TextFormField(
                     controller: _lat,
                     keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true, signed: true),
+                      decimal: true,
+                      signed: true,
+                    ),
                     decoration: _dec('Latitude (-7.31)'),
                     validator: _validCoord,
                   ),
@@ -200,7 +534,9 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
                   child: TextFormField(
                     controller: _lng,
                     keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true, signed: true),
+                      decimal: true,
+                      signed: true,
+                    ),
                     decoration: _dec('Longitude (109.22)'),
                     validator: _validCoord,
                   ),
@@ -209,19 +545,19 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Fasilitas (multi-select)
             _Label('Fasilitas'),
             Wrap(
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
-              children: facilityOptions.map((f) {
-                final selected = _facilities.contains(f);
+              children: _facilitiesOptions.map((f) {
+                final selected = _selectedFacilities.contains(f.id);
                 return FilterChip(
-                  label: Text(f),
+                  label: Text(f.name),
                   selected: selected,
                   showCheckmark: false,
                   onSelected: (on) => setState(
-                      () => on ? _facilities.add(f) : _facilities.remove(f)),
+                    () => on ? _selectedFacilities.add(f.id!) : _selectedFacilities.remove(f.id!),
+                  ),
                   labelStyle: TextStyle(
                     color: selected
                         ? AppColors.onPrimary
@@ -272,12 +608,16 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
             ),
             const SizedBox(height: AppSpacing.xl),
 
-            // Tombol simpan
             SizedBox(
               height: 50,
               child: ElevatedButton.icon(
-                onPressed: _save,
-                icon: const Icon(Icons.save_outlined),
+                onPressed: _isSaving ? null : _save,
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.save_outlined),
                 label: Text(_isEdit ? 'Simpan Perubahan' : 'Simpan Destinasi'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -297,24 +637,23 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
   }
 
   InputDecoration _dec(String hint) => InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: AppColors.surface,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          borderSide: const BorderSide(color: AppColors.primary),
-        ),
-      );
+    hintText: hint,
+    filled: true,
+    fillColor: AppColors.surface,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radius),
+      borderSide: const BorderSide(color: AppColors.border),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radius),
+      borderSide: const BorderSide(color: AppColors.border),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radius),
+      borderSide: const BorderSide(color: AppColors.primary),
+    ),
+  );
 }
 
 class _Label extends StatelessWidget {
@@ -347,8 +686,7 @@ class _TimeField extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSpacing.radius),
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppSpacing.radius),
@@ -356,8 +694,7 @@ class _TimeField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.access_time,
-                size: 18, color: AppColors.textMuted),
+            const Icon(Icons.access_time, size: 18, color: AppColors.textMuted),
             const SizedBox(width: AppSpacing.sm),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,42 +703,6 @@ class _TimeField extends StatelessWidget {
                 Text(value, style: AppTextStyles.title),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Kotak upload gambar (placeholder, belum konek file picker).
-class _ImagePicker extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Upload gambar (belum dibuat)')),
-        );
-      },
-      borderRadius: BorderRadius.circular(AppSpacing.radius),
-      child: Container(
-        height: 160,
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          border: Border.all(
-            color: AppColors.border,
-            style: BorderStyle.solid,
-          ),
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_photo_alternate_outlined,
-                size: 40, color: AppColors.textMuted),
-            SizedBox(height: AppSpacing.sm),
-            Text('Tap untuk unggah gambar',
-                style: AppTextStyles.caption),
           ],
         ),
       ),

@@ -82,5 +82,9 @@ class DatabaseSeeder extends Seeder
                 $facilities->random(rand(3, 6))->pluck('id')->all()
             );
         }
+
+        $this->call([
+            ReviewSeeder::class,
+        ]);
     }
 }

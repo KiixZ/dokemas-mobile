@@ -25,7 +25,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   String _currentName = 'Saputra';
   String _currentEmail = 'saputra@example.com';
-  String _currentAvatarUrl =
+  final String _currentAvatarUrl =
       'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop';
   String? _localImagePath;
 
@@ -118,6 +118,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -139,10 +142,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   const TextSpan(text: 'Halo, '),
                   TextSpan(
-                    text: _currentName,
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
+                  text: user?.name ?? 'Guest',
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
                     ),
                   ),
                   const TextSpan(text: '👋'),
@@ -222,8 +225,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Text(
-                      _currentName,
-                      style: AppTextStyles.heading2.copyWith(
+                user?.name ?? 'Guest',
+                style: AppTextStyles.heading2.copyWith(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
@@ -334,7 +337,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: 'Notifikasi',
                   trailing: Switch(
                     value: _isNotificationEnabled,
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                     onChanged: (val) {
                       setState(() {
                         _isNotificationEnabled = val;
@@ -370,7 +373,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: 'Mode Gelap',
                   trailing: Switch(
                     value: _isDarkModeEnabled,
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                     onChanged: (val) {
                       setState(() {
                         _isDarkModeEnabled = val;

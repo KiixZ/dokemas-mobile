@@ -1,89 +1,160 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../widgets/admin/stat_card.dart';
+import '../../../providers/admin/dashboard_provider.dart';
+import '../../../models/review.dart';
+import '../../../models/destination.dart';
 
-/// Body dashboard admin DOKEMAS (UI only, data dummy, belum konek backend).
+/// Body dashboard admin DOKEMAS (UI connected to backend).
 /// Dibungkus AppBar + bottom navbar oleh [AdminShell].
-class AdminDashboardPage extends StatelessWidget {
-  const AdminDashboardPage({super.key});
+class AdminDashboardPage extends StatefulWidget {
+  final VoidCallback? onNavigateToReviews;
+  final VoidCallback? onNavigateToDestinations;
+
+  const AdminDashboardPage({
+    super.key,
+    this.onNavigateToReviews,
+    this.onNavigateToDestinations,
+  });
+
+  @override
+  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
+}
+
+class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DashboardProvider>().fetchDashboardStats();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      children: [
-        const _Greeting(),
-        const SizedBox(height: AppSpacing.lg),
+    return Consumer<DashboardProvider>(
+      builder: (context, provider, child) {
+        if (provider.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-        // Kartu statistik
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: AppSpacing.md,
-          mainAxisSpacing: AppSpacing.md,
-          childAspectRatio: 1.35,
-          children: const [
-            StatCard(
-              label: 'TOTAL DESTINASI',
-              value: '124',
-              icon: Icons.terrain_outlined,
-              color: AppColors.statBlue,
-            ),
-            StatCard(
-              label: 'TOTAL KATEGORI',
-              value: '12',
-              icon: Icons.category_outlined,
-              color: AppColors.statGreen,
-            ),
-            StatCard(
-              label: 'TOTAL USER',
-              value: '3.450',
-              icon: Icons.people_outline,
-              color: AppColors.statOrange,
-            ),
-            StatCard(
-              label: 'TOTAL REVIEW',
-              value: '892',
-              icon: Icons.rate_review_outlined,
-              color: AppColors.statPurple,
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
-
-        // Review terbaru (satu kartu berisi daftar)
-        _Card(
-          child: Column(
-            children: [
-              _SectionHeader(title: 'Review Terbaru', onTap: () {}),
-              const SizedBox(height: AppSpacing.sm),
-              for (int i = 0; i < _dummyReviews.length; i++) ...[
-                if (i > 0) const Divider(height: AppSpacing.lg),
-                _ReviewTile(review: _dummyReviews[i]),
+        if (provider.error != null) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(provider.error!, style: const TextStyle(color: Colors.red)),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => provider.fetchDashboardStats(),
+                  child: const Text('Coba Lagi'),
+                ),
               ],
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
+            ),
+          );
+        }
 
-        // Destinasi populer (satu kartu berisi daftar)
-        _Card(
-          child: Column(
-            children: [
-              _SectionHeader(title: 'Destinasi Populer', onTap: () {}),
-              const SizedBox(height: AppSpacing.sm),
-              for (final d in _dummyDestinations) _DestinationTile(dest: d),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-      ],
+        final stats = provider.stats;
+        if (stats == null) {
+          return const Center(child: Text('Tidak ada data'));
+        }
+
+        return ListView(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          children: [
+            const _Greeting(),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Kartu statistik
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: AppSpacing.md,
+              mainAxisSpacing: AppSpacing.md,
+              childAspectRatio: 1.35,
+              children: [
+                StatCard(
+                  label: 'TOTAL DESTINASI',
+                  value: '${stats.totalDestinations}',
+                  icon: Icons.terrain_outlined,
+                  color: AppColors.statBlue,
+                ),
+                StatCard(
+                  label: 'TOTAL KATEGORI',
+                  value: '${stats.totalCategories}',
+                  icon: Icons.category_outlined,
+                  color: AppColors.statGreen,
+                ),
+                StatCard(
+                  label: 'TOTAL USER',
+                  value: '${stats.totalUsers}',
+                  icon: Icons.people_outline,
+                  color: AppColors.statOrange,
+                ),
+                StatCard(
+                  label: 'TOTAL REVIEW',
+                  value: '${stats.totalReviews}',
+                  icon: Icons.rate_review_outlined,
+                  color: AppColors.statPurple,
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Review terbaru
+            _Card(
+              child: Column(
+                children: [
+              _SectionHeader(
+                title: 'Review Terbaru',
+                onTap: widget.onNavigateToReviews ?? () {},
+              ),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (stats.latestReviews.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(AppSpacing.md),
+                      child: Text('Belum ada review'),
+                    ),
+                  for (int i = 0; i < stats.latestReviews.length; i++) ...[
+                    if (i > 0) const Divider(height: AppSpacing.lg),
+                    _ReviewTile(review: stats.latestReviews[i]),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Destinasi populer
+            _Card(
+              child: Column(
+                children: [
+              _SectionHeader(
+                title: 'Destinasi Populer',
+                onTap: widget.onNavigateToDestinations ?? () {},
+              ),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (stats.topDestinations.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(AppSpacing.md),
+                      child: Text('Belum ada destinasi'),
+                    ),
+                  for (final d in stats.topDestinations) _DestinationTile(dest: d),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
+        );
+      },
     );
   }
 }
+
+
 
 class _Greeting extends StatelessWidget {
   const _Greeting();
@@ -151,7 +222,7 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _ReviewTile extends StatelessWidget {
-  final _Review review;
+  final Review review;
   const _ReviewTile({required this.review});
 
   @override
@@ -163,7 +234,7 @@ class _ReviewTile extends StatelessWidget {
           radius: 20,
           backgroundColor: AppColors.primaryLight.withValues(alpha: 0.3),
           child: Text(
-            review.name[0],
+            review.initial,
             style: const TextStyle(
               color: AppColors.primaryDark,
               fontWeight: FontWeight.bold,
@@ -179,7 +250,7 @@ class _ReviewTile extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(review.name, style: AppTextStyles.title),
+                    child: Text(review.userName, style: AppTextStyles.title),
                   ),
                   _Stars(rating: review.rating),
                 ],
@@ -193,7 +264,7 @@ class _ReviewTile extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${review.destination} • ${review.timeAgo}',
+                '${review.destinationName} • ${review.date}',
                 style: AppTextStyles.caption,
               ),
             ],
@@ -224,7 +295,7 @@ class _Stars extends StatelessWidget {
 }
 
 class _DestinationTile extends StatelessWidget {
-  final _Destination dest;
+  final Destination dest;
   const _DestinationTile({required this.dest});
 
   @override
@@ -249,7 +320,7 @@ class _DestinationTile extends StatelessWidget {
               children: [
                 Text(dest.name, style: AppTextStyles.title),
                 const SizedBox(height: 2),
-                Text('${dest.views} views', style: AppTextStyles.caption),
+                Text('${dest.reviews} reviews', style: AppTextStyles.caption),
               ],
             ),
           ),
@@ -260,47 +331,4 @@ class _DestinationTile extends StatelessWidget {
   }
 }
 
-// ===== Data dummy (UI only) =====
 
-class _Review {
-  final String name;
-  final String comment;
-  final double rating;
-  final String destination;
-  final String timeAgo;
-  const _Review(
-    this.name,
-    this.comment,
-    this.rating,
-    this.destination,
-    this.timeAgo,
-  );
-}
-
-class _Destination {
-  final String name;
-  final String views;
-  const _Destination(this.name, this.views);
-}
-
-const _dummyReviews = [
-  _Review(
-    'Siti Aminah',
-    'Baturraden sangat indah! Fasilitas sudah membaik tapi tolong perhatikan kebersihan toiletnya.',
-    5,
-    'Baturraden',
-    '2 jam lalu',
-  ),
-  _Review(
-    'Budi Santoso',
-    'Curug Jenggala bagus buat foto-foto, jalurnya lumayan menantang.',
-    4,
-    'Curug Jenggala',
-    '5 jam lalu',
-  ),
-];
-
-const _dummyDestinations = [
-  _Destination('Baturraden', '1.240'),
-  _Destination('Telaga Sunyi', '985'),
-];

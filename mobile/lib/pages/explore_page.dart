@@ -274,16 +274,14 @@ class _ExplorePageState extends State<ExplorePage> {
                   MaterialPageRoute(
                     builder: (context) => DetailDestinasiScreen(
                       title: item.name,
+                      imageUrl: item.imageUrl,
                       rating: item.rating.toString(),
                       reviewCount: '${item.reviews} ulasan',
                       location: item.area,
                       price: formatRupiah(item.price), 
                       distance: '-', // Bisa diganti logika jarak jika lat/lng dihitung
                       openingHours: '${item.openHour} -\n${item.closeHour}',
-        
-                      // UBAH BAGIAN INI AGAR DINAMIS:
-                      // Jika di DetailDestinasiScreen kamu ada parameter deskripsi/fasilitas, oper langsung dari model
-                      description: 'Kategori: ${item.category}. Fasilitas: ${item.facilities.join(", ")}', 
+                      description: 'Kategori: ${item.category}. Fasilitas: ${item.facilities.map((f) => f.name).join(", ")}', 
                     ),
                   ),
                 );
@@ -381,18 +379,18 @@ class _ExplorePageState extends State<ExplorePage> {
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
-                        ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );
-  },
-);
-}
+  }
 }

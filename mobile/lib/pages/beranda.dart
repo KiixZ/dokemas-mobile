@@ -17,7 +17,7 @@ String formatRupiah(int price) {
 
 class HomePage extends StatefulWidget {
   final void Function(int)? onTabChanged;
-  const HomePage({Key? key, this.onTabChanged}) : super(key: key);
+  const HomePage({super.key, this.onTabChanged});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -117,7 +117,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: Icon(
                           item['icon'] as IconData,
-                          color: isActive ? Colors.white : AppColors.primaryDark,
+                          color: isActive
+                              ? Colors.white
+                              : AppColors.primaryDark,
                           size: 22,
                         ),
                       ),
@@ -127,7 +129,9 @@ class _HomePageState extends State<HomePage> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isActive
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                           color: isActive ? AppColors.primary : Colors.black87,
                         ),
                       ),
@@ -231,6 +235,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // 1. HEADER SECTION (TOMBOL NOTIFIKASI AKTIF)
   Widget _buildHeader(bool isLoggedIn, String? userName, String? userAvatar) {
     return Row(
       children: [
@@ -248,7 +253,9 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   Text(
-                    isLoggedIn ? 'Halo, $userName ' : 'Halo ',
+                    isLoggedIn && userName != null && userName.isNotEmpty
+                        ? 'Halo, $userName '
+                        : 'Halo ',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -276,9 +283,7 @@ class _HomePageState extends State<HomePage> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const NotificationPage(),
-              ),
+              MaterialPageRoute(builder: (context) => const NotificationPage()),
             );
           },
           borderRadius: BorderRadius.circular(50),
@@ -328,7 +333,8 @@ class _HomePageState extends State<HomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ExplorePage(searchQuery: query),
+                            builder: (context) =>
+                                ExplorePage(searchQuery: query),
                           ),
                         );
                       }
@@ -369,7 +375,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSectionTitle(String title, String actionText, {VoidCallback? onActionTap}) {
+  // 3. SECTION TITLE GENERATOR (MENDUKUNG CUSTOM CALLBACK ACTION)
+  Widget _buildSectionTitle(
+    String title,
+    String actionText, {
+    VoidCallback? onActionTap,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -383,10 +394,13 @@ class _HomePageState extends State<HomePage> {
         ),
         if (actionText.isNotEmpty)
           InkWell(
-            onTap: onActionTap,
+            onTap: onActionTap, // Memanggil fungsi dinamis yang disuntikkan dari atas
             borderRadius: BorderRadius.circular(4),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 4.0,
+              ),
               child: Text(
                 actionText,
                 style: const TextStyle(

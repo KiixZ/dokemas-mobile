@@ -1,22 +1,41 @@
-/// Model destinasi wisata
-class Destination {
-  final String name;
-  final String area; 
-  final String category; // Disamakan dengan UI: "Alam", "Keluarga", "Kuliner", "Edukasi", "Religi"
-  final double rating; 
-  final String reviews; 
-  final int price; 
-  final bool active;
-  final String openHour; 
-  final String closeHour; 
-  final List<String> facilities; 
-  final double? lat; 
-  final double? lng; 
+import 'facility.dart';
+
+class DestinationImage {
+  final int id;
   final String imageUrl;
 
+  const DestinationImage({required this.id, required this.imageUrl});
+
+  factory DestinationImage.fromJson(Map<String, dynamic> json) {
+    return DestinationImage(id: json['id'], imageUrl: json['image_url'] ?? '');
+  }
+}
+
+/// Model destinasi wisata (tersambung backend).
+class Destination {
+  final int? id;
+  final String name;
+  final String area;
+  final int? categoryId;
+  final String category;
+  final double rating;
+  final int reviews;
+  final int price;
+  final bool active;
+  final String openHour;
+  final String closeHour;
+  final String description;
+  final List<Facility> facilities;
+  final List<DestinationImage> images;
+  final String thumbnailUrl;
+  final double? lat;
+  final double? lng;
+
   const Destination({
+    this.id,
     required this.name,
     required this.area,
+    this.categoryId,
     required this.category,
     required this.rating,
     required this.reviews,
@@ -24,11 +43,17 @@ class Destination {
     this.active = true,
     this.openHour = '08:00',
     this.closeHour = '17:00',
+    this.description = '',
     this.facilities = const [],
+    this.images = const [],
+    this.thumbnailUrl = '',
     this.lat,
     this.lng,
-    this.imageUrl = 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=300', 
   });
+
+  String get imageUrl => thumbnailUrl.isNotEmpty 
+      ? thumbnailUrl 
+      : 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=300';
 
   /// Fungsi untuk mapping data dari Database/API JSON yang aman
   factory Destination.fromJson(Map<String, dynamic> json) {
@@ -72,31 +97,51 @@ class Destination {
       apiCategoryStr = json['category_id']?.toString();
     }
 
-    // Parsing list fasilitas secara aman
-    List<String> parsedFacilities = [];
-    if (json['facilities'] != null && json['facilities'] is List) {
-      parsedFacilities = (json['facilities'] as List).map((f) => f.toString()).toList();
+    String parseTime(String? timeStr) {
+      if (timeStr == null || timeStr.isEmpty) return '00:00';
+      final parts = timeStr.split(':');
+      if (parts.length >= 2) return '${parts[0]}:${parts[1]}';
+      return '00:00';
+    }
+
+    String openHour = '08:00';
+    String closeHour = '17:00';
+    if (json['opening_hours'] != null) {
+      final times = json['opening_hours'].toString().split('-');
+      if (times.isNotEmpty) openHour = parseTime(times[0].trim());
+      if (times.length > 1) closeHour = parseTime(times[1].trim());
     }
 
     return Destination(
-      name: json['name']?.toString() ?? '',
-      area: json['address']?.toString() ?? json['description']?.toString() ?? 'Banyumas',
+      id: json['id'],
+      categoryId: json['category_id'],
+      name: json['name'] ?? '',
+      area: json['address'] ?? '',
       category: mapCategory(apiCategoryStr),
-      rating: json['rating_avg'] != null
-          ? (double.tryParse(json['rating_avg'].toString()) ?? 0.0)
-          : (json['rating'] != null ? (double.tryParse(json['rating'].toString()) ?? 0.0) : 0.0),
-      reviews: json['rating_count']?.toString() ?? json['reviews']?.toString() ?? '0',
-      price: json['price'] != null ? (int.tryParse(json['price'].toString()) ?? 0) : 0,
-      active: json['active'] is bool ? json['active'] : true,
-      openHour: json['opening_hours']?.toString() ?? json['open_hour']?.toString() ?? '08:00',
-      closeHour: json['closing_hours']?.toString() ?? json['close_hour']?.toString() ?? '17:00',
-      facilities: parsedFacilities,
-      lat: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
-      lng: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
-      imageUrl: json['thumbnail_url'] ??
-          json['thumbnail'] ??
-          json['image_url'] ??
-          'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=300',
+      rating: (json['rating_avg'] ?? 0).toDouble(),
+      reviews: json['rating_count'] ?? 0,
+      price: (json['price'] ?? 0).toInt(),
+      active: json['is_popular'] == 1 || json['is_popular'] == true,
+      openHour: openHour,
+      closeHour: closeHour,
+      description: json['description'] ?? '',
+      lat: json['latitude'] != null
+          ? double.tryParse(json['latitude'].toString())
+          : null,
+      lng: json['longitude'] != null
+          ? double.tryParse(json['longitude'].toString())
+          : null,
+      thumbnailUrl: json['thumbnail_url'] ?? '',
+      facilities: json['facilities'] != null
+          ? (json['facilities'] as List)
+                .map((e) => Facility.fromJson(e))
+                .toList()
+          : [],
+      images: json['images'] != null
+          ? (json['images'] as List)
+                .map((e) => DestinationImage.fromJson(e))
+                .toList()
+          : [],
     );
   }
 }
@@ -112,47 +157,7 @@ String formatRupiah(int value) {
   return 'Rp $buf';
 }
 
-/// Data dummy yang disesuaikan kategorinya dengan UI HomePage
-const dummyDestinations = [
-  Destination(
-    name: 'Curug Bayan Baturraden',
-    area: 'Baturraden, Banyumas',
-    category: 'Alam',
-    rating: 4.8,
-    reviews: '1.2k',
-    price: 15000,
-    active: true,
-    openHour: '07:00',
-    closeHour: '17:00',
-    facilities: ['Toilet', 'Parkir', 'Warung'],
-  ),
-  Destination(
-    name: 'Bukit Tranggulasih',
-    area: 'Sumbang, Banyumas',
-    category: 'Alam',
-    rating: 4.5,
-    reviews: '842',
-    price: 10000,
-    active: false,
-    openHour: '24 Jam',
-    closeHour: '-',
-    facilities: ['Parkir', 'Spot Foto', 'Mushola'],
-  ),
-  Destination(
-    name: 'Soto Sokaraja Asli',
-    area: 'Sokaraja, Banyumas',
-    category: 'Kuliner',
-    rating: 4.9,
-    reviews: '2.5k',
-    price: 25000,
-    active: true,
-    openHour: '09:00',
-    closeHour: '21:00',
-    facilities: ['Toilet', 'Wifi', 'Parkir'],
-  ),
-];
-
-/// Kategori yang sinkron dengan UI utama
+/// Kategori dipakai di filter chip & dropdown form.
 const destinationCategories = [
   'Alam',
   'Keluarga',

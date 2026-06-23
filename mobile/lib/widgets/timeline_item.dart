@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
@@ -22,6 +24,30 @@ class TimelineItem extends StatelessWidget {
     required this.imageUrl,
     this.isLast = false,
   });
+
+  // fungsi bantuan untuk meluncurkan Google Maps
+  Future<void> _bukaGoogleMaps(BuildContext context, String namaLokasi) async {
+    // Menggunakan query pencarian universal Google Maps agar akurat mencari nama tempat
+    final String googleMapsUrl =
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(namaLokasi)}';
+    final Uri url = Uri.parse(googleMapsUrl);
+
+    try {
+      if (await canLaunchUrl(url)) {
+        // Membuka aplikasi Google Maps eksternal secara paksa (externalApplication)
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Tidak dapat membuka maps';
+      }
+    } catch (e) {
+      // Tampilkan pesan error tipis-tipis jika perangkat tidak mendukung
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuka peta untuk $namaLokasi')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,15 +82,12 @@ class TimelineItem extends StatelessWidget {
                 ),
                 if (!isLast)
                   Expanded(
-                    child: Container(
-                      width: 1.5,
-                      color: AppColors.border,
-                    ),
+                    child: Container(width: 1.5, color: AppColors.border),
                   ),
               ],
             ),
           ),
-          
+
           // Right Side: Card Content
           Expanded(
             child: Padding(
@@ -80,7 +103,9 @@ class TimelineItem extends StatelessWidget {
                       offset: const Offset(0, 4),
                     ),
                   ],
-                  border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                  border: Border.all(
+                    color: AppColors.border.withValues(alpha: 0.5),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +144,9 @@ class TimelineItem extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.surface,
-                              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusLg,
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -143,17 +170,14 @@ class TimelineItem extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
+
                     // Info Section
                     Padding(
                       padding: const EdgeInsets.all(AppSpacing.md),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            title,
-                            style: AppTextStyles.title,
-                          ),
+                          Text(title, style: AppTextStyles.title),
                           const SizedBox(height: AppSpacing.xs),
                           Row(
                             children: [
@@ -172,25 +196,28 @@ class TimelineItem extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: AppSpacing.md),
-                          
+
                           // Action Button
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.route_outlined,
-                                size: 18,
-                              ),
+                              onPressed: () => _bukaGoogleMaps(context, title),
+                              icon: const Icon(Icons.route_outlined, size: 18),
                               label: const Text('Lihat Rute'),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                                backgroundColor: AppColors.primary.withValues(
+                                  alpha: 0.1,
+                                ),
                                 foregroundColor: AppColors.primary,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.radiusSm,
+                                  ),
                                 ),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                               ),
                             ),
                           ),
