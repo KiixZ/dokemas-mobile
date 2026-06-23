@@ -76,6 +76,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('facilities', FacilityController::class)->except(['index']);
         Route::apiResource('destinations', DestinationController::class)->except(['index', 'show']);
         Route::apiResource('users', AdminUserController::class);
+        Route::get('reviews', [\App\Http\Controllers\Api\Admin\ReviewController::class, 'index']);
+        Route::patch('reviews/{review}/status', [\App\Http\Controllers\Api\Admin\ReviewController::class, 'updateStatus']);
+        Route::delete('reviews/{review}', [\App\Http\Controllers\Api\Admin\ReviewController::class, 'destroy']);
+
 
         // Galeri foto destinasi (upload auto-convert ke WebP)
         Route::post('destinations/{destination}/images', [DestinationController::class, 'uploadImages']);

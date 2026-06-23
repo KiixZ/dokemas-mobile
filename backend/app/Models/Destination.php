@@ -62,8 +62,9 @@ class Destination extends Model
 
     public function recalcRating(): void
     {
-        $this->rating_avg = (float) round($this->reviews()->avg('rating') ?? 0, 2);
-        $this->rating_count = $this->reviews()->count();
+        $publicReviews = $this->reviews()->where('status', 'public');
+        $this->rating_avg = (float) round($publicReviews->avg('rating') ?? 0, 2);
+        $this->rating_count = $publicReviews->count();
         $this->save();
     }
 }
