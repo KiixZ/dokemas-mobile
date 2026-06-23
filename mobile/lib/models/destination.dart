@@ -49,6 +49,8 @@ class Destination {
           return 'Kuliner';
         case 'education':
         case 'edukasi':
+        case 'sejarah':
+        case 'history':
           return 'Edukasi';
         case 'religious':
         case 'religi':
@@ -56,6 +58,18 @@ class Destination {
         default:
           return 'Alam'; 
       }
+    }
+
+    // Parsing data category secara dinamis baik berupa String maupun Map
+    String? apiCategoryStr;
+    if (json['category'] != null) {
+      if (json['category'] is Map) {
+        apiCategoryStr = json['category']['name']?.toString() ?? json['category']['slug']?.toString();
+      } else {
+        apiCategoryStr = json['category'].toString();
+      }
+    } else {
+      apiCategoryStr = json['category_id']?.toString();
     }
 
     // Parsing list fasilitas secara aman
@@ -67,7 +81,7 @@ class Destination {
     return Destination(
       name: json['name']?.toString() ?? '',
       area: json['address']?.toString() ?? json['description']?.toString() ?? 'Banyumas',
-      category: mapCategory(json['category']?.toString() ?? json['category_id']?.toString()),
+      category: mapCategory(apiCategoryStr),
       rating: json['rating_avg'] != null
           ? (double.tryParse(json['rating_avg'].toString()) ?? 0.0)
           : (json['rating'] != null ? (double.tryParse(json['rating'].toString()) ?? 0.0) : 0.0),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mobile/components/filter_bottom_sheet.dart';
 import 'package:mobile/pages/detail_destinasi_screen.dart';
 import '../theme/app_colors.dart';
@@ -7,6 +6,9 @@ import 'notification_page.dart';
 import 'package:mobile/pages/explore_page.dart';
 import '../models/destination.dart';
 import '../service/api_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../config/api_config.dart';
 
 // Fungsi helper untuk memformat angka menjadi Rupiah dinamis
 String formatRupiah(int price) {
@@ -26,10 +28,6 @@ class _HomePageState extends State<HomePage> {
   
   late Future<List<Destination>> _futureDestinations;
 
-//Tambahkan variabel untuk menyimpan status login dan nama
-  bool _isLoggedIn = false;
-  String _userName = '';
-
   final List<Map<String, dynamic>> _categories = [
     {'name': 'Alam', 'icon': Icons.terrain},
     {'name': 'Keluarga', 'icon': Icons.people},
@@ -41,17 +39,19 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
     _futureDestinations = ApiService().fetchDestinations();
-    
   }
-    Future<void> _checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
 
-    setState(() {
-      _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-      _userName = prefs.getString('userName') ?? 'User';
-    });
+  ImageProvider _resolveAvatarImage(String? avatar) {
+    if (avatar != null && avatar.isNotEmpty) {
+      if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+        return NetworkImage(avatar);
+      }
+      final domain = ApiConfig.baseUrl.replaceAll('/api', '');
+      final fullUrl = avatar.startsWith('/') ? '$domain$avatar' : '$domain/$avatar';
+      return NetworkImage(fullUrl);
+    }
+    return const NetworkImage('https://via.placeholder.com/150/grey/white?text=?');
   }
 
   void _showAllCategoriesDialog() {
@@ -144,6 +144,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final bool isLoggedIn = authProvider.isLoggedIn;
+    final String? userName = authProvider.user?.name;
+    final String? userAvatar = authProvider.user?.avatar;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -187,7 +192,7 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 15),
-                    _buildHeader(),
+                    _buildHeader(isLoggedIn, userName, userAvatar),
                     const SizedBox(height: 20),
                     _buildSearchBar(context),
                     const SizedBox(height: 25),
@@ -226,14 +231,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isLoggedIn, String? userName, String? userAvatar) {
     return Row(
       children: [
          CircleAvatar(
           radius: 24,
-          backgroundImage: _isLoggedIn 
-            ?  NetworkImage('https://via.placeholder.com/150')
-            :  NetworkImage('https://via.placeholder.com/150/grey/white?text=?'),
+          backgroundImage: isLoggedIn 
+            ? _resolveAvatarImage(userAvatar)
+            : const NetworkImage('https://via.placeholder.com/150/grey/white?text=?'),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -243,14 +248,14 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   Text(
-                    _isLoggedIn ? 'Halo, $_userName ' : 'Halo ',
+                    isLoggedIn ? 'Halo, $userName ' : 'Halo ',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  Text('👋', style: TextStyle(fontSize: 18)),
+                  const Text('👋', style: TextStyle(fontSize: 18)),
                 ],
               ),
               const SizedBox(height: 4),
