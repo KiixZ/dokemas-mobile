@@ -9,6 +9,7 @@ import '../main_screen.dart';
 import '../admin/admin_shell.dart';
 import 'register_page.dart';
 import 'forgot_password_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -49,6 +50,14 @@ class _LoginPageState extends State<LoginPage> {
       Navigator.pop(context); // Tutup Loading
 
       if (errorMessage == null) {
+
+      // --- TAMBAHKAN LOGIKA DI SINI ---
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+      // Simpan nama user dari data user yang didapat dari authProvider
+      await prefs.setString('userName', authProvider.user?.name ?? 'User'); 
+      // --------------------------------
+
         if (authProvider.user?.role == 'admin') {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'main_screen.dart';
 import 'admin/admin_shell.dart' as admin_shell;
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -36,16 +37,12 @@ class _SplashScreenState extends State<SplashScreen> {
     if (authProvider.isLoggedIn && authProvider.user?.role == 'admin') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const admin_shell.AdminShell(),
-        ),
+        MaterialPageRoute(builder: (context) => const admin_shell.AdminShell()),
       );
     } else {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const MainScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     }
   }
@@ -59,16 +56,25 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 96,
-              height: 96,
+              width: 250,
+              height: 250,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: const Color(0xFFE8F7F4),
                 borderRadius: BorderRadius.circular(28),
               ),
-              child: const Icon(
-                Icons.travel_explore_rounded,
-                size: 50,
-                color: Color(0xFF008F7A),
+              child: Transform.scale(
+                scale:
+                    14.0, // Memperbesar/zoom gambar SVG yang terlalu banyak ruang kosong
+                child: SvgPicture.asset(
+                  'lib/assets/serayu.svg',
+                  width: 50,
+                  height: 50,
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF008F7A),
+                    BlendMode.srcIn,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 22),
@@ -83,11 +89,8 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Dolan Keliling Banyumas',
-              style: TextStyle(
-                fontSize: 13,
-                color: Color(0xFF7B8794),
-              ),
+              'APLIKASI WISATA AREA BANYUMAS',
+              style: TextStyle(fontSize: 13, color: Color(0xFF7B8794)),
             ),
           ],
         ),
