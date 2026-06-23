@@ -8,7 +8,7 @@ import '../models/destination.dart';
 import '../service/api_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../config/api_config.dart';
+
 
 // Fungsi helper untuk memformat angka menjadi Rupiah dinamis
 String formatRupiah(int price) {
@@ -42,17 +42,7 @@ class _HomePageState extends State<HomePage> {
     _futureDestinations = ApiService().fetchDestinations();
   }
 
-  ImageProvider _resolveAvatarImage(String? avatar) {
-    if (avatar != null && avatar.isNotEmpty) {
-      if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
-        return NetworkImage(avatar);
-      }
-      final domain = ApiConfig.baseUrl.replaceAll('/api', '');
-      final fullUrl = avatar.startsWith('/') ? '$domain$avatar' : '$domain/$avatar';
-      return NetworkImage(fullUrl);
-    }
-    return const NetworkImage('https://via.placeholder.com/150/grey/white?text=?');
-  }
+
 
   void _showAllCategoriesDialog() {
     showDialog(
@@ -151,7 +141,7 @@ class _HomePageState extends State<HomePage> {
     final authProvider = Provider.of<AuthProvider>(context);
     final bool isLoggedIn = authProvider.isLoggedIn;
     final String? userName = authProvider.user?.name;
-    final String? userAvatar = authProvider.user?.avatar;
+    final String? userAvatarUrl = authProvider.user?.avatarUrl;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -196,7 +186,7 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 15),
-                    _buildHeader(isLoggedIn, userName, userAvatar),
+                    _buildHeader(isLoggedIn, userName, userAvatarUrl),
                     const SizedBox(height: 20),
                     _buildSearchBar(context),
                     const SizedBox(height: 25),
@@ -236,46 +226,30 @@ class _HomePageState extends State<HomePage> {
   }
 
   // 1. HEADER SECTION (TOMBOL NOTIFIKASI AKTIF)
-  Widget _buildHeader(bool isLoggedIn, String? userName, String? userAvatar) {
+  Widget _buildHeader(bool isLoggedIn, String? userName, String? userAvatarUrl) {
     return Row(
       children: [
          CircleAvatar(
           radius: 24,
-          backgroundImage: isLoggedIn 
-            ? _resolveAvatarImage(userAvatar)
-            : const NetworkImage('https://via.placeholder.com/150/grey/white?text=?'),
+          backgroundImage: isLoggedIn && userAvatarUrl != null
+            ? NetworkImage(userAvatarUrl)
+            : const NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop'),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Text(
-                    isLoggedIn && userName != null && userName.isNotEmpty
-                        ? 'Halo, $userName '
-                        : 'Halo ',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const Text('👋', style: TextStyle(fontSize: 18)),
-                ],
+              Text(
+                isLoggedIn && userName != null && userName.isNotEmpty
+                    ? 'Halo, $userName '
+                    : 'Halo ',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
-              const SizedBox(height: 4),
-              Row(
-                children: const [
-                  Icon(Icons.location_on, size: 16, color: AppColors.primary),
-                  SizedBox(width: 4),
-                  Text(
-                    'Purwokerto, Jawa Tengah',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
-                  ),
-                ],
-              ),
+              const Text('👋', style: TextStyle(fontSize: 18)),
             ],
           ),
         ),
