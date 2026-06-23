@@ -124,12 +124,10 @@ class _ItineraryPageState extends State<ItineraryPage> {
     final Map<String, dynamic> activeItinerary = activeIndex != -1
         ? _itineraryData[activeIndex]
         : {
-            'titleHeader': 'Tambahkan Judul Perjalanan',
-            'dateRangeHeader': 'Tanggal Tidak Tersedia',
-            'items': [],
+            'titleHeader': 'Belum Ada Itinerary',
+            'dateRangeHeader': '',
+            'items': []
           };
-
-    // Ambil data list items/kegiatan yang sudah difilter
     final List<dynamic> activeActivityItems = activeItinerary['items'] ?? [];
 
     return Scaffold(
