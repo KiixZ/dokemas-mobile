@@ -17,6 +17,16 @@ class UserModel {
     this.active = true,
   });
 
+  String get avatarUrl {
+    if (avatar == null || avatar!.isEmpty) {
+      return 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop';
+    }
+    if (avatar!.startsWith('http')) {
+      return avatar!;
+    }
+    return 'https://porto-backend-dokemas.rryxja.easypanel.host/storage/$avatar';
+  }
+
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'],

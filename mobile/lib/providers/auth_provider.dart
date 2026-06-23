@@ -167,6 +167,48 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Fungsi Ubah Profil Lengkap (Name, Email, dan opsional Avatar file)
+  Future<String?> updateProfile({
+    required String name,
+    required String email,
+    String? avatarPath,
+  }) async {
+    if (_token == null) return 'Anda belum login.';
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse(ApiConfig.updateAvatar),
+      );
+      
+      request.headers['Authorization'] = 'Bearer $_token';
+      request.headers['Accept'] = 'application/json';
+
+      request.fields['name'] = name;
+      request.fields['email'] = email;
+
+      if (avatarPath != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath('avatar', avatarPath),
+        );
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        _user = UserModel.fromJson(jsonDecode(response.body));
+        notifyListeners();
+        return null; // Sukses
+      } else {
+        final errorData = jsonDecode(response.body);
+        return errorData['message'] ?? 'Gagal memperbarui profil.';
+      }
+    } catch (e) {
+      debugPrint('Error update profile: $e');
+      return 'Terjadi kesalahan koneksi.';
+    }
+  }
+
   // Fungsi Ubah Password
   Future<String?> updatePassword(String currentPassword, String password, String passwordConfirmation) async {
     if (_token == null) return 'Anda belum login.';
