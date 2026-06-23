@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/pages/edit_profile_page.dart';
+import '../models/app_user.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
@@ -13,6 +15,14 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+
+   static const _user = AppUser(
+    name: 'Saputra',
+    email: 'saputra@gmail.com',
+    role: UserRole.user,
+    joined: 'Jun 2025',
+  );
+
   // State untuk switch tombol interaktif
   bool _isNotificationEnabled = true;
   bool _isDarkModeEnabled = false;
@@ -82,11 +92,11 @@ class _ProfilePageState extends State<ProfilePage> {
             RichText(
               text: TextSpan(
                 style: AppTextStyles.title,
-                children: const [
+                children: [
                   TextSpan(text: 'Halo, '),
                   TextSpan(
-                    text: 'Saputra ',
-                    style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                    text: _user.name,
+                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                   ),
                   TextSpan(text: '👋'),
                 ],
@@ -168,13 +178,40 @@ class _ProfilePageState extends State<ProfilePage> {
                     const SizedBox(height: AppSpacing.md),
                     // Nama
                     Text(
-                      'Saputra',
+                      _user.name,
                       style: AppTextStyles.heading2.copyWith(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: 4),
+
+                    Text(
+                      _user.email,
+                      style: AppTextStyles.caption,
+                    ),
+
+                    const SizedBox(height: AppSpacing.sm),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                      ),
+                      child: Text(
+                        _user.role.label,
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
                     // Lokasi
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -206,7 +243,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 _SettingsTile(
                   icon: Icons.person_outline_rounded,
                   title: 'Edit Profil',
-                  onTap: () => _showPlaceholderSnackBar('Edit Profil'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditProfilPage(user: _user),
+                      ),
+                    );
+                  },
                 ),
                 _SettingsTile(
                   icon: Icons.lock_outline_rounded,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/pages/profile_page.dart';
 import 'theme/app_theme.dart';
 import 'pages/auth/login_page.dart';
 
@@ -15,7 +16,7 @@ class DokemasApp extends StatelessWidget {
       title: 'DOKEMAS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const LoginPage(),
+      home: const ProfilePage(),
     );
   }
 }
