@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../models/destination.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import '../../../theme/app_text_styles.dart';
 
 /// Form tambah/edit destinasi (UI only, belum simpan ke backend).
@@ -16,25 +18,31 @@ class TambahDestinasiPage extends StatefulWidget {
 
 class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
   final _formKey = GlobalKey<FormState>();
-  late final _nama =
-      TextEditingController(text: widget.existing?.name ?? '');
-  late final _area =
-      TextEditingController(text: widget.existing?.area ?? '');
-  late final _harga =
-      TextEditingController(text: widget.existing?.price.toString() ?? '');
+  late final _nama = TextEditingController(text: widget.existing?.name ?? '');
+  late final _area = TextEditingController(text: widget.existing?.area ?? '');
+  late final _harga = TextEditingController(
+    text: widget.existing?.price.toString() ?? '',
+  );
   final _deskripsi = TextEditingController();
-  late final _lat =
-      TextEditingController(text: widget.existing?.lat?.toString() ?? '');
-  late final _lng =
-      TextEditingController(text: widget.existing?.lng?.toString() ?? '');
+  late final _lat = TextEditingController(
+    text: widget.existing?.lat?.toString() ?? '',
+  );
+  late final _lng = TextEditingController(
+    text: widget.existing?.lng?.toString() ?? '',
+  );
 
   late String? _kategori = widget.existing?.category;
   late bool _active = widget.existing?.active ?? true;
   late TimeOfDay _openHour =
-      _parseTime(widget.existing?.openHour) ?? const TimeOfDay(hour: 8, minute: 0);
+      _parseTime(widget.existing?.openHour) ??
+      const TimeOfDay(hour: 8, minute: 0);
   late TimeOfDay _closeHour =
-      _parseTime(widget.existing?.closeHour) ?? const TimeOfDay(hour: 17, minute: 0);
+      _parseTime(widget.existing?.closeHour) ??
+      const TimeOfDay(hour: 17, minute: 0);
   late final Set<String> _facilities = {...?widget.existing?.facilities};
+
+  final ImagePicker _picker = ImagePicker();
+  final List<XFile> _images = [];
 
   bool get _isEdit => widget.existing != null;
 
@@ -79,15 +87,40 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
     }
   }
 
+  Future<void> _pickImages() async {
+    try {
+      final pickedFiles = await _picker.pickMultiImage();
+      if (pickedFiles.isNotEmpty) {
+        setState(() {
+          _images.addAll(pickedFiles);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal memilih gambar: $e')));
+      }
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _images.removeAt(index);
+    });
+  }
+
   void _save() {
     if (!_formKey.currentState!.validate()) return;
     // UI only: balik ke list, kasih notif sukses.
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_isEdit
-            ? 'Destinasi "${_nama.text}" diperbarui (dummy)'
-            : 'Destinasi "${_nama.text}" ditambah (dummy)'),
+        content: Text(
+          _isEdit
+              ? 'Destinasi "${_nama.text}" diperbarui (dummy)'
+              : 'Destinasi "${_nama.text}" ditambah (dummy)',
+        ),
       ),
     );
   }
@@ -112,8 +145,114 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            // Upload gambar (placeholder)
-            _ImagePicker(),
+            // Upload gambar
+            _Label('Foto Destinasi'),
+            if (_images.isEmpty)
+              InkWell(
+                onTap: _pickImages,
+                borderRadius: BorderRadius.circular(AppSpacing.radius),
+                child: Container(
+                  height: 160,
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(AppSpacing.radius),
+                    border: Border.all(
+                      color: AppColors.border,
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_photo_alternate_outlined,
+                        size: 40,
+                        color: AppColors.textMuted,
+                      ),
+                      SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Tap untuk unggah gambar',
+                        style: AppTextStyles.caption,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                height: 120,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _images.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == _images.length) {
+                      // Tombol tambah lagi
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: InkWell(
+                          onTap: _pickImages,
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radius,
+                          ),
+                          child: Container(
+                            width: 100,
+                            decoration: BoxDecoration(
+                              color: AppColors.background,
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radius,
+                              ),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.add_photo_alternate_outlined,
+                                color: AppColors.textMuted,
+                                size: 30,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    return Stack(
+                      children: [
+                        Container(
+                          width: 120,
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radius,
+                            ),
+                            image: DecorationImage(
+                              image: FileImage(File(_images[index].path)),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 12,
+                          child: InkWell(
+                            onTap: () => _removeImage(index),
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
             const SizedBox(height: AppSpacing.lg),
 
             _Label('Nama Destinasi'),
@@ -190,7 +329,9 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
                   child: TextFormField(
                     controller: _lat,
                     keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true, signed: true),
+                      decimal: true,
+                      signed: true,
+                    ),
                     decoration: _dec('Latitude (-7.31)'),
                     validator: _validCoord,
                   ),
@@ -200,7 +341,9 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
                   child: TextFormField(
                     controller: _lng,
                     keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true, signed: true),
+                      decimal: true,
+                      signed: true,
+                    ),
                     decoration: _dec('Longitude (109.22)'),
                     validator: _validCoord,
                   ),
@@ -221,7 +364,8 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
                   selected: selected,
                   showCheckmark: false,
                   onSelected: (on) => setState(
-                      () => on ? _facilities.add(f) : _facilities.remove(f)),
+                    () => on ? _facilities.add(f) : _facilities.remove(f),
+                  ),
                   labelStyle: TextStyle(
                     color: selected
                         ? AppColors.onPrimary
@@ -297,24 +441,23 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
   }
 
   InputDecoration _dec(String hint) => InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: AppColors.surface,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          borderSide: const BorderSide(color: AppColors.primary),
-        ),
-      );
+    hintText: hint,
+    filled: true,
+    fillColor: AppColors.surface,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radius),
+      borderSide: const BorderSide(color: AppColors.border),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radius),
+      borderSide: const BorderSide(color: AppColors.border),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radius),
+      borderSide: const BorderSide(color: AppColors.primary),
+    ),
+  );
 }
 
 class _Label extends StatelessWidget {
@@ -347,8 +490,7 @@ class _TimeField extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppSpacing.radius),
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppSpacing.radius),
@@ -356,8 +498,7 @@ class _TimeField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.access_time,
-                size: 18, color: AppColors.textMuted),
+            const Icon(Icons.access_time, size: 18, color: AppColors.textMuted),
             const SizedBox(width: AppSpacing.sm),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -366,42 +507,6 @@ class _TimeField extends StatelessWidget {
                 Text(value, style: AppTextStyles.title),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Kotak upload gambar (placeholder, belum konek file picker).
-class _ImagePicker extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Upload gambar (belum dibuat)')),
-        );
-      },
-      borderRadius: BorderRadius.circular(AppSpacing.radius),
-      child: Container(
-        height: 160,
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          border: Border.all(
-            color: AppColors.border,
-            style: BorderStyle.solid,
-          ),
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_photo_alternate_outlined,
-                size: 40, color: AppColors.textMuted),
-            SizedBox(height: AppSpacing.sm),
-            Text('Tap untuk unggah gambar',
-                style: AppTextStyles.caption),
           ],
         ),
       ),
