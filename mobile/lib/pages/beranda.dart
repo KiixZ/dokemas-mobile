@@ -26,25 +26,99 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   String _selectedCategory = 'Alam';
   
-  late Future<List<Destination>> _futureDestinations;
-
-  final List<Map<String, dynamic>> _categories = [
-    {'name': 'Alam', 'icon': Icons.terrain},
-    {'name': 'Keluarga', 'icon': Icons.people},
-    {'name': 'Kuliner', 'icon': Icons.restaurant},
-    {'name': 'Edukasi', 'icon': Icons.school},
-    {'name': 'Religi', 'icon': Icons.church},
-  ];
+  late Future<List<dynamic>> _futureHomeData;
 
   @override
   void initState() {
     super.initState();
-    _futureDestinations = ApiService().fetchDestinations();
+    _futureHomeData = Future.wait([
+      ApiService().fetchDestinations(),
+      ApiService().fetchCategories(),
+    ]);
+  }
+
+  // Helper to map DB icon strings and names to UI standard
+  List<Map<String, dynamic>> _mapCategories(List<Map<String, dynamic>> rawCategories) {
+    if (rawCategories.isEmpty) {
+      return [
+        {'name': 'Alam', 'icon': Icons.terrain},
+        {'name': 'Keluarga', 'icon': Icons.people},
+        {'name': 'Kuliner', 'icon': Icons.restaurant},
+        {'name': 'Edukasi', 'icon': Icons.school},
+        {'name': 'Religi', 'icon': Icons.church},
+      ];
+    }
+
+    final Map<String, IconData> iconMapping = {
+      'forest': Icons.terrain,
+      'terrain': Icons.terrain,
+      'alam': Icons.terrain,
+      'family_restroom': Icons.people,
+      'people': Icons.people,
+      'keluarga': Icons.people,
+      'restaurant': Icons.restaurant,
+      'kuliner': Icons.restaurant,
+      'school': Icons.school,
+      'museum': Icons.school,
+      'sejarah': Icons.school,
+      'edukasi': Icons.school,
+      'mosque': Icons.church,
+      'church': Icons.church,
+      'religi': Icons.church,
+    };
+
+    String mapName(String name) {
+      switch (name.toLowerCase()) {
+        case 'waterfall':
+        case 'mountain':
+        case 'nature':
+        case 'alam':
+          return 'Alam';
+        case 'family':
+        case 'keluarga':
+          return 'Keluarga';
+        case 'culinary':
+        case 'kuliner':
+          return 'Kuliner';
+        case 'education':
+        case 'edukasi':
+        case 'sejarah':
+        case 'history':
+          return 'Edukasi';
+        case 'religious':
+        case 'religi':
+          return 'Religi';
+        default:
+          return name;
+      }
+    }
+
+    final List<Map<String, dynamic>> mappedList = [];
+    final Set<String> seenNames = {};
+
+    for (var cat in rawCategories) {
+      final name = cat['name']?.toString() ?? '';
+      if (name.isEmpty) continue;
+      
+      final mappedName = mapName(name);
+      if (seenNames.contains(mappedName)) continue;
+      seenNames.add(mappedName);
+
+      final iconStr = cat['icon']?.toString() ?? '';
+      final icon = iconMapping[iconStr.toLowerCase()] ?? Icons.category;
+
+      mappedList.add({
+        'name': mappedName,
+        'icon': icon,
+      });
+    }
+
+    return mappedList;
   }
 
 
 
-  void _showAllCategoriesDialog() {
+  void _showAllCategoriesDialog(List<Map<String, dynamic>> categories) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -80,9 +154,9 @@ class _HomePageState extends State<HomePage> {
                 mainAxisSpacing: 15,
                 childAspectRatio: 0.85,
               ),
-              itemCount: _categories.length,
+              itemCount: categories.length,
               itemBuilder: (context, index) {
-                final item = _categories[index];
+                final item = categories[index];
                 final isActive = _selectedCategory == item['name'];
 
                 return InkWell(
@@ -146,8 +220,8 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: FutureBuilder<List<Destination>>(
-          future: _futureDestinations,
+        child: FutureBuilder<List<dynamic>>(
+          future: _futureHomeData,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator(color: AppColors.primary));
@@ -166,17 +240,27 @@ class _HomePageState extends State<HomePage> {
               );
             }
 
-            final allDestinations = snapshot.data ?? [];
+            final allDestinations = (snapshot.data?[0] as List<Destination>?) ?? [];
+            final rawCategories = (snapshot.data?[1] as List<Map<String, dynamic>>?) ?? [];
+            final categories = _mapCategories(rawCategories);
+
+            // Tentukan kategori aktif (fallback ke item pertama jika category tidak terdaftar)
+            final String selectedCategory = categories.any((c) => c['name'].toLowerCase() == _selectedCategory.toLowerCase())
+                ? _selectedCategory
+                : (categories.isNotEmpty ? categories.first['name'] : 'Alam');
 
             // BIAR DINAMIS: Filter destinasi berdasarkan kategori aktif yang dipilih user
             final filteredDestinations = allDestinations.where((destination) {
-              return destination.category.toLowerCase() == _selectedCategory.toLowerCase();
+              return destination.category.toLowerCase() == selectedCategory.toLowerCase();
             }).toList();
 
             return RefreshIndicator(
               onRefresh: () async {
                 setState(() {
-                  _futureDestinations = ApiService().fetchDestinations();
+                  _futureHomeData = Future.wait([
+                    ApiService().fetchDestinations(),
+                    ApiService().fetchCategories(),
+                  ]);
                 });
               },
               child: SingleChildScrollView(
@@ -194,10 +278,10 @@ class _HomePageState extends State<HomePage> {
                     _buildSectionTitle(
                       'Kategori Wisata', 
                       'Lihat Semua',
-                      onActionTap: () => _showAllCategoriesDialog(),
+                      onActionTap: () => _showAllCategoriesDialog(categories),
                     ),
                     const SizedBox(height: 15),
-                    _buildCategoryList(), 
+                    _buildCategoryList(categories, selectedCategory), 
                     const SizedBox(height: 25),
                     
                     _buildSectionTitle('Rekomendasi Untuk Kamu', ''),
@@ -389,15 +473,15 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildCategoryList() {
+  Widget _buildCategoryList(List<Map<String, dynamic>> categories, String selectedCategory) {
     return SizedBox(
       height: 90,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: _categories.length,
+        itemCount: categories.length,
         itemBuilder: (context, index) {
-          final item = _categories[index];
-          final isActive = _selectedCategory == item['name'];
+          final item = categories[index];
+          final isActive = selectedCategory == item['name'];
 
           return Padding(
             padding: const EdgeInsets.only(right: 15.0),

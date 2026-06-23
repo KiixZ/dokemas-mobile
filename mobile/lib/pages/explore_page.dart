@@ -21,19 +21,62 @@ class _ExplorePageState extends State<ExplorePage> {
   // Default filter kategori diganti 'Semua'
   String _selectedCategory = 'Semua';
 
-  // Menggabungkan 'Semua' dengan list kategori yang ada di file model temanmu
-  final List<String> _tags = ['Semua', ...destinationCategories];
-
   // Variabel penampung request data async
-  late Future<List<Destination>> _futureDestinations;
+  late Future<List<dynamic>> _futureExploreData;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController(text: widget.searchQuery ?? '');
     _currentQuery = widget.searchQuery ?? '';
-    // Fetch data dari database lewat API sekali saja saat page di-load
-    _futureDestinations = ApiService().fetchDestinations();
+    // Fetch data dari database lewat API secara paralel
+    _futureExploreData = Future.wait([
+      ApiService().fetchDestinations(),
+      ApiService().fetchCategories(),
+    ]);
+  }
+
+  // Helper untuk memetakan nama kategori DB ke standar UI Indonesia
+  List<String> _mapCategoryNames(List<Map<String, dynamic>> rawCategories) {
+    if (rawCategories.isEmpty) {
+      return destinationCategories;
+    }
+
+    String mapName(String name) {
+      switch (name.toLowerCase()) {
+        case 'waterfall':
+        case 'mountain':
+        case 'nature':
+        case 'alam':
+          return 'Alam';
+        case 'family':
+        case 'keluarga':
+          return 'Keluarga';
+        case 'culinary':
+        case 'kuliner':
+          return 'Kuliner';
+        case 'education':
+        case 'edukasi':
+        case 'sejarah':
+        case 'history':
+          return 'Edukasi';
+        case 'religious':
+        case 'religi':
+          return 'Religi';
+        default:
+          return name;
+      }
+    }
+
+    final Set<String> seenNames = {};
+    for (var cat in rawCategories) {
+      final name = cat['name']?.toString() ?? '';
+      if (name.isNotEmpty) {
+        seenNames.add(mapName(name));
+      }
+    }
+
+    return seenNames.toList();
   }
 
   @override
@@ -47,48 +90,73 @@ class _ExplorePageState extends State<ExplorePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 15),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: Row(
-                children: [
-                  if (Navigator.canPop(context)) ...[
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: const Icon(Icons.arrow_back_ios, color: AppColors.primaryDark, size: 20),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-                  const Text(
-                    'Eksplor Destinasi',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryDark,
-                    ),
+        child: FutureBuilder<List<dynamic>>(
+          future: _futureExploreData,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Gagal memuat data: ${snapshot.error}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              );
+            }
+
+            final allItems = (snapshot.data?[0] as List<Destination>?) ?? [];
+            final rawCategories = (snapshot.data?[1] as List<Map<String, dynamic>>?) ?? [];
+            
+            // Satukan tag 'Semua' dengan list kategori dinamis dari DB
+            final List<String> tags = ['Semua', ..._mapCategoryNames(rawCategories)];
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 15),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Row(
+                    children: [
+                      if (Navigator.canPop(context)) ...[
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: const Icon(Icons.arrow_back_ios, color: AppColors.primaryDark, size: 20),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+                      const Text(
+                        'Eksplor Destinasi',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryDark,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 15),
+                ),
+                const SizedBox(height: 15),
 
-            // Search Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: _buildSearchBar(context),
-            ),
-            const SizedBox(height: 15),
+                // Search Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: _buildSearchBar(context),
+                ),
+                const SizedBox(height: 15),
 
-            // Kategori Chip Dinamis
-            _buildQuickTags(),
-            const SizedBox(height: 10),
+                // Kategori Chip Dinamis
+                _buildQuickTags(tags),
+                const SizedBox(height: 10),
 
-            // Grid Hasil dari Database
-            Expanded(child: _buildDestinationGrid()),
-          ],
+                // Grid Hasil dari Database
+                Expanded(child: _buildDestinationGrid(allItems)),
+              ],
+            );
+          }
         ),
       ),
     );
@@ -164,15 +232,15 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildQuickTags() {
+  Widget _buildQuickTags(List<String> tags) {
     return SizedBox(
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _tags.length,
+        itemCount: tags.length,
         itemBuilder: (context, index) {
-          final tag = _tags[index];
+          final tag = tags[index];
           final isSelected = _selectedCategory == tag;
 
           return GestureDetector(
@@ -208,61 +276,38 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildDestinationGrid() {
-    return FutureBuilder<List<Destination>>(
-      future: _futureDestinations,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
-        }
+  Widget _buildDestinationGrid(List<Destination> allItems) {
+    // Gabungan filter query pencarian & kategori dinamis
+    final filteredItems = allItems.where((item) {
+      final name = item.name.toLowerCase();
+      final area = item.area.toLowerCase();
+      final query = _currentQuery.toLowerCase();
 
-        if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Gagal memuat data: ${snapshot.error}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.red),
-            ),
-          );
-        }
+      bool matchesSearch = name.contains(query) || area.contains(query);
+      bool matchesCategory = _selectedCategory == 'Semua' || item.category.toLowerCase() == _selectedCategory.toLowerCase();
 
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('Tidak ada destinasi dari database.'));
-        }
+      return matchesSearch && matchesCategory;
+    }).toList();
 
-        final allItems = snapshot.data!;
+    if (filteredItems.isEmpty) {
+      return const Center(
+        child: Text(
+          'Wisata tidak ditemukan.',
+          style: TextStyle(color: Colors.grey, fontSize: 15),
+        ),
+      );
+    }
 
-        // Gabungan filter query pencarian & kategori dinamis
-        final filteredItems = allItems.where((item) {
-          final name = item.name.toLowerCase();
-          final area = item.area.toLowerCase();
-          final query = _currentQuery.toLowerCase();
-
-          bool matchesSearch = name.contains(query) || area.contains(query);
-          bool matchesCategory = _selectedCategory == 'Semua' || item.category == _selectedCategory;
-
-          return matchesSearch && matchesCategory;
-        }).toList();
-
-        if (filteredItems.isEmpty) {
-          return const Center(
-            child: Text(
-              'Wisata tidak ditemukan.',
-              style: TextStyle(color: Colors.grey, fontSize: 15),
-            ),
-          );
-        }
-
-        return GridView.builder(
-          padding: const EdgeInsets.all(20),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.75,
-            crossAxisSpacing: 14,
-            mainAxisSpacing: 14,
-          ),
-          itemCount: filteredItems.length,
-          itemBuilder: (context, index) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(20),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.75,
+        crossAxisSpacing: 14,
+        mainAxisSpacing: 14,
+      ),
+      itemCount: filteredItems.length,
+      itemBuilder: (context, index) {
             final item = filteredItems[index];
             return GestureDetector(
                onTap: () {
@@ -387,7 +432,5 @@ class _ExplorePageState extends State<ExplorePage> {
             );
           },
         );
-      },
-    );
   }
 }
