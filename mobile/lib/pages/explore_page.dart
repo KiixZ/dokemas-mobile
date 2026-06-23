@@ -325,6 +325,7 @@ class _ExplorePageState extends State<ExplorePage> {
               MaterialPageRoute(
                 builder: (context) => DetailDestinasiScreen(
                   title: item['name'] as String,
+                  imageUrl: item['imageUrl'] as String,
                   rating: item['rating'] as String,
                   reviewCount: item['reviewCount'] as String,
                   location: item['fullLocation'] as String,

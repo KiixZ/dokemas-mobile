@@ -580,6 +580,7 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(
                   builder: (context) => DetailDestinasiScreen(
                     title: item['fullName']!,
+                    imageUrl: item['imageUrl'] as String,
                     rating: item['rating']!,
                     reviewCount: item['reviewCount']!,
                     location: item['fullLocation']!,

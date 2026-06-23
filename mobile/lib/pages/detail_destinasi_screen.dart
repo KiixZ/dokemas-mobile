@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+// Note: Untuk fitur 'Lihat Rute' asli ke Google Maps, silakan tambahkan library url_launcher di pubspec.yaml
+// import 'package:url_launcher/url_launcher.dart'; 
 
-class DetailDestinasiScreen extends StatelessWidget {
+class DetailDestinasiScreen extends StatefulWidget {
+  // Deklarasi variabel penampung data dinamis dari beranda
   final String title;
   final String imageUrl;
   final String rating;
@@ -10,56 +13,41 @@ class DetailDestinasiScreen extends StatelessWidget {
   final String distance;
   final String openingHours;
   final String description;
-  final List<Map<String, dynamic>> facilities;
-  final String reviewerName;
-  final String reviewerTime;
-  final String reviewerText;
 
   const DetailDestinasiScreen({
     super.key,
-    this.title = 'Baturraden',
-    this.imageUrl =
-        'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=500&auto=format&fit=crop',
-    this.rating = '4.8',
-    this.reviewCount = '1.2k ulasan',
-    this.location = 'Purwokerto Utara, Banyumas',
-    this.price = 'Rp25.000',
-    this.distance = '12 km',
-    this.openingHours = '08:00 -\n17:00',
-    this.description =
-        'Nikmati udara segar pegunungan dan panorama alam yang memukau di Baturraden. Terletak di lereng Gunung Slamet, destinasi ini menawarkan kombinasi sempurna antara air terjun yang jernih, hutan pinus yang rindang, dan sumber air panas alami. Tempat yang ideal untuk melarikan diri dari hiruk-pikuk kota dan menyatu kembali dengan alam.',
-    this.facilities = const [
-      {'icon': Icons.local_parking, 'label': 'Parkir'},
-      {'icon': Icons.wc, 'label': 'Toilet'},
-      {'icon': Icons.mosque, 'label': 'Mushola'},
-      {'icon': Icons.camera_alt_outlined, 'label': 'Spot Foto'},
-      {'icon': Icons.restaurant, 'label': 'Tempat Makan'},
-    ],
-    this.reviewerName = 'Siti Rahmawati',
-    this.reviewerTime = '2 hari yang lalu',
-    this.reviewerText =
-        'Tempatnya sangat sejuk dan bersih. Air terjunnya indah banget buat foto-foto. Fasilitas lengkap, parkiran luas. Recommended banget buat liburan bareng keluarga.',
+    required this.title,
+    required this.imageUrl,
+    required this.rating,
+    required this.reviewCount,
+    required this.location,
+    required this.price,
+    required this.distance,
+    required this.openingHours,
+    required this.description,
   });
 
-  // Fungsi untuk memunculkan Pop-up Modal Tambah ke Itinerary (image_92da84.png)
+  @override
+  State<DetailDestinasiScreen> createState() => _DetailDestinasiScreenState();
+}
+
+class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
+  bool _isFavorite = false;
+
+  // Fungsi untuk memunculkan dialog Tambah ke Itinerary
   void _showTambahItineraryDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          contentPadding: EdgeInsets
-              .zero, // Mengosongkan padding bawaan agar bisa custom footer
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          contentPadding: EdgeInsets.zero,
           content: SizedBox(
             width: MediaQuery.of(context).size.width * 0.9,
-            // Agar tinggi modal menyesuaikan konten
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Modal
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 16, 12),
                   child: Row(
@@ -67,188 +55,95 @@ class DetailDestinasiScreen extends StatelessWidget {
                     children: [
                       const Text(
                         'Tambah ke Itinerary',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xff0f172a),
-                        ),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xff0f172a)),
                       ),
                       IconButton(
                         constraints: const BoxConstraints(),
                         padding: EdgeInsets.zero,
-                        icon: const Icon(
-                          Icons.close,
-                          color: Colors.grey,
-                          size: 20,
-                        ),
+                        icon: const Icon(Icons.close, color: Colors.grey, size: 20),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
                   ),
                 ),
                 const Divider(height: 1, thickness: 1),
-
-                // Form Isi Konten (Scrollable jika layar kecil)
                 Flexible(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 16,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 1. Input Pilih Tanggal
-                        const Text(
-                          'Pilih Tanggal',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xff475569),
-                          ),
-                        ),
+                        const Text('Pilih Tanggal', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xff475569))),
                         const SizedBox(height: 6),
                         TextField(
-                          readOnly:
-                              true, // Membuatnya tidak memunculkan keyboard biasa
+                          readOnly: true,
                           onTap: () {
-                            // Opsional: Anda bisa pasang showDatePicker(context: context, ...) di sini nanti
+                            showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime(2030),
+                            );
                           },
                           decoration: InputDecoration(
                             hintText: 'mm/dd/yyyy',
-                            hintStyle: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 14,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
+                            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
                           ),
                         ),
                         const SizedBox(height: 16),
-
-                        // 2. Input Pilih Waktu (Dropdown)
-                        const Text(
-                          'Pilih Waktu',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xff475569),
-                          ),
-                        ),
+                        const Text('Pilih Waktu', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xff475569))),
                         const SizedBox(height: 6),
                         DropdownButtonFormField<String>(
-                          initialValue: 'Pagi', // Nilai default sesuai gambar
-                          items: <String>['Pagi', 'Siang', 'Sore', 'Malam'].map(
-                            (String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(
-                                  value,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              );
-                            },
-                          ).toList(),
+                          value: 'Pagi',
+                          items: <String>['Pagi', 'Siang', 'Sore', 'Malam'].map((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value, style: const TextStyle(fontSize: 14)),
+                            );
+                          }).toList(),
                           onChanged: (newValue) {},
                           decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
                           ),
                         ),
                         const SizedBox(height: 16),
-
-                        // 3. Input Catatan (Opsional)
-                        const Text(
-                          'Catatan (Opsional)',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xff475569),
-                          ),
-                        ),
+                        const Text('Catatan (Opsional)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xff475569))),
                         const SizedBox(height: 6),
                         TextField(
-                          maxLines: 3, // Agar kotak input memanjang ke bawah
+                          maxLines: 3,
                           decoration: InputDecoration(
                             hintText: 'Contoh: Bawa baju ganti...',
-                            hintStyle: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 13,
-                            ),
+                            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
                             contentPadding: const EdgeInsets.all(12),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-
-                // Footer Modal (Tombol Simpan ke Itinerary)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(
-                      0xfff8f9fa,
-                    ), // Latar belakang footer agak kontras abu tipis
-                    borderRadius: const BorderRadius.only(
-                      bottomLeft: Radius.circular(16),
-                      bottomRight: Radius.circular(16),
-                    ),
+                  decoration: const BoxDecoration(
+                    color: Color(0xfff8f9fa),
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(16), bottomRight: Radius.circular(16)),
                   ),
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Logika simpan data di sini
-                      Navigator.pop(context); // Tutup dialog setelah simpan
-                    },
+                    onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(
-                        0xff2cd4bf,
-                      ), // Warna hijau toska/bright teal sesuai tombol simpan di gambar
+                      backgroundColor: const Color(0xff2cd4bf),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       elevation: 0,
                     ),
-                    child: const Text(
-                      'Simpan ke Itinerary',
-                      style: TextStyle(
-                        color: Color(
-                          0xff0f172a,
-                        ), // Warna teks gelap sesuai gambar mockup modal
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
+                    child: const Text('Simpan ke Itinerary', style: TextStyle(color: Color(0xff0f172a), fontWeight: FontWeight.bold, fontSize: 14)),
                   ),
                 ),
               ],
@@ -259,47 +154,54 @@ class DetailDestinasiScreen extends StatelessWidget {
     );
   }
 
+  // Fungsi Logika untuk Membuka Rute Peta
+  void _bukaRutePeta() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Membuka Google Maps menuju ${widget.title}...'),
+        action: SnackBarAction(label: 'OK', onPressed: () {}),
+      ),
+    );
+    
+    // Jika url_launcher sudah diinstall, aktifkan kode di bawah ini:
+    // const String urlMaps = "https://www.google.com/maps/search/?api=1&query=Baturraden+Banyumas";
+    // launchUrl(Uri.parse(urlMaps), mode: LaunchMode.externalApplication);
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Mengambil ukuran layar untuk kalkulasi tinggi gambar latar belakang
     final double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: const Color(0xfff8fafd),
       body: Stack(
         children: [
-          // 1. Gambar Latar Belakang (Header)
+          // 1. Gambar Latar Belakang Dinamis (Header) - Dibuat memenuhi layar bagian atas
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height: screenHeight * 0.4, // Mengambil 40% tinggi layar
+            height: screenHeight * 0.5, // Sedikit ditinggikan agar background di belakang sheet terlihat luas
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: NetworkImage(
-                    'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=500&auto=format&fit=crop',
-                  ),
+                  image: NetworkImage(widget.imageUrl),
                   fit: BoxFit.cover,
                 ),
               ),
               child: Container(
-                // Efek gradient gelap tipis di atas gambar agar tombol back/heart terlihat jelas
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withValues(alpha: 0.4),
-                      Colors.transparent,
-                    ],
+                    colors: [Colors.black.withValues(alpha: 0.4), Colors.transparent],
                   ),
                 ),
               ),
             ),
           ),
 
-          // 2. Tombol Aksi Atas (Back dan Favorite)
+          // 2. Tombol Aksi Atas (Tetap mengambang di atas gambar)
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             left: 16,
@@ -309,230 +211,154 @@ class DetailDestinasiScreen extends StatelessWidget {
               children: [
                 _buildCircleIconButton(
                   icon: Icons.arrow_back,
+                  iconColor: Colors.white,
                   onTap: () => Navigator.pop(context),
                 ),
                 _buildCircleIconButton(
-                  icon: Icons.favorite_border,
-                  onTap: () {},
+                  icon: _isFavorite ? Icons.favorite : Icons.favorite_border,
+                  iconColor: _isFavorite ? Colors.red : Colors.white,
+                  onTap: () {
+                    setState(() {
+                      _isFavorite = !_isFavorite;
+                    });
+                  },
                 ),
               ],
             ),
           ),
 
-          // 3. Konten Utama (Scrollable Sheet)
+          // 3. Konten Utama Menggunakan DraggableScrollableSheet agar bisa ditarik secara dinamis
           Positioned.fill(
-            top: screenHeight * 0.33, // Sedikit menimpa gambar di atasnya
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xfff8fafd),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(32),
-                  topRight: Radius.circular(32),
-                ),
-              ),
-              child: Column(
-                children: [
-                  // Indikator garis kecil di bagian paling atas sheet
-                  Container(
-                    margin: const EdgeInsets.symmetric(vertical: 12),
-                    width: 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
+            child: DraggableScrollableSheet(
+              initialChildSize: 0.65, // Posisi awal lembar detail (65% tinggi layar)
+              minChildSize: 0.55,    // Batas minimum lembar diseret ke bawah
+              maxChildSize: 0.90,    // Batas maksimum lembar diseret ke atas
+              snap: true,            // Lembar otomatis nge-snap/pas ke posisi terdekat saat dilepas
+              builder: (BuildContext context, ScrollController scrollController) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xfff8fafd),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(32), 
+                      topRight: Radius.circular(32),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10,
+                        offset: Offset(0, -2),
+                      )
+                    ],
                   ),
-
-                  // Isi Konten yang bisa di-scroll
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Nama Destinasi & Rating
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xff0d1e3d),
+                  // STRUKTUR FIX: Menjadikan SingleChildScrollView anak langsung dari Container agar gesture terdeteksi sempurna
+                  child: SingleChildScrollView(
+                    controller: scrollController, // <--- Menghubungkan langsung drag gesture ke sheet
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Penanda Garis Handle Abu-abu (Ditempatkan paling atas di dalam scrollview)
+                        Center(
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(vertical: 12),
+                            width: 40,
+                            height: 5,
+                            decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                        
+                        // Isi data utama destinasi wisata
+                        Text(widget.title, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xff0d1e3d))),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.star, color: Colors.amber, size: 18),
+                            const SizedBox(width: 4),
+                            RichText(
+                              text: TextSpan(
+                                text: '${widget.rating} ',
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xff0d1e3d)),
+                                children: [TextSpan(text: '(${widget.reviewCount})', style: const TextStyle(fontWeight: FontWeight.normal, color: Colors.grey))],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.star,
-                                color: Colors.amber,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 4),
-                              RichText(
-                                text: TextSpan(
-                                  text: '$rating ',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xff0d1e3d),
-                                  ),
-                                  children: [
-                                    TextSpan(
-                                      text: '($reviewCount)',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_outlined,
-                                color: Colors.grey,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                location,
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on_outlined, color: Colors.grey, size: 18),
+                            const SizedBox(width: 4),
+                            Text(widget.location, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Expanded(child: _buildInfoCard(Icons.confirmation_number_outlined, 'HARGA TIKET', widget.price)),
+                            const SizedBox(width: 12),
+                            Expanded(child: _buildInfoCard(Icons.timeline, 'JARAK', widget.distance)),
+                            const SizedBox(width: 12),
+                            Expanded(child: _buildInfoCard(Icons.access_time, 'JAM BUKA', widget.openingHours)),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        const Text('Tentang Tempat Ini', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xff0d1e3d))),
+                        const SizedBox(height: 8),
+                        Text(
+                          widget.description,
+                          style: TextStyle(fontSize: 14, color: Colors.grey[700], height: 1.5),
+                        ),
+                        const SizedBox(height: 24),
+                        
+                        // SEKSI FASILITAS TERSEDIA
+                        const Text('Fasilitas Available', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xff0d1e3d))),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            _buildFacilityChipStatic(Icons.local_parking, 'Parkir'),
+                            _buildFacilityChipStatic(Icons.wc, 'Toilet'),
+                            _buildFacilityChipStatic(Icons.mosque, 'Mushola'),
+                            _buildFacilityChipStatic(Icons.camera_alt_outlined, 'Spot Foto'),
+                            _buildFacilityChipStatic(Icons.restaurant, 'Tempat Makan'),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
 
-                          // Info Cards (Harga, Jarak, Jam Buka)
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildInfoCard(
-                                  Icons.confirmation_number_outlined,
-                                  'HARGA TIKET',
-                                  price,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildInfoCard(
-                                  Icons.timeline,
-                                  'JARAK',
-                                  distance,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildInfoCard(
-                                  Icons.access_time,
-                                  'JAM BUKA',
-                                  openingHours,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Tentang Tempat Ini
-                          const Text(
-                            'Tentang Tempat Ini',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xff0d1e3d),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            description,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[700],
-                              height: 1.5,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Fasilitas
-                          const Text(
-                            'Fasilitas',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xff0d1e3d),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              ...facilities.map((facility) {
-                                return _buildFacilityChip(
-                                  facility['icon'] as IconData,
-                                  facility['label'] as String,
+                        // Ulasan Pilihan Header
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Ulasan Pilihan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xff0d1e3d))),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const DaftarUlasanScreen()),
                                 );
-                              }),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Ulasan Pilihan Header
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Ulasan Pilihan',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xff0d1e3d),
-                                ),
+                              },
+                              child: const Row(
+                                children: [
+                                  Text('LIHAT SEMUA', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.teal)),
+                                  Icon(Icons.chevron_right, size: 16, color: Colors.teal),
+                                ],
                               ),
-                              TextButton(
-                                onPressed: () {},
-                                child: Row(
-                                  children: const [
-                                    Text(
-                                      'LIHAT SEMUA',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.teal,
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.chevron_right,
-                                      size: 16,
-                                      color: Colors.teal,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // Kartu Ulasan
-                          _buildReviewCard(),
-                          const SizedBox(
-                            height: 100,
-                          ), // Ruang ekstra agar scroll tidak tertutup bottom bar
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                        _buildReviewCard(),
+                        const SizedBox(height: 130), // Ganjal area bawah scrollview agar konten tidak terpotong tombol fixed
+                      ],
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
 
-          // 4. Bottom Action Buttons (Fixed di bawah screen)
+          // 4. Bottom Action Buttons (Fixed di dasar layar agar tidak ikut tergulung)
           Positioned(
             bottom: 0,
             left: 0,
@@ -541,72 +367,35 @@ class DetailDestinasiScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
                 color: const Color(0xfff8fafd),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
-                  ),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, -5))],
               ),
               child: Row(
                 children: [
-                  // Tombol Lihat Rute
                   Expanded(
-                    flex: 2,
+                    flex: 3,
                     child: OutlinedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.explore_outlined,
-                        size: 18,
-                        color: Colors.teal,
-                      ),
-                      label: const Text(
-                        'Lihat Rute',
-                        style: TextStyle(
-                          color: Colors.teal,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      onPressed: _bukaRutePeta,
+                      icon: const Icon(Icons.explore_outlined, size: 18, color: Colors.teal),
+                      label: const Text('Lihat Rute', style: TextStyle(color: Colors.teal, fontWeight: FontWeight.bold)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.teal),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         backgroundColor: Colors.teal.withValues(alpha: 0.05),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Tombol Tambah ke Itinerary
                   Expanded(
-                    flex: 6,
+                    flex: 5,
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        // Memanggil fungsi pop-up dialog
-                        _showTambahItineraryDialog(context);
-                      },
-                      icon: const Icon(
-                        Icons.add_circle_outline,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                      label: const Text(
-                        'Tambah ke Itinerary',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      onPressed: () => _showTambahItineraryDialog(context),
+                      icon: const Icon(Icons.add_circle_outline, color: Colors.white, size: 18),
+                      label: const Text('Tambah ke Itinerary', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(
-                          0xff006653,
-                        ), // Teal Hijau sesuai gambar layout
+                        backgroundColor: const Color(0xff006653),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                     ),
                   ),
@@ -619,94 +408,52 @@ class DetailDestinasiScreen extends StatelessWidget {
     );
   }
 
-  // Helper Widget: Tombol Bulat Transparan di bagian atas gambar
-  Widget _buildCircleIconButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildCircleIconButton({required IconData icon, required Color iconColor, required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.4),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: Colors.white, size: 22),
+        decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.4), shape: BoxShape.circle),
+        child: Icon(icon, color: iconColor, size: 22),
       ),
     );
   }
 
-  // Helper Widget: Card Info (Harga, Jarak, Jam)
   Widget _buildInfoCard(IconData icon, String title, String value) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xffedf3fc),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: BoxDecoration(color: const Color(0xffedf3fc), borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
           Icon(icon, color: Colors.teal[700], size: 20),
           const SizedBox(height: 6),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-            ),
-          ),
+          Text(title, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
           const SizedBox(height: 4),
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Color(0xff0d1e3d),
-            ),
-          ),
+          Text(value, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xff0d1e3d))),
         ],
       ),
     );
   }
 
-  // Helper Widget: Chip Fasilitas
-  Widget _buildFacilityChip(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xffe2ebf4),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: Colors.black87),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-        ],
-      ),
+  Widget _buildFacilityChipStatic(IconData icon, String label) {
+    return RawChip(
+      label: Text(label),
+      labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black87),
+      avatar: Icon(icon, size: 16, color: const Color(0xff00796b)),
+      backgroundColor: const Color(0xffe2ebf4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shadowColor: Colors.transparent,
+      elevation: 0,
     );
   }
 
-  // Helper Widget: Card Ulasan Pengguna
   Widget _buildReviewCard() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -715,47 +462,243 @@ class DetailDestinasiScreen extends StatelessWidget {
             children: [
               const CircleAvatar(
                 radius: 20,
-                backgroundImage: NetworkImage(
-                  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+                backgroundImage: NetworkImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150'),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Siti Rahmawati', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xff0d1e3d))),
+                    SizedBox(height: 2),
+                    Text('2 hari yang lalu', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  ],
                 ),
+              ),
+              Row(children: List.generate(5, (index) => const Icon(Icons.star, color: Colors.amber, size: 14))),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Tempatnya sangat sejuk and bersih. Air terjunnya indah banget buat foto-foto. Fasilitas lengkap, parkiran luas. Recommended banget buat liburan bareng keluarga.',
+            style: TextStyle(fontSize: 13, color: Colors.grey[700], height: 1.4),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// --- SCREEN DAFTAR ULASAN SEBELUMNYA ---
+class DaftarUlasanScreen extends StatefulWidget {
+  const DaftarUlasanScreen({super.key});
+
+  @override
+  State<DaftarUlasanScreen> createState() => _DaftarUlasanScreenState();
+}
+
+class _DaftarUlasanScreenState extends State<DaftarUlasanScreen> {
+  final List<Map<String, dynamic>> _reviewsList = [
+    {'nama': 'Budi Santoso', 'waktu': '1 minggu yang lalu', 'rating': 5, 'isi': 'Suasananya asri sekali, akses jalan mudah dijangkau.'},
+    {'nama': 'Ahmad Fauzi', 'waktu': '3 hari yang lalu', 'rating': 4, 'isi': 'Udara segar, tapi kalau weekend agak ramai.'},
+  ];
+
+  void _showTulisUlasanDialog(BuildContext context) {
+    String namaInput = "";
+    String ulasanInput = "";
+    int selectedStars = 5;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text('Tulis Ulasan Baru', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xff0d1e3d))),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Nama Lengkap', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    TextField(
+                      onChanged: (value) => namaInput = value,
+                      decoration: InputDecoration(
+                        hintText: 'Masukkan nama Anda...',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    const Text('Berikan Rating', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: List.generate(5, (index) {
+                        return GestureDetector(
+                          onTap: () {
+                            setDialogState(() {
+                              selectedStars = index + 1;
+                            });
+                          },
+                          child: Icon(
+                            index < selectedStars ? Icons.star : Icons.star_border,
+                            color: Colors.amber,
+                            size: 32,
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 14),
+                    const Text('Isi Ulasan', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    TextField(
+                      onChanged: (value) => ulasanInput = value,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: 'Ceritakan pengalaman Anda di sini...',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        contentPadding: const EdgeInsets.all(12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal', style: TextStyle(color: Colors.grey))),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+                  onPressed: () {
+                    if (namaInput.isNotEmpty && ulasanInput.isNotEmpty) {
+                      setState(() {
+                        _reviewsList.insert(0, {
+                          'nama': namaInput,
+                          'waktu': 'Baru saja',
+                          'rating': selectedStars,
+                          'isi': ulasanInput
+                        });
+                      });
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Ulasan berhasil disimpan!')),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Harap isi Nama dan Ulasan Anda!')),
+                      );
+                    }
+                  },
+                  child: const Text('Kirim Ulasan', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xfff8fafd),
+      appBar: AppBar(
+        title: const Text('Semua Ulasan', style: TextStyle(color: Color(0xff0d1e3d), fontWeight: FontWeight.bold, fontSize: 18)),
+        backgroundColor: Colors.white,
+        elevation: 0.5,
+        iconTheme: const IconThemeData(color: Color(0xff0d1e3d)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.rate_review_outlined, color: Colors.teal),
+            onPressed: () => _showTulisUlasanDialog(context),
+          )
+        ],
+      ),
+      body: _reviewsList.isEmpty
+          ? const Center(child: Text('Belum ada ulasan.'))
+          : ListView.separated(
+              padding: const EdgeInsets.all(20),
+              itemCount: _reviewsList.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final item = _reviewsList[index];
+                return ItemReviewCard(
+                  nama: item['nama'],
+                  waktu: item['waktu'],
+                  rating: item['rating'],
+                  isi: item['isi'],
+                );
+              },
+            ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showTulisUlasanDialog(context),
+        label: const Text('Tulis Ulasan', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        icon: const Icon(Icons.edit, color: Colors.white),
+        backgroundColor: Colors.teal,
+      ),
+    );
+  }
+}
+
+class ItemReviewCard extends StatelessWidget {
+  final String nama;
+  final String waktu;
+  final int rating;
+  final String isi;
+
+  const ItemReviewCard({
+    super.key,
+    required this.nama,
+    required this.waktu,
+    required this.rating,
+    required this.isi,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const CircleAvatar(
+                radius: 18,
+                backgroundImage: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      reviewerName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xff0d1e3d),
-                      ),
-                    ),
+                    Text(nama, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xff0d1e3d))),
                     const SizedBox(height: 2),
-                    Text(
-                      reviewerTime,
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
+                    Text(waktu, style: const TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
               ),
               Row(
-                children: List.generate(
-                  5,
-                  (index) =>
-                      const Icon(Icons.star, color: Colors.amber, size: 14),
-                ),
+                children: List.generate(5, (index) {
+                  return Icon(
+                    Icons.star,
+                    color: index < rating ? Colors.amber : Colors.grey[300],
+                    size: 12,
+                  );
+                }),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
-            reviewerText,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[800],
-              height: 1.4,
-            ),
+            isi,
+            style: TextStyle(fontSize: 13, color: Colors.grey[800], height: 1.4),
           ),
         ],
       ),
