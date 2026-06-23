@@ -70,7 +70,7 @@ class _ProfilePageState extends State<ProfilePage> {
               );
               await authProvider.logout();
 
-              if (!mounted) return;
+              if (!context.mounted) return;
               Navigator.pop(context); // Tutup loading dialog
 
               // Tidak perlu pushAndRemoveUntil secara manual ke layar Guest jika state diatur oleh AuthProvider

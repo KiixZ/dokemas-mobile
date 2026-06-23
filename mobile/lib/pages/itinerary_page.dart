@@ -119,6 +119,18 @@ class _ItineraryPageState extends State<ItineraryPage> {
     final user = authProvider.user;
     final userName = user?.name ?? '';
 
+    final int activeIndex = _getItineraryIndex(_selectedDate);
+    //Cari data induk itinerary berdasarkan tanggal yang dipilih user
+    final Map<String, dynamic> activeItinerary = activeIndex != -1
+        ? _itineraryData[activeIndex]
+        : {
+            'titleHeader': 'Belum Ada Itinerary',
+            'dateRangeHeader': '',
+            'items': []
+          };
+
+    final List<dynamic> activeActivityItems = activeItinerary['items'] ?? [];
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
