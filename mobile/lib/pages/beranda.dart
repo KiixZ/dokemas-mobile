@@ -4,6 +4,9 @@ import 'package:mobile/pages/detail_destinasi_screen.dart';
 import '../theme/app_colors.dart';
 import 'notification_page.dart';
 import 'package:mobile/pages/explore_page.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+
 
 // 1. MENGUBAH HOMEPAGE MENJADI STATEFULWIDGET
 class HomePage extends StatefulWidget {
@@ -170,6 +173,10 @@ class _HomePageState extends State<HomePage> {
 
   // 1. HEADER SECTION (TOMBOL NOTIFIKASI AKTIF)
   Widget _buildHeader() {
+    final authProvider = context.watch<AuthProvider>();
+    final isLoggedIn = authProvider.isLoggedIn;
+    final userName = authProvider.user?.name ?? '';
+
     return Row(
       children: [
         const CircleAvatar(
@@ -182,16 +189,18 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                children: const [
+                children: [
                   Text(
-                    'Halo, Saputra ',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                    isLoggedIn && userName.isNotEmpty
+                        ? 'Halo, $userName '
+                        : 'Halo! ',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
                     ),
                   ),
-                  Text('👋', style: TextStyle(fontSize: 18)),
+                  const Text('👋', style: TextStyle(fontSize: 18)),
                 ],
               ),
               const SizedBox(height: 4),

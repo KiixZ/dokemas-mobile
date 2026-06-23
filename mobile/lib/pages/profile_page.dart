@@ -85,6 +85,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -106,10 +109,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   const TextSpan(text: 'Halo, '),
                   TextSpan(
-                    text: _currentName,
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
+                  text: user?.name ?? 'Guest',
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
                     ),
                   ),
                   const TextSpan(text: '👋'),
@@ -189,8 +192,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Text(
-                      _currentName,
-                      style: AppTextStyles.heading2.copyWith(
+                user?.name ?? 'Guest',
+                style: AppTextStyles.heading2.copyWith(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),

@@ -4,6 +4,8 @@ import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/date_selector.dart';
 import '../widgets/timeline_item.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class ItineraryPage extends StatefulWidget {
   const ItineraryPage({super.key});
@@ -30,6 +32,10 @@ class _ItineraryPageState extends State<ItineraryPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
+    final userName = user?.name ?? '';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -48,13 +54,15 @@ class _ItineraryPageState extends State<ItineraryPage> {
             RichText(
               text: TextSpan(
                 style: AppTextStyles.title,
-                children: const [
-                  TextSpan(text: 'Halo, '),
+                children: [
                   TextSpan(
-                    text: 'Saputra ',
-                    style: TextStyle(color: AppColors.primary),
+                    text: userName.isNotEmpty ? 'Halo, ' : 'Halo!',
                   ),
-                  TextSpan(text: '👋'),
+                  TextSpan(
+                    text: userName.isNotEmpty ? '$userName ' : '',
+                    style: const TextStyle(color: AppColors.primary),
+                  ),
+                  const TextSpan(text: '👋'),
                 ],
               ),
             ),
