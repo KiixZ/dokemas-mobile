@@ -234,9 +234,6 @@ class _ExplorePageState extends State<ExplorePage> {
 
         // Gabungan filter query pencarian & kategori dinamis
         final filteredItems = allItems.where((item) {
-          // Hanya tampilkan destinasi yang aktif di database
-          if (!item.active) return false;
-
           final name = item.name.toLowerCase();
           final area = item.area.toLowerCase();
           final query = _currentQuery.toLowerCase();
