@@ -1,0 +1,165 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../config/api_config.dart';
+import '../models/user_model.dart';
+
+class AuthProvider with ChangeNotifier {
+  bool _isLoggedIn = false;
+  UserModel? _user;
+  String? _token;
+
+  bool get isLoggedIn => _isLoggedIn;
+  UserModel? get user => _user;
+  String? get token => _token;
+
+  // Cek token di SharedPreferences (dipanggil saat aplikasi dibuka di SplashScreen)
+  Future<void> checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedToken = prefs.getString('auth_token');
+
+    if (savedToken != null) {
+      _token = savedToken;
+      _isLoggedIn = true;
+      notifyListeners();
+
+      // Coba fetch user data terbaru
+      await fetchUser();
+    } else {
+      _isLoggedIn = false;
+      notifyListeners();
+    }
+  }
+
+  // Fungsi fetch data user (/api/me)
+  Future<void> fetchUser() async {
+    if (_token == null) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.me),
+        headers: {
+          'Authorization': 'Bearer $_token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        _user = UserModel.fromJson(jsonDecode(response.body));
+        notifyListeners();
+      } else {
+        // Jika token tidak valid / expired
+        await logout();
+      }
+    } catch (e) {
+      debugPrint("Error fetching user: $e");
+    }
+  }
+
+  // Fungsi Login
+  Future<String?> login(String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.login),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _token = data['token'];
+        _user = UserModel.fromJson(data['user']);
+        _isLoggedIn = true;
+
+        // Simpan token ke SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', _token!);
+
+        notifyListeners();
+        return null; // null berarti sukses (tidak ada error)
+      } else {
+        debugPrint('Login failed: ${response.body}');
+        final errorData = jsonDecode(response.body);
+        return errorData['message'] ?? 'Email atau password salah';
+      }
+    } catch (e) {
+      debugPrint('Error login: $e');
+      return 'Terjadi kesalahan koneksi. Pastikan internet lancar.';
+    }
+  }
+
+
+  // Fungsi Register
+  Future<String?> register(String name, String email, String password, String passwordConfirmation) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.register),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        _token = data['token'];
+        _user = UserModel.fromJson(data['user']);
+        _isLoggedIn = true;
+
+        // Simpan token
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', _token!);
+
+        notifyListeners();
+        return null; // Sukses
+      } else {
+        debugPrint('Register failed: ${response.body}');
+        final errorData = jsonDecode(response.body);
+        return errorData['message'] ?? 'Gagal mendaftar. Periksa kembali data Anda.';
+      }
+    } catch (e) {
+      debugPrint('Error register: $e');
+      return 'Terjadi kesalahan koneksi. Pastikan internet lancar.';
+    }
+  }
+
+  // Fungsi Logout
+  Future<void> logout() async {
+    try {
+      if (_token != null) {
+        await http.post(
+          Uri.parse(ApiConfig.logout),
+          headers: {
+            'Authorization': 'Bearer $_token',
+            'Accept': 'application/json',
+          },
+        );
+      }
+    } catch (e) {
+      debugPrint('Error logout: $e');
+    }
+
+    _token = null;
+    _user = null;
+    _isLoggedIn = false;
+
+    // Hapus token dari SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('auth_token');
+
+    notifyListeners();
+  }
+}

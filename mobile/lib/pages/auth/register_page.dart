@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
-
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../main_screen.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -28,34 +30,46 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void _handleRegister() {
+  Future<void> _handleRegister() async {
     if (_formKey.currentState!.validate()) {
-      // Simulasi Registrasi Sukses
+      final name = _nameController.text.trim();
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+      final confirmPassword = _confirmPasswordController.text;
+
+      // Tampilkan Loading
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Row(
-            children: const [
-              Icon(Icons.check_circle, color: AppColors.success),
-              SizedBox(width: 8),
-              Text('Pendaftaran Sukses'),
-            ],
-          ),
-          content: Text(
-            'Akun atas nama "${_nameController.text}" berhasil disimulasikan!\n\n'
-            'Silakan kembali ke halaman masuk untuk login.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Tutup dialog
-                Navigator.pop(context); // Kembali ke halaman Login
-              },
-              child: const Text('Masuk Sekarang', style: TextStyle(color: AppColors.primary)),
-            ),
-          ],
-        ),
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
       );
+
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final errorMessage = await authProvider.register(name, email, password, confirmPassword);
+
+      if (!mounted) return;
+      Navigator.pop(context); // Tutup Loading
+
+      if (errorMessage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pendaftaran sukses!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage), // Tampilkan pesan error asli dari API
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 

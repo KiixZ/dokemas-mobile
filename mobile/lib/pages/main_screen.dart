@@ -10,6 +10,8 @@ import 'notification_page.dart';
 import 'guest/guest_wishlist_page.dart';
 import 'guest/guest_itinerary_page.dart';
 import 'guest/guest_profile_page.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -21,8 +23,6 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
-  bool isLoggedIn = false;
-
   void _switchTab(int index) {
     setState(() {
       _currentIndex = index;
@@ -31,6 +31,9 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Dengarkan perubahan status login dari AuthProvider
+    final bool isLoggedIn = context.watch<AuthProvider>().isLoggedIn;
+
     final List<Widget> pages = isLoggedIn
         ? [
             HomePage(onTabChanged: _switchTab), // Index 0 (Home)
