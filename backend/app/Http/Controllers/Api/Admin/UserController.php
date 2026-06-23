@@ -26,6 +26,25 @@ class UserController extends Controller
         return $query->latest()->paginate($request->integer('per_page', 15));
     }
 
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'min:6'],
+            'role' => ['required', 'in:user,admin'],
+        ]);
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => $data['password'], // Mutator or default hasher handles it
+            'role' => $data['role'],
+        ]);
+
+        return response()->json($user, 201);
+    }
+
     public function show(User $user)
     {
         return $user->loadCount(['reviews', 'wishlists', 'itineraries']);
@@ -35,8 +54,14 @@ class UserController extends Controller
     {
         $data = $request->validate([
             'name' => ['sometimes', 'string', 'max:255'],
+            'email' => ['sometimes', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'role' => ['sometimes', 'in:user,admin'],
+            'password' => ['nullable', 'min:6'],
         ]);
+
+        if (empty($data['password'])) {
+            unset($data['password']);
+        }
 
         $user->update($data);
 

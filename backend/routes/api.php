@@ -16,7 +16,13 @@ use Illuminate\Support\Facades\Route;
 | Public routes (guest)
 |--------------------------------------------------------------------------
 */
+Route::get('register', function () {
+    return response()->json(['message' => 'Method GET not allowed. Use POST to register.'], 405);
+});
 Route::post('register', [AuthController::class, 'register']);
+Route::get('login', function () {
+    return response()->json(['message' => 'Unauthenticated.'], 401);
+})->name('login');
 Route::post('login', [AuthController::class, 'login']);
 
 Route::get('categories', [CategoryController::class, 'index']);
@@ -61,12 +67,19 @@ Route::middleware('auth:sanctum')->group(function () {
     |----------------------------------------------------------------------
     */
     Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::get('/', function () {
+            return response()->json(['message' => 'DOKEMAS Admin API Base Route']);
+        });
         Route::get('dashboard', DashboardController::class);
 
         Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
         Route::apiResource('facilities', FacilityController::class)->except(['index']);
         Route::apiResource('destinations', DestinationController::class)->except(['index', 'show']);
-        Route::apiResource('users', AdminUserController::class)->except(['store']);
+        Route::apiResource('users', AdminUserController::class);
+        Route::get('reviews', [\App\Http\Controllers\Api\Admin\ReviewController::class, 'index']);
+        Route::patch('reviews/{review}/status', [\App\Http\Controllers\Api\Admin\ReviewController::class, 'updateStatus']);
+        Route::delete('reviews/{review}', [\App\Http\Controllers\Api\Admin\ReviewController::class, 'destroy']);
+
 
         // Galeri foto destinasi (upload auto-convert ke WebP)
         Route::post('destinations/{destination}/images', [DestinationController::class, 'uploadImages']);

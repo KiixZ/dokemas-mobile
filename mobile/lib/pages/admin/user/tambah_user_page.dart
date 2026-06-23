@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../../../models/app_user.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../config/api_config.dart';
+import '../../../models/user_model.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
@@ -7,7 +12,7 @@ import '../../../theme/app_text_styles.dart';
 /// Form tambah/edit user (UI only, belum simpan ke backend).
 /// Kirim [existing] buat mode edit (field ter-isi).
 class TambahUserPage extends StatefulWidget {
-  final AppUser? existing;
+  final UserModel? existing;
   const TambahUserPage({super.key, this.existing});
 
   @override
@@ -22,9 +27,10 @@ class _TambahUserPageState extends State<TambahUserPage> {
       TextEditingController(text: widget.existing?.email ?? '');
   final _password = TextEditingController();
 
-  late UserRole _role = widget.existing?.role ?? UserRole.user;
+  late String _role = widget.existing?.role.toLowerCase() ?? 'user';
   late bool _active = widget.existing?.active ?? true;
   bool _obscure = true;
+  bool _isLoading = false;
 
   bool get _isEdit => widget.existing != null;
 
@@ -36,16 +42,78 @@ class _TambahUserPageState extends State<TambahUserPage> {
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_isEdit
-            ? 'User "${_nama.text}" diperbarui (dummy)'
-            : 'User "${_nama.text}" ditambah (dummy)'),
-      ),
-    );
+    setState(() => _isLoading = true);
+
+    final token = context.read<AuthProvider>().token;
+    final url = _isEdit
+        ? Uri.parse('${ApiConfig.users}/${widget.existing!.id}')
+        : Uri.parse(ApiConfig.users);
+
+    final body = {
+      'name': _nama.text,
+      'email': _email.text,
+      'role': _role,
+    };
+
+    if (_password.text.isNotEmpty) {
+      body['password'] = _password.text;
+    }
+
+    try {
+      final response = _isEdit
+          ? await http.put(url,
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+              },
+              body: jsonEncode(body))
+          : await http.post(url,
+              headers: {
+                'Authorization': 'Bearer $token',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+              },
+              body: jsonEncode(body));
+
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isEdit
+                ? 'User "${_nama.text}" berhasil diperbarui'
+                : 'User "${_nama.text}" berhasil ditambah'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.of(context).pop(true); // Return true to refresh list
+      } else {
+        final errorData = jsonDecode(response.body);
+        final message = errorData['message'] ?? 'Gagal menyimpan user.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppColors.danger,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Terjadi kesalahan koneksi.'),
+          backgroundColor: AppColors.danger,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -119,14 +187,14 @@ class _TambahUserPageState extends State<TambahUserPage> {
             const SizedBox(height: AppSpacing.md),
 
             _Label('Peran'),
-            DropdownButtonFormField<UserRole>(
+            DropdownButtonFormField<String>(
               initialValue: _role,
               decoration: _dec('Pilih peran'),
-              items: UserRole.values
+              items: ['admin', 'user']
                   .map((r) =>
-                      DropdownMenuItem(value: r, child: Text(r.label)))
+                      DropdownMenuItem(value: r, child: Text(r.toUpperCase())))
                   .toList(),
-              onChanged: (v) => setState(() => _role = v ?? UserRole.user),
+              onChanged: (v) => setState(() => _role = v ?? 'user'),
             ),
             const SizedBox(height: AppSpacing.md),
 
@@ -153,10 +221,8 @@ class _TambahUserPageState extends State<TambahUserPage> {
 
             SizedBox(
               height: 50,
-              child: ElevatedButton.icon(
-                onPressed: _save,
-                icon: const Icon(Icons.save_outlined),
-                label: Text(_isEdit ? 'Simpan Perubahan' : 'Simpan User'),
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _save,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.onPrimary,
@@ -165,6 +231,23 @@ class _TambahUserPageState extends State<TambahUserPage> {
                     borderRadius: BorderRadius.circular(AppSpacing.radius),
                   ),
                 ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.save_outlined),
+                          const SizedBox(width: 8),
+                          Text(_isEdit ? 'Simpan Perubahan' : 'Simpan User'),
+                        ],
+                      ),
               ),
             ),
             const SizedBox(height: AppSpacing.md),

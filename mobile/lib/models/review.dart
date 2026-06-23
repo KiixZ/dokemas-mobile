@@ -1,42 +1,97 @@
 import '../theme/app_colors.dart';
+import 'package:intl/intl.dart';
 
 /// Status moderasi review.
 /// pending = baru masuk dari user, nunggu di-Accept/Reject admin.
 enum ReviewStatus { pending, public, reported, hidden }
 
-/// Model review/ulasan user (UI only, belum konek backend).
+ReviewStatus _parseStatus(String? statusStr) {
+  switch (statusStr) {
+    case 'pending': return ReviewStatus.pending;
+    case 'public': return ReviewStatus.public;
+    case 'reported': return ReviewStatus.reported;
+    case 'hidden': return ReviewStatus.hidden;
+    default: return ReviewStatus.public;
+  }
+}
+
+String _statusToString(ReviewStatus status) {
+  switch (status) {
+    case ReviewStatus.pending: return 'pending';
+    case ReviewStatus.public: return 'public';
+    case ReviewStatus.reported: return 'reported';
+    case ReviewStatus.hidden: return 'hidden';
+  }
+}
+
+/// Model review/ulasan user dari backend.
 class Review {
-  final String name;
-  final String date; // mis. "Oct 24, 2023"
-  final double rating; // 0..5
-  final String destination;
+  final int id;
+  final int userId;
+  final String userName;
+  final String? userAvatar;
+  final int destinationId;
+  final String destinationName;
+  final double rating;
   final String comment;
+  final DateTime createdAt;
   final ReviewStatus status;
-  final int flagCount; // jumlah laporan (kalau reported)
+  final int flagCount;
   final String? flagReason;
 
   const Review({
-    required this.name,
-    required this.date,
+    required this.id,
+    required this.userId,
+    required this.userName,
+    this.userAvatar,
+    required this.destinationId,
+    required this.destinationName,
     required this.rating,
-    required this.destination,
     required this.comment,
+    required this.createdAt,
     this.status = ReviewStatus.public,
     this.flagCount = 0,
     this.flagReason,
   });
 
-  String get initial => name.isEmpty ? '?' : name[0].toUpperCase();
+  String get initial => userName.isEmpty ? '?' : userName[0].toUpperCase();
 
-  Review copyWith({ReviewStatus? status}) => Review(
-        name: name,
-        date: date,
+  String get date {
+    return DateFormat('MMM dd, yyyy').format(createdAt);
+  }
+
+  factory Review.fromJson(Map<String, dynamic> json) {
+    return Review(
+      id: json['id'],
+      userId: json['user_id'] ?? json['user']?['id'] ?? 0,
+      userName: json['user']?['name'] ?? 'Unknown',
+      userAvatar: json['user']?['avatar'],
+      destinationId: json['destination_id'] ?? json['destination']?['id'] ?? 0,
+      destinationName: json['destination']?['name'] ?? 'Unknown Destination',
+      rating: (json['rating'] ?? 0).toDouble(),
+      comment: json['comment'] ?? '',
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at']) 
+          : DateTime.now(),
+      status: _parseStatus(json['status']),
+      flagCount: json['flag_count'] ?? 0,
+      flagReason: json['flag_reason'],
+    );
+  }
+
+  Review copyWith({ReviewStatus? status, int? flagCount, String? flagReason}) => Review(
+        id: id,
+        userId: userId,
+        userName: userName,
+        userAvatar: userAvatar,
+        destinationId: destinationId,
+        destinationName: destinationName,
         rating: rating,
-        destination: destination,
         comment: comment,
+        createdAt: createdAt,
         status: status ?? this.status,
-        flagCount: flagCount,
-        flagReason: flagReason,
+        flagCount: flagCount ?? this.flagCount,
+        flagReason: flagReason ?? this.flagReason,
       );
 }
 
@@ -46,62 +101,4 @@ const reviewAvatarColors = [
   AppColors.accent,
   AppColors.info,
   AppColors.statPurple,
-];
-
-/// Data dummy kelola review.
-const dummyReviews = [
-  Review(
-    name: 'Rina Marlina',
-    date: 'Oct 25, 2023',
-    rating: 4.0,
-    destination: 'Curug Cipendok',
-    comment:
-        'Air terjunnya tinggi banget dan airnya seger. Akses jalan agak licin pas musim hujan, hati-hati.',
-    status: ReviewStatus.pending,
-  ),
-  Review(
-    name: 'Agus Pratama',
-    date: 'Oct 25, 2023',
-    rating: 2.0,
-    destination: 'Taman Andhang Pangrenan',
-    comment: 'Tempatnya kurang terawat, banyak sampah di area pinggir.',
-    status: ReviewStatus.pending,
-  ),
-  Review(
-    name: 'Budi Santoso',
-    date: 'Oct 24, 2023',
-    rating: 5.0,
-    destination: 'Baturraden Waterfall',
-    comment:
-        'Absolutely breathtaking experience! The path was well maintained and the views at the top were worth the hike. Highly recommend going.',
-    status: ReviewStatus.public,
-  ),
-  Review(
-    name: 'Anonymous User',
-    date: 'Oct 23, 2023',
-    rating: 1.0,
-    destination: 'Alun-Alun Purwokerto',
-    comment:
-        '[Hidden due to inappropriate content] The facilities were terrible and the staff was unhelpful.',
-    status: ReviewStatus.reported,
-    flagCount: 3,
-    flagReason: 'inappropriate language',
-  ),
-  Review(
-    name: 'Siti Rahma',
-    date: 'Oct 21, 2023',
-    rating: 4.0,
-    destination: 'Small World Miniatures',
-    comment:
-        'Great place for family photos! The miniatures are quite detailed. Only giving 4 stars because it gets very hot in the afternoon with limited shade.',
-    status: ReviewStatus.public,
-  ),
-  Review(
-    name: 'Deni W.',
-    date: 'Oct 19, 2023',
-    rating: 3.0,
-    destination: 'Telaga Sunyi',
-    comment: 'Review temporarily hidden by admin.',
-    status: ReviewStatus.hidden,
-  ),
 ];

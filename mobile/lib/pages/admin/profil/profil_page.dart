@@ -1,25 +1,29 @@
 import 'package:flutter/material.dart';
-import '../../../models/app_user.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
 import 'edit_profil_page.dart';
+import '../../change_password_page.dart';
+import '../../main_screen.dart';
 
 /// Body profil admin: kartu identitas + menu akun + logout.
 /// UI only. Dibungkus AppBar + navbar oleh [AdminShell].
 class AdminProfilPage extends StatelessWidget {
   const AdminProfilPage({super.key});
 
-  // Admin yang lagi login (dummy).
-  static const _me = AppUser(
-    name: 'Rifki Saputra',
-    email: 'rifki@dokemas.id',
-    role: UserRole.admin,
-    joined: 'Jan 2024',
-  );
-
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
+
+    if (user == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final initial = user.name.isNotEmpty ? user.name[0].toUpperCase() : '?';
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
@@ -37,7 +41,7 @@ class AdminProfilPage extends StatelessWidget {
                 radius: 40,
                 backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                 child: Text(
-                  _me.initial,
+                  initial,
                   style: const TextStyle(
                     color: AppColors.primaryDark,
                     fontSize: 32,
@@ -46,19 +50,21 @@ class AdminProfilPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              Text(_me.name, style: AppTextStyles.heading2),
+              Text(user.name, style: AppTextStyles.heading2),
               const SizedBox(height: 2),
-              Text(_me.email, style: AppTextStyles.caption),
+              Text(user.email, style: AppTextStyles.caption),
               const SizedBox(height: AppSpacing.sm),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                 ),
                 child: Text(
-                  _me.role.label,
+                  user.role.toUpperCase(),
                   style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 12,
@@ -79,15 +85,15 @@ class AdminProfilPage extends StatelessWidget {
               icon: Icons.edit_outlined,
               label: 'Edit Profil',
               onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => EditProfilPage(user: _me),
-                ),
+                MaterialPageRoute(builder: (_) => EditProfilPage(user: user)),
               ),
             ),
             _MenuItem(
               icon: Icons.lock_outline,
               label: 'Ubah Password',
-              onTap: () => _soon(context),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ChangePasswordPage()),
+              ),
             ),
           ],
         ),
@@ -146,9 +152,9 @@ class AdminProfilPage extends StatelessWidget {
   }
 
   void _soon(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fitur belum dibuat')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Fitur belum dibuat')));
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
@@ -164,15 +170,24 @@ class AdminProfilPage extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Logout',
-                style: TextStyle(color: AppColors.danger)),
+            child: const Text(
+              'Logout',
+              style: TextStyle(color: AppColors.danger),
+            ),
           ),
         ],
       ),
     );
     if (yes == true && context.mounted) {
-      // UI only: balik ke root (mis. login). Belum ada auth.
-      Navigator.of(context).popUntil((r) => r.isFirst);
+      final authProvider = context.read<AuthProvider>();
+      await authProvider.logout();
+      if (context.mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+          (route) => false,
+        );
+      }
     }
   }
 }
@@ -190,7 +205,9 @@ class _MenuSection extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(
-              left: AppSpacing.xs, bottom: AppSpacing.sm),
+            left: AppSpacing.xs,
+            bottom: AppSpacing.sm,
+          ),
           child: Text(title, style: AppTextStyles.caption),
         ),
         Container(
@@ -202,8 +219,7 @@ class _MenuSection extends StatelessWidget {
           child: Column(
             children: [
               for (int i = 0; i < items.length; i++) ...[
-                if (i > 0)
-                  const Divider(height: 1, indent: AppSpacing.md),
+                if (i > 0) const Divider(height: 1, indent: AppSpacing.md),
                 items[i],
               ],
             ],

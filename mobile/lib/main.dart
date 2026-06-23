@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'pages/guest_main_screen.dart';
-import 'pages/main_screen.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
+import 'providers/admin/dashboard_provider.dart';
 import 'theme/app_theme.dart';
 import 'pages/splash_screen.dart';
 
@@ -13,14 +14,17 @@ class DokemasApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'DOKEMAS',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
-      // Shell BELUM login (guest).
-      // Preview versi login: import 'pages/main_screen.dart' lalu
-      // home: const MainScreen().
-      home: const SplashScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
+      ],
+      child: MaterialApp(
+        title: 'DOKEMAS',
+        debugShowCheckedModeBanner: false,
+        theme: AppTheme.light,
+        home: const SplashScreen(),
+      ),
     );
   }
 }

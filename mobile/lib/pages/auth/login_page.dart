@@ -3,6 +3,9 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
 
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../main_screen.dart';
 import '../admin/admin_shell.dart';
 import 'register_page.dart';
 import 'forgot_password_page.dart';
@@ -19,7 +22,6 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController(text: 'user@gmail.com');
   final _passwordController = TextEditingController(text: 'password123');
   bool _obscurePassword = true;
-  bool _isAdminDemo = false; // Switcher: false = User Demo, true = Admin Demo
 
   @override
   void dispose() {
@@ -28,49 +30,57 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _handleSignIn() {
+  Future<void> _handleSignIn() async {
     if (_formKey.currentState!.validate()) {
       final email = _emailController.text.trim();
-      // password is validated by Form validation
+      final password = _passwordController.text;
 
+      // Tampilkan Loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+      );
 
-      if (_isAdminDemo) {
-        // Navigasi ke Admin Shell jika memilih Admin Demo
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login sukses sebagai Admin!'),
-            backgroundColor: AppColors.success,
-            duration: Duration(seconds: 2),
-          ),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminShell()),
-        );
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final errorMessage = await authProvider.login(email, password);
+
+      if (!mounted) return;
+      Navigator.pop(context); // Tutup Loading
+
+      if (errorMessage == null) {
+        if (authProvider.user?.role == 'admin') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Login sukses sebagai Admin!'),
+              backgroundColor: AppColors.success,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const AdminShell()),
+            (route) => false,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Login sukses!'),
+              backgroundColor: AppColors.success,
+              duration: Duration(seconds: 2),
+            ),
+          );
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+            (route) => false,
+          );
+        }
       } else {
-        // Simulasi Login User Demo
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Row(
-              children: const [
-                Icon(Icons.check_circle, color: AppColors.success),
-                SizedBox(width: 8),
-                Text('Login Sukses'),
-              ],
-            ),
-            content: Text(
-              'Anda berhasil masuk sebagai User Demo!\n\n'
-              'Email: $email\n\n'
-              'Catatan: Halaman utama user belum diintegrasikan oleh backend. '
-              'Tampilan halaman admin siap diuji dengan beralih ke tab "Admin Demo".',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Tutup', style: TextStyle(color: AppColors.primary)),
-              ),
-            ],
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage), // Tampilkan pesan error asli dari API
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -152,79 +162,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: AppSpacing.lg),
 
-                        // Switcher User / Admin Demo
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: AppColors.background,
-                            borderRadius: BorderRadius.circular(AppSpacing.radius),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () => setState(() => _isAdminDemo = false),
-                                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: !_isAdminDemo ? AppColors.surface : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                                      boxShadow: !_isAdminDemo
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.black.withValues(alpha: 0.05),
-                                                blurRadius: 4,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ]
-                                          : null,
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      'User Demo',
-                                      style: AppTextStyles.title.copyWith(
-                                        fontSize: 13,
-                                        color: !_isAdminDemo ? AppColors.primary : AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () => setState(() => _isAdminDemo = true),
-                                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: _isAdminDemo ? AppColors.surface : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                                      boxShadow: _isAdminDemo
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.black.withValues(alpha: 0.05),
-                                                blurRadius: 4,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ]
-                                          : null,
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      'Admin Demo',
-                                      style: AppTextStyles.title.copyWith(
-                                        fontSize: 13,
-                                        color: _isAdminDemo ? AppColors.primary : AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
+                        // Switcher User/Admin dihilangkan karena sekarang berdasarkan Role dari Backend
 
                         // Input Email
                         Text(

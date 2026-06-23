@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
@@ -23,6 +25,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
 
+  bool _isLoading = false;
+
   @override
   void dispose() {
     // Bersihkan memori controller saat halaman ditutup
@@ -32,21 +36,41 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     super.dispose();
   }
 
-  void _processChangePassword() {
+  Future<void> _processChangePassword() async {
     // Validasi form sebelum memproses data
     if (_formKey.currentState!.validate()) {
-      // Di sini nanti kamu bisa memasukkan logika API atau Firebase backend kamu
+      setState(() => _isLoading = true);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password berhasil diperbarui!'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
+      final authProvider = context.read<AuthProvider>();
+      final error = await authProvider.updatePassword(
+        _oldPasswordController.text,
+        _newPasswordController.text,
+        _confirmPasswordController.text,
       );
 
-      // Tutup halaman dan kembali ke profil
-      Navigator.pop(context);
+      setState(() => _isLoading = false);
+
+      if (!mounted) return;
+
+      if (error == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Password berhasil diperbarui!'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        // Tutup halaman dan kembali ke profil
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: AppColors.danger,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -205,8 +229,14 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _processChangePassword,
-                  child: const Text('Perbarui Password'),
+                  onPressed: _isLoading ? null : _processChangePassword,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Perbarui Password'),
                 ),
               ),
             ],

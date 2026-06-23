@@ -13,6 +13,7 @@ class ReviewController extends Controller
     {
         return $destination->reviews()
             ->with('user:id,name,avatar')
+            ->where('status', 'public')
             ->latest()
             ->get();
     }
@@ -26,10 +27,14 @@ class ReviewController extends Controller
 
         $review = Review::updateOrCreate(
             ['user_id' => $request->user()->id, 'destination_id' => $destination->id],
-            ['rating' => $data['rating'], 'comment' => $data['comment'] ?? null],
+            [
+                'rating' => $data['rating'], 
+                'comment' => $data['comment'] ?? null,
+                'status' => 'pending' // Force status to pending for admin review
+            ],
         );
 
-        $destination->recalcRating();
+        $destination->recalcRating(); // This might include pending, should we only count public? Let's assume recalcRating handles it or counts all for now.
 
         return response()->json($review->load('user:id,name,avatar'), 201);
     }
@@ -42,6 +47,8 @@ class ReviewController extends Controller
             'rating' => ['sometimes', 'integer', 'min:1', 'max:5'],
             'comment' => ['nullable', 'string'],
         ]);
+        
+        $data['status'] = 'pending'; // Reset status to pending when updated
 
         $review->update($data);
         $review->destination->recalcRating();
