@@ -3,7 +3,11 @@ import '../../../models/facility.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../config/api_config.dart';
 /// Form tambah/edit fasilitas (UI only, belum simpan ke backend).
 /// Kirim [existing] buat mode edit (field ter-isi).
 class TambahFasilitasPage extends StatefulWidget {
@@ -23,22 +27,74 @@ class _TambahFasilitasPageState extends State<TambahFasilitasPage> {
 
   bool get _isEdit => widget.existing != null;
 
+  bool _isSaving = false;
+
   @override
   void dispose() {
     _nama.dispose();
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(_isEdit
-            ? 'Fasilitas "${_nama.text}" diperbarui (dummy)'
-            : 'Fasilitas "${_nama.text}" ditambah (dummy)'),
-      ),
-    );
+    
+    setState(() => _isSaving = true);
+    final token = context.read<AuthProvider>().token;
+
+    final body = {
+      'name': _nama.text.trim(),
+      'icon': Facility.getIconName(_icon),
+    };
+
+    try {
+      http.Response response;
+      if (_isEdit) {
+        response = await http.put(
+          Uri.parse('${ApiConfig.adminFacilities}/${widget.existing!.id}'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: jsonEncode(body),
+        );
+      } else {
+        response = await http.post(
+          Uri.parse(ApiConfig.adminFacilities),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: jsonEncode(body),
+        );
+      }
+
+      setState(() => _isSaving = false);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        if (!mounted) return;
+        Navigator.of(context).pop(true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_isEdit
+                ? 'Fasilitas berhasil diperbarui'
+                : 'Fasilitas berhasil ditambahkan'),
+          ),
+        );
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan fasilitas: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      setState(() => _isSaving = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Terjadi kesalahan: $e')),
+      );
+    }
   }
 
   @override
@@ -150,8 +206,13 @@ class _TambahFasilitasPageState extends State<TambahFasilitasPage> {
             SizedBox(
               height: 50,
               child: ElevatedButton.icon(
-                onPressed: _save,
-                icon: const Icon(Icons.save_outlined),
+                onPressed: _isSaving ? null : _save,
+                icon: _isSaving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.save_outlined),
                 label: Text(_isEdit ? 'Simpan Perubahan' : 'Simpan Fasilitas'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,

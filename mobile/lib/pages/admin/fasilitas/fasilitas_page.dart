@@ -3,6 +3,11 @@ import '../../../models/facility.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../config/api_config.dart';
 import 'tambah_fasilitas_page.dart';
 
 /// Halaman penuh kelola fasilitas (dibuka dari hub Kelola).
@@ -15,18 +20,49 @@ class AdminFasilitasPage extends StatefulWidget {
 }
 
 class _AdminFasilitasPageState extends State<AdminFasilitasPage> {
-  late final List<Facility> _items = List.of(dummyFacilities);
+  List<Facility> _items = [];
+  bool _isLoading = true;
 
-  void _openTambah() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const TambahFasilitasPage()),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _fetchFacilities();
   }
 
-  void _openEdit(Facility fac) {
-    Navigator.of(context).push(
+  Future<void> _fetchFacilities() async {
+    setState(() => _isLoading = true);
+    try {
+      final response = await http.get(Uri.parse(ApiConfig.facilities));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        setState(() {
+          _items = data.map((e) => Facility.fromJson(e)).toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _openTambah() async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const TambahFasilitasPage()),
+    );
+    if (result == true) {
+      _fetchFacilities();
+    }
+  }
+
+  Future<void> _openEdit(Facility fac) async {
+    final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => TambahFasilitasPage(existing: fac)),
     );
+    if (result == true) {
+      _fetchFacilities();
+    }
   }
 
   @override
@@ -49,29 +85,33 @@ class _AdminFasilitasPageState extends State<AdminFasilitasPage> {
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: AppColors.onPrimary),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          const Text('Facility Management', style: AppTextStyles.heading1),
-          const SizedBox(height: AppSpacing.xs),
-          const Text(
-            'Kelola fasilitas yang tersedia di destinasi.',
-            style: AppTextStyles.caption,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          for (int i = 0; i < _items.length; i++) ...[
-            _FacilityCard(
-              fac: _items[i],
-              onToggle: (v) =>
-                  setState(() => _items[i] = _items[i].copyWith(active: v)),
-              onEdit: () => _openEdit(_items[i]),
-              onDelete: () => _confirmDelete(_items[i]),
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-          const SizedBox(height: AppSpacing.xl),
-        ],
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _items.isEmpty
+              ? const Center(child: Text('Belum ada fasilitas', style: AppTextStyles.caption))
+              : ListView(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  children: [
+                    const Text('Facility Management', style: AppTextStyles.heading1),
+                    const SizedBox(height: AppSpacing.xs),
+                    const Text(
+                      'Kelola fasilitas yang tersedia di destinasi.',
+                      style: AppTextStyles.caption,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    for (int i = 0; i < _items.length; i++) ...[
+                      _FacilityCard(
+                        fac: _items[i],
+                        onToggle: (v) =>
+                            setState(() => _items[i] = _items[i].copyWith(active: v)),
+                        onEdit: () => _openEdit(_items[i]),
+                        onDelete: () => _confirmDelete(_items[i]),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                    const SizedBox(height: AppSpacing.xl),
+                  ],
+                ),
     );
   }
 
@@ -94,7 +134,39 @@ class _AdminFasilitasPageState extends State<AdminFasilitasPage> {
         ],
       ),
     );
-    if (yes == true) setState(() => _items.remove(f));
+    if (yes == true && f.id != null) {
+      if (!mounted) return;
+      final token = context.read<AuthProvider>().token;
+      try {
+        final res = await http.delete(
+          Uri.parse('${ApiConfig.adminFacilities}/${f.id}'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+        if (res.statusCode == 200) {
+          _fetchFacilities();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Fasilitas dihapus')),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Gagal menghapus fasilitas')),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e')),
+          );
+        }
+      }
+    }
   }
 }
 

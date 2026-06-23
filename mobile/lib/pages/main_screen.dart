@@ -4,7 +4,13 @@ import 'explore_page.dart'; // Import halaman explore kamu
 import 'wishlist_page.dart';
 import 'itinerary_page.dart';
 import 'profile_page.dart';
-import 'notification_page.dart';
+
+// Import halaman guest
+import 'guest/guest_wishlist_page.dart';
+import 'guest/guest_itinerary_page.dart';
+import 'guest/guest_profile_page.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -24,14 +30,24 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Daftar halaman — HomePage menerima callback untuk pindah tab
-    final List<Widget> pages = [
-      HomePage(onTabChanged: _switchTab), // Index 0 (Home)
-      const ExplorePage(),                // Index 1 (Explore)
-      const WishlistPage(),               // Index 2 (Favorite/Wishlist)
-      const ItineraryPage(),              // Index 3 (Itinerary)
-      const ProfilePage(),               // Index 4 (Profile)
-    ];
+    // Dengarkan perubahan status login dari AuthProvider
+    final bool isLoggedIn = context.watch<AuthProvider>().isLoggedIn;
+
+    final List<Widget> pages = isLoggedIn
+        ? [
+            HomePage(onTabChanged: _switchTab), // Index 0 (Home)
+            const ExplorePage(), // Index 1 (Explore)
+            const WishlistPage(), // Index 2 (Favorite/Wishlist)
+            const ItineraryPage(), // Index 3 (Itinerary)
+            const ProfilePage(), // Index 4 (Profile)
+          ]
+        : [
+            HomePage(onTabChanged: _switchTab), // Index 0 (Home)
+            const ExplorePage(), // Index 1 (Explore)
+            const GuestWishlistPage(), // Index 2 (Guest Wishlist)
+            const GuestItineraryPage(), // Index 3 (Guest Itinerary)
+            const GuestProfilePage(), // Index 4 (Guest Profile)
+          ];
 
     return Scaffold(
       // Body akan otomatis berubah mengikuti tombol yang ditekan

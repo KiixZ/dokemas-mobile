@@ -8,6 +8,9 @@ import 'edit_profile_page.dart';
 import 'riwayat_itinerary_page.dart';
 import 'change_password_page.dart';
 import 'ulasan_saya_page.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import 'main_screen.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -22,7 +25,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   String _currentName = 'Saputra';
   String _currentEmail = 'saputra@example.com';
-  String _currentAvatarUrl =
+  final String _currentAvatarUrl =
       'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop';
   String? _localImagePath;
 
@@ -37,7 +40,9 @@ class _ProfilePageState extends State<ProfilePage> {
           'Konfirmasi Keluar',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        content: const Text('Apakah Anda yakin ingin keluar dari akun DOKEMAS?'),
+        content: const Text(
+          'Apakah Anda yakin ingin keluar dari akun DOKEMAS?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -47,8 +52,36 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
+            onPressed: () async {
+              Navigator.pop(context); // Tutup dialog
+
+              // Tampilkan indikator loading (opsional tapi bagus)
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+              );
+
+              final authProvider = Provider.of<AuthProvider>(
+                context,
+                listen: false,
+              );
+              await authProvider.logout();
+
+              if (!mounted) return;
+              Navigator.pop(context); // Tutup loading dialog
+
+              // Tidak perlu pushAndRemoveUntil secara manual ke layar Guest jika state diatur oleh AuthProvider
+              // karena auth_provider akan notifyListeners() dan merender GuestProfilePage, tapi untuk amannya
+              // kita arahkan ulang ke MainScreen
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const MainScreen()),
+                (route) => false,
+              );
+
               ScaffoldMessenger.of(context).clearSnackBars();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -301,7 +334,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: 'Notifikasi',
                   trailing: Switch(
                     value: _isNotificationEnabled,
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                     onChanged: (val) {
                       setState(() {
                         _isNotificationEnabled = val;
@@ -337,7 +370,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: 'Mode Gelap',
                   trailing: Switch(
                     value: _isDarkModeEnabled,
-                    activeColor: AppColors.primary,
+                    activeThumbColor: AppColors.primary,
                     onChanged: (val) {
                       setState(() {
                         _isDarkModeEnabled = val;
@@ -423,10 +456,7 @@ class _SettingsSection extends StatelessWidget {
   final String title;
   final List<Widget> tiles;
 
-  const _SettingsSection({
-    required this.title,
-    required this.tiles,
-  });
+  const _SettingsSection({required this.title, required this.tiles});
 
   @override
   Widget build(BuildContext context) {
@@ -459,9 +489,7 @@ class _SettingsSection extends StatelessWidget {
                 offset: const Offset(0, 2),
               ),
             ],
-            border: Border.all(
-              color: AppColors.border.withValues(alpha: 0.5),
-            ),
+            border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(AppSpacing.radius),
@@ -509,11 +537,7 @@ class _SettingsTile extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.primary,
-                size: 20,
-              ),
+              child: Icon(icon, color: AppColors.primary, size: 20),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(

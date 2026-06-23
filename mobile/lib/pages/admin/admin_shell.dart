@@ -33,12 +33,15 @@ class _AdminShellState extends State<AdminShell> {
   ];
 
   // Tiap tab isi body-nya (tanpa Scaffold). Placeholder dulu kecuali Profil.
-  final _pages = const [
-    AdminDashboardPage(),
-    AdminDestinasiPage(),
-    AdminKelolaPage(),
-    AdminReviewPage(),
-    AdminProfilPage(),
+  late final List<Widget> _pages = [
+    AdminDashboardPage(
+      onNavigateToDestinations: () => setState(() => _index = 1),
+      onNavigateToReviews: () => setState(() => _index = 3),
+    ),
+    const AdminDestinasiPage(),
+    const AdminKelolaPage(),
+    const AdminReviewPage(),
+    const AdminProfilPage(),
   ];
 
   void _openTambahDestinasi() {

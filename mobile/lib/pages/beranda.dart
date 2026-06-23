@@ -8,7 +8,7 @@ import 'package:mobile/pages/explore_page.dart';
 // 1. MENGUBAH HOMEPAGE MENJADI STATEFULWIDGET
 class HomePage extends StatefulWidget {
   final void Function(int)? onTabChanged;
-  const HomePage({Key? key, this.onTabChanged}) : super(key: key);
+  const HomePage({super.key, this.onTabChanged});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -92,7 +92,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: Icon(
                           item['icon'] as IconData,
-                          color: isActive ? Colors.white : AppColors.primaryDark,
+                          color: isActive
+                              ? Colors.white
+                              : AppColors.primaryDark,
                           size: 22,
                         ),
                       ),
@@ -102,7 +104,9 @@ class _HomePageState extends State<HomePage> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isActive
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                           color: isActive ? AppColors.primary : Colors.black87,
                         ),
                       ),
@@ -132,25 +136,25 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20),
               _buildSearchBar(context),
               const SizedBox(height: 25),
-              
+
               // KATEGORI WISATA -> Memunculkan Pop-up Dialog
               _buildSectionTitle(
-                'Kategori Wisata', 
+                'Kategori Wisata',
                 'Lihat Semua',
                 onActionTap: () => _showAllCategoriesDialog(),
               ),
               const SizedBox(height: 15),
-              _buildCategoryList(), 
+              _buildCategoryList(),
               const SizedBox(height: 25),
-              
+
               _buildSectionTitle('Rekomendasi Untuk Kamu', ''),
               const SizedBox(height: 15),
               _buildRecommendationCard(),
               const SizedBox(height: 25),
-              
+
               // DESTINASI POPULER -> Berpindah ke ExplorePage
               _buildSectionTitle(
-                'Destinasi Populer', 
+                'Destinasi Populer',
                 'Eksplor',
                 onActionTap: () {
                   // Pindah ke tab Explore (index 1) di MainScreen
@@ -212,9 +216,7 @@ class _HomePageState extends State<HomePage> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const NotificationPage(),
-              ),
+              MaterialPageRoute(builder: (context) => const NotificationPage()),
             );
           },
           borderRadius: BorderRadius.circular(50),
@@ -265,7 +267,8 @@ class _HomePageState extends State<HomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ExplorePage(searchQuery: query),
+                            builder: (context) =>
+                                ExplorePage(searchQuery: query),
                           ),
                         );
                       }
@@ -307,7 +310,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   // 3. SECTION TITLE GENERATOR (MENDUKUNG CUSTOM CALLBACK ACTION)
-  Widget _buildSectionTitle(String title, String actionText, {VoidCallback? onActionTap}) {
+  Widget _buildSectionTitle(
+    String title,
+    String actionText, {
+    VoidCallback? onActionTap,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -321,10 +328,14 @@ class _HomePageState extends State<HomePage> {
         ),
         if (actionText.isNotEmpty)
           InkWell(
-            onTap: onActionTap, // Memanggil fungsi dinamis yang disuntikkan dari atas
+            onTap:
+                onActionTap, // Memanggil fungsi dinamis yang disuntikkan dari atas
             borderRadius: BorderRadius.circular(4),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 4.0,
+              ),
               child: Text(
                 actionText,
                 style: const TextStyle(

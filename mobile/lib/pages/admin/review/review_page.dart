@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../models/review.dart';
+import '../../../config/api_config.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
 
-/// Body kelola review: header + search + filter + daftar kartu + pagination.
-/// UI only. Dibungkus AppBar + navbar oleh [AdminShell].
+/// Body kelola review: header + search + filter + daftar kartu.
+/// UI terintegrasi dengan backend.
 class AdminReviewPage extends StatefulWidget {
   const AdminReviewPage({super.key});
 
@@ -14,11 +19,105 @@ class AdminReviewPage extends StatefulWidget {
 }
 
 class _AdminReviewPageState extends State<AdminReviewPage> {
-  late final List<Review> _items = List.of(dummyReviews);
+  List<Review> _items = [];
+  bool _isLoading = true;
   String _query = '';
   String _filter = 'All Reviews';
 
   static const _filters = ['All Reviews', 'Pending Review', 'Reported'];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchReviews();
+  }
+
+  Future<void> _fetchReviews() async {
+    final token = context.read<AuthProvider>().token;
+    if (token == null) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.adminReviews),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        final List<dynamic> data = decoded['data'] ?? [];
+        setState(() {
+          _items = data.map((json) => Review.fromJson(json)).toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _setStatus(Review review, ReviewStatus newStatus) async {
+    final token = context.read<AuthProvider>().token;
+    if (token == null) return;
+
+    String statusString;
+    switch (newStatus) {
+      case ReviewStatus.pending: statusString = 'pending'; break;
+      case ReviewStatus.public: statusString = 'public'; break;
+      case ReviewStatus.reported: statusString = 'reported'; break;
+      case ReviewStatus.hidden: statusString = 'hidden'; break;
+    }
+
+    try {
+      final response = await http.patch(
+        Uri.parse('${ApiConfig.adminReviews}/${review.id}/status'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'status': statusString}),
+      );
+
+      if (response.statusCode == 200) {
+        final index = _items.indexWhere((r) => r.id == review.id);
+        if (index != -1) {
+          setState(() {
+            _items[index] = _items[index].copyWith(status: newStatus);
+          });
+        }
+      }
+    } catch (e) {
+      // Handle error if needed
+    }
+  }
+
+  Future<void> _deleteReview(Review review) async {
+    final token = context.read<AuthProvider>().token;
+    if (token == null) return;
+
+    try {
+      final response = await http.delete(
+        Uri.parse('${ApiConfig.adminReviews}/${review.id}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _items.removeWhere((r) => r.id == review.id);
+        });
+      }
+    } catch (e) {
+      // Handle error if needed
+    }
+  }
 
   List<Review> get _visible {
     return _items.where((r) {
@@ -27,16 +126,13 @@ class _AdminReviewPageState extends State<AdminReviewPage> {
         'Pending Review' => r.status == ReviewStatus.pending,
         _ => true,
       };
-      final okQuery = _query.isEmpty ||
-          r.name.toLowerCase().contains(_query.toLowerCase()) ||
-          r.destination.toLowerCase().contains(_query.toLowerCase());
+      final q = _query.toLowerCase();
+      final okQuery = q.isEmpty ||
+          r.userName.toLowerCase().contains(q) ||
+          r.destinationName.toLowerCase().contains(q) ||
+          r.comment.toLowerCase().contains(q);
       return okFilter && okQuery;
     }).toList();
-  }
-
-  void _setStatus(Review r, ReviewStatus s) {
-    final i = _items.indexOf(r);
-    if (i != -1) setState(() => _items[i] = r.copyWith(status: s));
   }
 
   @override
@@ -105,7 +201,12 @@ class _AdminReviewPageState extends State<AdminReviewPage> {
         ),
         const SizedBox(height: AppSpacing.md),
 
-        if (items.isEmpty)
+        if (_isLoading)
+          const Padding(
+            padding: EdgeInsets.all(AppSpacing.xl),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (items.isEmpty)
           const Padding(
             padding: EdgeInsets.all(AppSpacing.xl),
             child: Center(
@@ -123,9 +224,6 @@ class _AdminReviewPageState extends State<AdminReviewPage> {
             ),
             const SizedBox(height: AppSpacing.md),
           ],
-
-        const SizedBox(height: AppSpacing.sm),
-        const _Pagination(),
         const SizedBox(height: AppSpacing.xl),
       ],
     );
@@ -136,7 +234,7 @@ class _AdminReviewPageState extends State<AdminReviewPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Hapus review?'),
-        content: Text('Hapus review dari "${r.name}"?'),
+        content: Text('Hapus review dari "${r.userName}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -144,13 +242,14 @@ class _AdminReviewPageState extends State<AdminReviewPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child:
-                const Text('Hapus', style: TextStyle(color: AppColors.danger)),
+            child: const Text('Hapus', style: TextStyle(color: AppColors.danger)),
           ),
         ],
       ),
     );
-    if (yes == true) setState(() => _items.remove(r));
+    if (yes == true) {
+      await _deleteReview(r);
+    }
   }
 }
 
@@ -204,7 +303,7 @@ class _ReviewCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(review.name, style: AppTextStyles.title),
+                    Text(review.userName, style: AppTextStyles.title),
                     Text(review.date, style: AppTextStyles.caption),
                   ],
                 ),
@@ -216,8 +315,7 @@ class _ReviewCard extends StatelessWidget {
 
           // Chip destinasi
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: AppColors.background,
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
@@ -228,7 +326,7 @@ class _ReviewCard extends StatelessWidget {
                 const Icon(Icons.location_on_outlined,
                     size: 14, color: AppColors.textMuted),
                 const SizedBox(width: 4),
-                Text(review.destination, style: AppTextStyles.caption),
+                Text(review.destinationName, style: AppTextStyles.caption),
               ],
             ),
           ),
@@ -417,60 +515,6 @@ class _ActionBtn extends StatelessWidget {
           child: Icon(icon, size: 18, color: color),
         ),
       ),
-    );
-  }
-}
-
-/// Pagination statis (UI only).
-class _Pagination extends StatelessWidget {
-  const _Pagination();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _PageBtn(child: const Icon(Icons.chevron_left, size: 18)),
-        const SizedBox(width: AppSpacing.xs),
-        _PageBtn(label: '1', active: true),
-        const SizedBox(width: AppSpacing.xs),
-        _PageBtn(label: '2'),
-        const SizedBox(width: AppSpacing.xs),
-        _PageBtn(label: '3'),
-        const SizedBox(width: AppSpacing.xs),
-        _PageBtn(label: '...'),
-        const SizedBox(width: AppSpacing.xs),
-        _PageBtn(child: const Icon(Icons.chevron_right, size: 18)),
-      ],
-    );
-  }
-}
-
-class _PageBtn extends StatelessWidget {
-  final String? label;
-  final Widget? child;
-  final bool active;
-  const _PageBtn({this.label, this.child, this.active = false});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 34,
-      height: 34,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: active ? AppColors.primary : AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: child ??
-          Text(
-            label ?? '',
-            style: TextStyle(
-              color: active ? AppColors.onPrimary : AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
     );
   }
 }

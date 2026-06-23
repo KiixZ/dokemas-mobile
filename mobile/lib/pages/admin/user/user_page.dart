@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../models/app_user.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../models/user_model.dart';
+import '../../../config/api_config.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
@@ -14,10 +19,47 @@ class AdminUserPage extends StatefulWidget {
 }
 
 class _AdminUserPageState extends State<AdminUserPage> {
-  late final List<AppUser> _items = List.of(dummyUsers);
+  List<UserModel> _items = [];
+  bool _isLoading = true;
   String _query = '';
 
-  List<AppUser> get _visible {
+  @override
+  void initState() {
+    super.initState();
+    _fetchUsers();
+  }
+
+  Future<void> _fetchUsers() async {
+    final token = context.read<AuthProvider>().token;
+    if (token == null) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.users),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        // Laravel paginate() returns an object with a 'data' array
+        final List<dynamic> data = decoded['data'] ?? [];
+        setState(() {
+          _items = data.map((json) => UserModel.fromJson(json)).toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() => _isLoading = false);
+        // Handle error if needed
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  List<UserModel> get _visible {
     if (_query.isEmpty) return _items;
     final q = _query.toLowerCase();
     return _items
@@ -27,16 +69,22 @@ class _AdminUserPageState extends State<AdminUserPage> {
         .toList();
   }
 
-  void _openTambah() {
-    Navigator.of(context).push(
+  Future<void> _openTambah() async {
+    final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const TambahUserPage()),
     );
+    if (result == true) {
+      _fetchUsers();
+    }
   }
 
-  void _openEdit(AppUser user) {
-    Navigator.of(context).push(
+  Future<void> _openEdit(UserModel user) async {
+    final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => TambahUserPage(existing: user)),
     );
+    if (result == true) {
+      _fetchUsers();
+    }
   }
 
   @override
@@ -88,10 +136,12 @@ class _AdminUserPageState extends State<AdminUserPage> {
             ),
           ),
           Expanded(
-            child: items.isEmpty
-                ? const Center(
-                    child: Text('Tidak ada user', style: AppTextStyles.caption),
-                  )
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : items.isEmpty
+                    ? const Center(
+                        child: Text('Tidak ada user', style: AppTextStyles.caption),
+                      )
                 : ListView.separated(
                     padding: const EdgeInsets.fromLTRB(
                         AppSpacing.md, 0, AppSpacing.md, AppSpacing.xl),
@@ -117,7 +167,7 @@ class _AdminUserPageState extends State<AdminUserPage> {
     );
   }
 
-  Future<void> _confirmDelete(AppUser u) async {
+  Future<void> _confirmDelete(UserModel u) async {
     final yes = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -142,7 +192,7 @@ class _AdminUserPageState extends State<AdminUserPage> {
 
 /// Kartu satu user: avatar + nama/email + role badge + toggle + aksi.
 class _UserCard extends StatelessWidget {
-  final AppUser user;
+  final UserModel user;
   final ValueChanged<bool> onToggle;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -174,7 +224,7 @@ class _UserCard extends StatelessWidget {
                     ? AppColors.textMuted
                     : AppColors.primary.withValues(alpha: 0.15),
                 child: Text(
-                  user.initial,
+                  user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
                   style: TextStyle(
                     color: muted ? AppColors.onPrimary : AppColors.primaryDark,
                     fontWeight: FontWeight.bold,
@@ -205,7 +255,7 @@ class _UserCard extends StatelessWidget {
                       style: AppTextStyles.caption,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    Text('Gabung ${user.joined}',
+                    Text('Gabung ${user.createdAt?.split('T').first ?? "N/A"}',
                         style: AppTextStyles.caption),
                   ],
                 ),
@@ -241,12 +291,12 @@ class _UserCard extends StatelessWidget {
 }
 
 class _RoleBadge extends StatelessWidget {
-  final UserRole role;
+  final String role;
   const _RoleBadge({required this.role});
 
   @override
   Widget build(BuildContext context) {
-    final isAdmin = role == UserRole.admin;
+    final isAdmin = role.toLowerCase() == 'admin';
     final color = isAdmin ? AppColors.primary : AppColors.textSecondary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -255,7 +305,7 @@ class _RoleBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
       ),
       child: Text(
-        role.label,
+        role.toUpperCase(),
         style: TextStyle(
           color: color,
           fontSize: 11,
