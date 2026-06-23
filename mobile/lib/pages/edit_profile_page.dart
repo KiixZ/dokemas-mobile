@@ -1,22 +1,19 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import '../models/user_model.dart';
+import '../providers/auth_provider.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 
 class EditProfilePage extends StatefulWidget {
-  final String currentName;
-  final String currentEmail;
-  final String currentAvatarUrl;
-  final String? localImagePath;
+  final UserModel user;
 
   const EditProfilePage({
     super.key,
-    required this.currentName,
-    required this.currentEmail,
-    required this.currentAvatarUrl,
-    this.localImagePath,
+    required this.user,
   });
 
   @override
@@ -35,17 +32,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
+  bool _isLoading = false;
+  bool _isImageChanged = false;
+
   @override
   void initState() {
     super.initState();
     // Mengisi form input dengan data profil user yang sekarang
-    _nameController = TextEditingController(text: widget.currentName);
-    _emailController = TextEditingController(text: widget.currentEmail);
-
-    // Jika sebelumnya user sudah pernah memilih foto lokal, pasang kembali
-    if (widget.localImagePath != null) {
-      _imageFile = File(widget.localImagePath!);
-    }
+    _nameController = TextEditingController(text: widget.user.name);
+    _emailController = TextEditingController(text: widget.user.email);
   }
 
   @override
@@ -65,12 +60,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
       if (pickedFile != null) {
         setState(() {
-          _imageFile = File(
-            pickedFile.path,
-          ); // Update foto di layar secara realtime
+          _imageFile = File(pickedFile.path); // Update foto di layar secara realtime
+          _isImageChanged = true;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Gagal mengambil gambar: $e'),
@@ -124,26 +119,42 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   // Fungsi saat tombol "Simpan" ditekan
-  void _saveProfile() {
+  Future<void> _saveProfile() async {
     // Memeriksa validasi isi form (nama/email kosong atau tidak)
     if (_formKey.currentState!.validate()) {
-      final updatedData = {
-        'name': _nameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'imagePath':
-            _imageFile?.path, // Bisa bernilai null jika foto tidak diganti
-      };
+      setState(() => _isLoading = true);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profil berhasil diperbarui!'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
+      final authProvider = context.read<AuthProvider>();
+      final error = await authProvider.updateProfile(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        avatarPath: _isImageChanged ? _imageFile?.path : null,
       );
 
-      // Tutup halaman edit, dan kirim data baru kembali ke ProfilePage
-      Navigator.pop(context, updatedData);
+      setState(() => _isLoading = false);
+
+      if (!mounted) return;
+
+      if (error == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profil berhasil diperbarui!'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+
+        // Tutup halaman edit
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            backgroundColor: AppColors.danger,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -183,7 +194,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       backgroundColor: AppColors.border,
                       backgroundImage: _imageFile != null
                           ? FileImage(_imageFile!) as ImageProvider
-                          : NetworkImage(widget.currentAvatarUrl),
+                          : NetworkImage(widget.user.avatarUrl),
                     ),
                   ),
                   GestureDetector(
@@ -272,8 +283,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _saveProfile,
-                  child: const Text('Simpan Perubahan'),
+                  onPressed: _isLoading ? null : _saveProfile,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Simpan Perubahan'),
                 ),
               ),
             ],

@@ -9,6 +9,7 @@ class ApiConfig {
   static const String logout = '$baseUrl/logout';
   static const String me = '$baseUrl/me';
   static const String updateProfile = '$baseUrl/profile';
+  static const String updateAvatar = '$baseUrl/profile/avatar';
   static const String users = '$baseUrl/admin/users';
   static const String categories = '$baseUrl/categories';
   static const String adminCategories = '$baseUrl/admin/categories';
