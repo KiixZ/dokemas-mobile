@@ -10,4 +10,7 @@ class ApiConfig {
   static const String me = '$baseUrl/me';
   static const String updateProfile = '$baseUrl/profile';
   static const String users = '$baseUrl/admin/users';
+
+  static const String destinations = '$baseUrl/destinations';
 }
+
