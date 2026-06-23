@@ -3,6 +3,11 @@ import '../../../models/destination.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../config/api_config.dart';
 import 'tambah_destinasi_page.dart';
 
 /// Body kelola destinasi: search + filter kategori + daftar kartu.
@@ -15,13 +20,43 @@ class AdminDestinasiPage extends StatefulWidget {
 }
 
 class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
+  List<Destination> _items = [];
+  List<String> _filters = ['All'];
   String _query = '';
-  String _filter = 'All'; // 'All' atau salah satu kategori
+  String _filter = 'All';
+  bool _isLoading = true;
 
-  static const _filters = ['All', ...destinationCategories];
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    setState(() => _isLoading = true);
+    try {
+      final resCat = await http.get(Uri.parse(ApiConfig.categories));
+      if (resCat.statusCode == 200) {
+        final List<dynamic> catData = jsonDecode(resCat.body);
+        _filters = ['All', ...catData.map((e) => e['name'].toString())];
+      }
+
+      // We ask for a large per_page just to get everything for now, or handle pagination later.
+      final resDest = await http.get(Uri.parse('${ApiConfig.destinations}?per_page=100'));
+      if (resDest.statusCode == 200) {
+        final data = jsonDecode(resDest.body);
+        final List<dynamic> items = data['data'] ?? [];
+        _items = items.map((e) => Destination.fromJson(e)).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetch data: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   List<Destination> get _visible {
-    return dummyDestinations.where((d) {
+    return _items.where((d) {
       final okFilter = _filter == 'All' || d.category == _filter;
       final okQuery = _query.isEmpty ||
           d.name.toLowerCase().contains(_query.toLowerCase()) ||
@@ -29,9 +64,12 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
       return okFilter && okQuery;
     }).toList();
   }
-
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final items = _visible;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,10 +162,13 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
     );
   }
 
-  void _openEdit(Destination dest) {
-    Navigator.of(context).push(
+  Future<void> _openEdit(Destination dest) async {
+    final result = await Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => TambahDestinasiPage(existing: dest)),
     );
+    if (result == true) {
+      _fetchData();
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context, Destination d) async {
@@ -149,11 +190,37 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
         ],
       ),
     );
-    if (yes == true && context.mounted) {
-      // UI only: belum hapus dari sumber data.
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Hapus "${d.name}" (dummy)')),
-      );
+    if (yes == true && context.mounted && d.id != null) {
+      final token = context.read<AuthProvider>().token;
+      try {
+        final res = await http.delete(
+          Uri.parse('${ApiConfig.adminDestinations}/${d.id}'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+        if (res.statusCode == 200) {
+          _fetchData();
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Hapus "${d.name}" berhasil')),
+            );
+          }
+        } else {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Gagal menghapus destinasi')),
+            );
+          }
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e')),
+          );
+        }
+      }
     }
   }
 }
@@ -189,8 +256,10 @@ class _DestinationCard extends StatelessWidget {
                 height: 140,
                 width: double.infinity,
                 color: AppColors.background,
-                child: const Icon(Icons.image_outlined,
-                    size: 40, color: AppColors.textMuted),
+                child: dest.thumbnailUrl.isNotEmpty
+                    ? Image.network(dest.thumbnailUrl, fit: BoxFit.cover)
+                    : const Icon(Icons.image_outlined,
+                        size: 40, color: AppColors.textMuted),
               ),
               Positioned(
                 top: AppSpacing.sm,

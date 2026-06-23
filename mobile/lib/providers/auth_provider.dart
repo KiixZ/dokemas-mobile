@@ -136,6 +136,67 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Fungsi Ubah Profil (Name & Email)
+  Future<String?> updateProfileInfo(String name, String email) async {
+    if (_token == null) return 'Anda belum login.';
+    try {
+      final response = await http.put(
+        Uri.parse(ApiConfig.updateProfile),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        _user = UserModel.fromJson(jsonDecode(response.body));
+        notifyListeners();
+        return null; // Sukses
+      } else {
+        final errorData = jsonDecode(response.body);
+        return errorData['message'] ?? 'Gagal mengubah profil.';
+      }
+    } catch (e) {
+      debugPrint('Error update profil: $e');
+      return 'Terjadi kesalahan koneksi.';
+    }
+  }
+
+  // Fungsi Ubah Password
+  Future<String?> updatePassword(String currentPassword, String password, String passwordConfirmation) async {
+    if (_token == null) return 'Anda belum login.';
+    try {
+      final response = await http.put(
+        Uri.parse(ApiConfig.updateProfile),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+        body: jsonEncode({
+          'current_password': currentPassword,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return null; // Sukses
+      } else {
+        final errorData = jsonDecode(response.body);
+        return errorData['message'] ?? 'Gagal mengubah password.';
+      }
+    } catch (e) {
+      debugPrint('Error update password: $e');
+      return 'Terjadi kesalahan koneksi.';
+    }
+  }
+
   // Fungsi Logout
   Future<void> logout() async {
     try {

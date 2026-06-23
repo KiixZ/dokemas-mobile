@@ -1,21 +1,41 @@
-/// Model destinasi wisata (UI only, belum konek backend).
+import 'facility.dart';
+
+class DestinationImage {
+  final int id;
+  final String imageUrl;
+
+  const DestinationImage({required this.id, required this.imageUrl});
+
+  factory DestinationImage.fromJson(Map<String, dynamic> json) {
+    return DestinationImage(id: json['id'], imageUrl: json['image_url'] ?? '');
+  }
+}
+
+/// Model destinasi wisata (tersambung backend).
 class Destination {
+  final int? id;
   final String name;
-  final String area; // mis. "Baturraden, Banyumas"
-  final String category; // mis. "Waterfall"
-  final double rating; // 0..5
-  final String reviews; // mis. "1.2k"
-  final int price; // rupiah, mis. 15000
+  final String area;
+  final int? categoryId;
+  final String category;
+  final double rating;
+  final int reviews;
+  final int price;
   final bool active;
-  final String openHour; // jam buka "08:00"
-  final String closeHour; // jam tutup "17:00"
-  final List<String> facilities; // mis. ["Toilet", "Parkir"]
-  final double? lat; // latitude
-  final double? lng; // longitude
+  final String openHour;
+  final String closeHour;
+  final String description;
+  final List<Facility> facilities;
+  final List<DestinationImage> images;
+  final String thumbnailUrl;
+  final double? lat;
+  final double? lng;
 
   const Destination({
+    this.id,
     required this.name,
     required this.area,
+    this.categoryId,
     required this.category,
     required this.rating,
     required this.reviews,
@@ -23,10 +43,62 @@ class Destination {
     this.active = true,
     this.openHour = '08:00',
     this.closeHour = '17:00',
+    this.description = '',
     this.facilities = const [],
+    this.images = const [],
+    this.thumbnailUrl = '',
     this.lat,
     this.lng,
   });
+
+  factory Destination.fromJson(Map<String, dynamic> json) {
+    String parseTime(String? timeStr) {
+      if (timeStr == null || timeStr.isEmpty) return '00:00';
+      final parts = timeStr.split(':');
+      if (parts.length >= 2) return '${parts[0]}:${parts[1]}';
+      return '00:00';
+    }
+
+    String openHour = '08:00';
+    String closeHour = '17:00';
+    if (json['opening_hours'] != null) {
+      final times = json['opening_hours'].toString().split('-');
+      if (times.isNotEmpty) openHour = parseTime(times[0].trim());
+      if (times.length > 1) closeHour = parseTime(times[1].trim());
+    }
+
+    return Destination(
+      id: json['id'],
+      categoryId: json['category_id'],
+      name: json['name'] ?? '',
+      area: json['address'] ?? '',
+      category: json['category'] != null ? json['category']['name'] : '',
+      rating: (json['rating_avg'] ?? 0).toDouble(),
+      reviews: json['rating_count'] ?? 0,
+      price: (json['price'] ?? 0).toInt(),
+      active: json['is_popular'] == 1 || json['is_popular'] == true,
+      openHour: openHour,
+      closeHour: closeHour,
+      description: json['description'] ?? '',
+      lat: json['latitude'] != null
+          ? double.tryParse(json['latitude'].toString())
+          : null,
+      lng: json['longitude'] != null
+          ? double.tryParse(json['longitude'].toString())
+          : null,
+      thumbnailUrl: json['thumbnail_url'] ?? '',
+      facilities: json['facilities'] != null
+          ? (json['facilities'] as List)
+                .map((e) => Facility.fromJson(e))
+                .toList()
+          : [],
+      images: json['images'] != null
+          ? (json['images'] as List)
+                .map((e) => DestinationImage.fromJson(e))
+                .toList()
+          : [],
+    );
+  }
 }
 
 /// Format harga -> "Rp 15.000".
@@ -39,37 +111,6 @@ String formatRupiah(int value) {
   }
   return 'Rp $buf';
 }
-
-/// Data dummy buat halaman kelola destinasi.
-const dummyDestinations = [
-  Destination(
-    name: 'Curug Bayan Baturraden',
-    area: 'Baturraden, Banyumas',
-    category: 'Waterfall',
-    rating: 4.8,
-    reviews: '1.2k',
-    price: 15000,
-    active: true,
-  ),
-  Destination(
-    name: 'Bukit Tranggulasih',
-    area: 'Sumbang, Banyumas',
-    category: 'Mountain',
-    rating: 4.5,
-    reviews: '842',
-    price: 10000,
-    active: false,
-  ),
-  Destination(
-    name: 'Soto Sokaraja Asli',
-    area: 'Sokaraja, Banyumas',
-    category: 'Culinary',
-    rating: 4.9,
-    reviews: '2.5k',
-    price: 25000,
-    active: true,
-  ),
-];
 
 /// Kategori dipakai di filter chip & dropdown form.
 const destinationCategories = [

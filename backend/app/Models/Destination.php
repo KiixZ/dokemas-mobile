@@ -21,7 +21,7 @@ class Destination extends Model
 
     protected function thumbnailUrl(): Attribute
     {
-        return Attribute::get(fn () => $this->thumbnail ? Storage::disk('public')->url($this->thumbnail) : null);
+        return Attribute::get(fn (mixed $value, array $attributes) => !empty($attributes['thumbnail']) ? Storage::disk('public')->url($attributes['thumbnail']) : null);
     }
 
     protected function casts(): array
@@ -62,8 +62,9 @@ class Destination extends Model
 
     public function recalcRating(): void
     {
-        $this->rating_avg = (float) round($this->reviews()->avg('rating') ?? 0, 2);
-        $this->rating_count = $this->reviews()->count();
+        $publicReviews = $this->reviews()->where('status', 'public');
+        $this->rating_avg = (float) round($publicReviews->avg('rating') ?? 0, 2);
+        $this->rating_count = $publicReviews->count();
         $this->save();
     }
 }
