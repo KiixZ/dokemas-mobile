@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
@@ -22,12 +21,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool _isNotificationEnabled = true;
   bool _isDarkModeEnabled = false;
-
-  String _currentName = 'Saputra';
-  String _currentEmail = 'saputra@example.com';
-  final String _currentAvatarUrl =
-      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop';
-  String? _localImagePath;
 
   void _showLogoutDialog() {
     showDialog(
@@ -70,7 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
               );
               await authProvider.logout();
 
-              if (!mounted) return;
+              if (!context.mounted) return;
               Navigator.pop(context); // Tutup loading dialog
 
               // Tidak perlu pushAndRemoveUntil secara manual ke layar Guest jika state diatur oleh AuthProvider
@@ -131,9 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundImage: _localImagePath != null
-                  ? FileImage(File(_localImagePath!)) as ImageProvider
-                  : NetworkImage(_currentAvatarUrl),
+              backgroundImage: NetworkImage(user?.avatarUrl ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop'),
             ),
             const SizedBox(width: AppSpacing.sm),
             RichText(
@@ -218,9 +209,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       child: CircleAvatar(
                         radius: 46,
-                        backgroundImage: _localImagePath != null
-                            ? FileImage(File(_localImagePath!)) as ImageProvider
-                            : NetworkImage(_currentAvatarUrl),
+                        backgroundImage: NetworkImage(user?.avatarUrl ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop'),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
@@ -261,25 +250,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 _SettingsTile(
                   icon: Icons.person_outline_rounded,
                   title: 'Edit Profil',
-                  onTap: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditProfilePage(
-                          currentName: _currentName,
-                          currentEmail: _currentEmail,
-                          currentAvatarUrl: _currentAvatarUrl,
-                          localImagePath: _localImagePath,
+                  onTap: () {
+                    if (user != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditProfilePage(user: user),
                         ),
-                      ),
-                    );
-
-                    if (result != null && result is Map<String, dynamic>) {
-                      setState(() {
-                        _currentName = result['name'];
-                        _currentEmail = result['email'];
-                        _localImagePath = result['imagePath'];
-                      });
+                      );
                     }
                   },
                 ),

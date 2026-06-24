@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/pages/beranda.dart';
+import 'package:mobile/pages/profile_page.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -15,7 +15,7 @@ class DokemasApp extends StatelessWidget {
       title: 'DOKEMAS Admin',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const HomePage(),
+      home: const ProfilePage(),
     );
   }
 }

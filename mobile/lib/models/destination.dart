@@ -51,7 +51,52 @@ class Destination {
     this.lng,
   });
 
+  String get imageUrl => thumbnailUrl.isNotEmpty 
+      ? thumbnailUrl 
+      : 'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=300';
+
+  /// Fungsi untuk mapping data dari Database/API JSON yang aman
   factory Destination.fromJson(Map<String, dynamic> json) {
+    // Helper untuk konversi category dari API backend ke bahasa Indonesia (agar cocok dengan UI)
+    String mapCategory(String? apiCategory) {
+      if (apiCategory == null) return 'Alam';
+      switch (apiCategory.toLowerCase()) {
+        case 'waterfall':
+        case 'mountain':
+        case 'nature':
+        case 'alam':
+          return 'Alam';
+        case 'family':
+        case 'keluarga':
+          return 'Keluarga';
+        case 'culinary':
+        case 'kuliner':
+          return 'Kuliner';
+        case 'education':
+        case 'edukasi':
+        case 'sejarah':
+        case 'history':
+          return 'Edukasi';
+        case 'religious':
+        case 'religi':
+          return 'Religi';
+        default:
+          return 'Alam'; 
+      }
+    }
+
+    // Parsing data category secara dinamis baik berupa String maupun Map
+    String? apiCategoryStr;
+    if (json['category'] != null) {
+      if (json['category'] is Map) {
+        apiCategoryStr = json['category']['name']?.toString() ?? json['category']['slug']?.toString();
+      } else {
+        apiCategoryStr = json['category'].toString();
+      }
+    } else {
+      apiCategoryStr = json['category_id']?.toString();
+    }
+
     String parseTime(String? timeStr) {
       if (timeStr == null || timeStr.isEmpty) return '00:00';
       final parts = timeStr.split(':');
@@ -72,7 +117,7 @@ class Destination {
       categoryId: json['category_id'],
       name: json['name'] ?? '',
       area: json['address'] ?? '',
-      category: json['category'] != null ? json['category']['name'] : '',
+      category: mapCategory(apiCategoryStr),
       rating: (json['rating_avg'] ?? 0).toDouble(),
       reviews: json['rating_count'] ?? 0,
       price: (json['price'] ?? 0).toInt(),
@@ -114,14 +159,14 @@ String formatRupiah(int value) {
 
 /// Kategori dipakai di filter chip & dropdown form.
 const destinationCategories = [
-  'Waterfall',
-  'Mountain',
-  'Culinary',
-  'Beach',
-  'Culture',
+  'Alam',
+  'Keluarga',
+  'Kuliner',
+  'Edukasi',
+  'Religi',
 ];
 
-/// Master fasilitas buat multi-select di form.
+/// Master fasilitas buat multi-select di form
 const facilityOptions = [
   'Toilet',
   'Parkir',

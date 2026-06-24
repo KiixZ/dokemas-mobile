@@ -4,11 +4,17 @@ import 'package:mobile/pages/detail_destinasi_screen.dart';
 import '../theme/app_colors.dart';
 import 'notification_page.dart';
 import 'package:mobile/pages/explore_page.dart';
+import '../models/destination.dart';
+import '../service/api_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../config/api_config.dart';
 
+// Fungsi helper untuk memformat angka menjadi Rupiah dinamis
+String formatRupiah(int price) {
+  return 'Rp ${price.toString().replaceAll(RegExp(r'\B(?=(\d{3})+(?!\d))'), '.')}';
+}
 
-// 1. MENGUBAH HOMEPAGE MENJADI STATEFULWIDGET
 class HomePage extends StatefulWidget {
   final void Function(int)? onTabChanged;
   const HomePage({super.key, this.onTabChanged});
@@ -18,10 +24,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Variabel untuk melacak kategori mana yang sedang aktif (Default: 'Alam')
   String _selectedCategory = 'Alam';
 
-  // Data list kategori dipindahkan ke tingkat State agar bisa diakses dinamis
+  late Future<List<Destination>> _futureDestinations;
+
   final List<Map<String, dynamic>> _categories = [
     {'name': 'Alam', 'icon': Icons.terrain},
     {'name': 'Keluarga', 'icon': Icons.people},
@@ -30,7 +36,28 @@ class _HomePageState extends State<HomePage> {
     {'name': 'Religi', 'icon': Icons.church},
   ];
 
-  // FUNGSI UNTUK MENAMPILKAN POP-UP SEMUA KATEGORI
+  @override
+  void initState() {
+    super.initState();
+    _futureDestinations = ApiService().fetchDestinations();
+  }
+
+  ImageProvider _resolveAvatarImage(String? avatar) {
+    if (avatar != null && avatar.isNotEmpty) {
+      if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+        return NetworkImage(avatar);
+      }
+      final domain = ApiConfig.baseUrl.replaceAll('/api', '');
+      final fullUrl = avatar.startsWith('/')
+          ? '$domain$avatar'
+          : '$domain/$avatar';
+      return NetworkImage(fullUrl);
+    }
+    return const NetworkImage(
+      'https://via.placeholder.com/150/grey/white?text=?',
+    );
+  }
+
   void _showAllCategoriesDialog() {
     showDialog(
       context: context,
@@ -62,7 +89,7 @@ class _HomePageState extends State<HomePage> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3, // Menampilkan 3 item per baris
+                crossAxisCount: 3,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 15,
                 childAspectRatio: 0.85,
@@ -77,8 +104,7 @@ class _HomePageState extends State<HomePage> {
                     setState(() {
                       _selectedCategory = item['name'] as String;
                     });
-                    Navigator.of(context).pop(); // Tutup pop-up setelah memilih
-                    print('Kategori Terpilih dari Pop-up: $_selectedCategory');
+                    Navigator.of(context).pop();
                   },
                   borderRadius: BorderRadius.circular(12),
                   child: Column(
@@ -126,66 +152,111 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final bool isLoggedIn = authProvider.isLoggedIn;
+    final String? userName = authProvider.user?.name;
+    final String? userAvatar = authProvider.user?.avatar;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 15),
-              _buildHeader(),
-              const SizedBox(height: 20),
-              _buildSearchBar(context),
-              const SizedBox(height: 25),
+        child: FutureBuilder<List<Destination>>(
+          future: _futureDestinations,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              );
+            }
 
-              // KATEGORI WISATA -> Memunculkan Pop-up Dialog
-              _buildSectionTitle(
-                'Kategori Wisata',
-                'Lihat Semua',
-                onActionTap: () => _showAllCategoriesDialog(),
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Text(
+                    'Gagal memuat data: ${snapshot.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+              );
+            }
+
+            final allDestinations = snapshot.data ?? [];
+
+            // BIAR DINAMIS: Filter destinasi berdasarkan kategori aktif yang dipilih user
+            final filteredDestinations = allDestinations.where((destination) {
+              return destination.category.toLowerCase() ==
+                  _selectedCategory.toLowerCase();
+            }).toList();
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                setState(() {
+                  _futureDestinations = ApiService().fetchDestinations();
+                });
+              },
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 15),
+                    _buildHeader(isLoggedIn, userName, userAvatar),
+                    const SizedBox(height: 20),
+                    _buildSearchBar(context),
+                    const SizedBox(height: 25),
+
+                    _buildSectionTitle(
+                      'Kategori Wisata',
+                      'Lihat Semua',
+                      onActionTap: () => _showAllCategoriesDialog(),
+                    ),
+                    const SizedBox(height: 15),
+                    _buildCategoryList(),
+                    const SizedBox(height: 25),
+
+                    _buildSectionTitle('Rekomendasi Untuk Kamu', ''),
+                    const SizedBox(height: 15),
+                    _buildRecommendationCard(
+                      filteredDestinations.isNotEmpty
+                          ? filteredDestinations.first
+                          : null,
+                    ),
+                    const SizedBox(height: 25),
+
+                    _buildSectionTitle(
+                      'Destinasi Populer',
+                      'Eksplor',
+                      onActionTap: () {
+                        widget.onTabChanged?.call(1);
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                    _buildPopularDestinations(filteredDestinations),
+                    const SizedBox(height: 25),
+                  ],
+                ),
               ),
-              const SizedBox(height: 15),
-              _buildCategoryList(),
-              const SizedBox(height: 25),
-
-              _buildSectionTitle('Rekomendasi Untuk Kamu', ''),
-              const SizedBox(height: 15),
-              _buildRecommendationCard(),
-              const SizedBox(height: 25),
-
-              // DESTINASI POPULER -> Berpindah ke ExplorePage
-              _buildSectionTitle(
-                'Destinasi Populer',
-                'Eksplor',
-                onActionTap: () {
-                  // Pindah ke tab Explore (index 1) di MainScreen
-                  // agar navbar tetap tampil, bukan Navigator.push
-                  widget.onTabChanged?.call(1);
-                },
-              ),
-              const SizedBox(height: 15),
-              _buildPopularDestinations(),
-              const SizedBox(height: 25),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
 
   // 1. HEADER SECTION (TOMBOL NOTIFIKASI AKTIF)
-  Widget _buildHeader() {
-    final authProvider = context.watch<AuthProvider>();
-    final isLoggedIn = authProvider.isLoggedIn;
-    final userName = authProvider.user?.name ?? '';
-
+  Widget _buildHeader(bool isLoggedIn, String? userName, String? userAvatar) {
     return Row(
       children: [
-        const CircleAvatar(
+        CircleAvatar(
           radius: 24,
-          backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+          backgroundImage: isLoggedIn
+              ? _resolveAvatarImage(userAvatar)
+              : const NetworkImage(
+                  'https://via.placeholder.com/150/grey/white?text=?',
+                ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -195,13 +266,13 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   Text(
-                    isLoggedIn && userName.isNotEmpty
+                    isLoggedIn && userName != null && userName.isNotEmpty
                         ? 'Halo, $userName '
-                        : 'Halo! ',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        : 'Halo ',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const Text('👋', style: TextStyle(fontSize: 18)),
@@ -252,7 +323,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 2. SEARCH BAR SECTION (SUDAH AKTIF & INTERAKTIF)
   Widget _buildSearchBar(BuildContext context) {
     return Row(
       children: [
@@ -359,7 +429,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 4. CATEGORY LIST SECTION (SUDAH DIPERBAIKI & INTERAKTIF)
   Widget _buildCategoryList() {
     return SizedBox(
       height: 90,
@@ -379,7 +448,6 @@ class _HomePageState extends State<HomePage> {
                     setState(() {
                       _selectedCategory = item['name'] as String;
                     });
-                    print('Kategori Terpilih: $_selectedCategory');
                   },
                   borderRadius: BorderRadius.circular(30),
                   child: AnimatedContainer(
@@ -415,25 +483,42 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 5. RECOMMENDATION CARD (Baturraden)
-  Widget _buildRecommendationCard() {
+  Widget _buildRecommendationCard(Destination? destination) {
+    if (destination == null) {
+      return Container(
+        height: 240,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(
+          child: Text(
+            'Tidak ada data rekomendasi untuk kategori ini.',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
+    }
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const DetailDestinasiScreen(
-              title: 'Lokawisata Baturraden',
-              imageUrl:
-                  'https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=500&auto=format&fit=crop',
-              rating: '4.8',
-              reviewCount: '1.2k ulasan',
-              location: 'Baturraden, Banyumas',
-              price: 'Rp25.000',
+            builder: (context) => DetailDestinasiScreen(
+              title: destination.name,
+              imageUrl: destination.imageUrl,
+              rating: destination.rating.toString(),
+              reviewCount: '${destination.reviews} ulasan',
+              location: destination.area,
+              price: formatRupiah(destination.price),
               distance: '15 mnt',
-              openingHours: '08:00 -\n17:00',
+              // MENGGUNAKAN closeHour SEARA DINAMIS
+              openingHours:
+                  '${destination.openHour} -\n${destination.closeHour}',
               description:
-                  'Nikmati udara segar pegunungan dan panorama alam yang memukau di Baturraden. Terletak di lereng Gunung Slamet, destinasi ini menawarkan kombinasi sempurna antara air terjun yang jernih, hutan pinus yang rindang, dan sumber air panas alami. Tempat yang ideal untuk melarikan diri dari hiruk-pikuk kota dan menyatu kembali dengan alam.',
+                  'Nikmati keindahan pesona destinasi wisata terbaik di Banyumas.',
             ),
           ),
         );
@@ -443,8 +528,8 @@ class _HomePageState extends State<HomePage> {
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          image: const DecorationImage(
-            image: NetworkImage('https://via.placeholder.com/400x250'),
+          image: DecorationImage(
+            image: NetworkImage(destination.imageUrl),
             fit: BoxFit.cover,
           ),
         ),
@@ -483,43 +568,60 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'Lokawisata Baturraden',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: const [
-                          Icon(Icons.star, color: Colors.amber, size: 16),
-                          SizedBox(width: 4),
-                          Text(
-                            '4.8',
-                            style: TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                          SizedBox(width: 6),
-                          Text('•', style: TextStyle(color: Colors.white)),
-                          SizedBox(width: 6),
-                          Icon(
-                            Icons.directions_car,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          destination.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
                             color: Colors.white,
-                            size: 16,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
-                          SizedBox(width: 4),
-                          Text(
-                            '15 mnt',
-                            style: TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              destination.rating.toString(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            const Text(
+                              '•',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            const SizedBox(width: 6),
+                            const Icon(
+                              Icons.directions_car,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              '15 mnt',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -530,9 +632,9 @@ class _HomePageState extends State<HomePage> {
                       color: AppColors.primary,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
-                      'Rp 25.000',
-                      style: TextStyle(
+                    child: Text(
+                      formatRupiah(destination.price),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
@@ -548,41 +650,25 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // 6. POPULAR DESTINATIONS SECTION
-  Widget _buildPopularDestinations() {
-    final destinations = [
-      {
-        'name': 'Menara Pandang...',
-        'fullName': 'Menara Pandang Purwokerto',
-        'location': 'Pusat Kota',
-        'fullLocation': 'Purwokerto Timur, Banyumas',
-        'price': 'Rp 15.000',
-        'rating': '4.9',
-        'reviewCount': '856 ulasan',
-        'distance': '5 km',
-        'openingHours': '09:00 -\n21:00',
-        'description':
-            'Menara Pandang Purwokerto merupakan landmark ikonik yang menawarkan pemandangan kota Purwokerto dari ketinggian. Cocok untuk menikmati sunset dan suasana kota di malam hari dengan lampu-lampu yang gemerlap.',
-        'image': 'https://images.unsplash.com/photo-1596422846543-75c6fc18a523?w=300',
-      },
-      {
-        'name': 'Taman Balai...',
-        'fullName': 'Taman Balai Kemambang',
-        'location': 'Taman Kota',
-        'fullLocation': 'Purwokerto Utara, Banyumas',
-        'price': 'Rp 10.000',
-        'rating': '4.6',
-        'reviewCount': '632 ulasan',
-        'distance': '3 km',
-        'openingHours': '06:00 -\n18:00',
-        'description':
-            'Taman Balai Kemambang adalah taman kota yang asri dan teduh, cocok untuk bersantai bersama keluarga. Dilengkapi dengan kolam ikan, area bermain anak, dan jogging track yang nyaman.',
-        'image': 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=300',
-      },
-    ];
+  Widget _buildPopularDestinations(List<Destination> destinations) {
+    // Mengambil item ke-2 dan ke-3 dari list terfilter
+    final popularList = destinations.skip(1).take(2).toList();
+
+    if (popularList.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        child: const Center(
+          child: Text(
+            'Tidak ada data populer untuk kategori ini.',
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+        ),
+      );
+    }
 
     return Row(
-      children: destinations.map((item) {
+      children: popularList.map((destination) {
         return Expanded(
           child: GestureDetector(
             onTap: () {
@@ -590,15 +676,18 @@ class _HomePageState extends State<HomePage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => DetailDestinasiScreen(
-                    title: item['fullName']!,
-                    imageUrl: item['image']!,
-                    rating: item['rating']!,
-                    reviewCount: item['reviewCount']!,
-                    location: item['fullLocation']!,
-                    price: item['price']!,
-                    distance: item['distance']!,
-                    openingHours: item['openingHours']!,
-                    description: item['description']!,
+                    title: destination.name,
+                    imageUrl: destination.imageUrl,
+                    rating: destination.rating.toString(),
+                    reviewCount: '${destination.reviews} ulasan',
+                    location: destination.area,
+                    price: formatRupiah(destination.price),
+                    distance: '5 km',
+                    // MENGGUNAKAN closeHour SECARA DINAMIS
+                    openingHours:
+                        '${destination.openHour} -\n${destination.closeHour}',
+                    description:
+                        'Nikmati keseruan berwisata di tempat terpopuler daerah Banyumas.',
                   ),
                 ),
               );
@@ -628,9 +717,7 @@ class _HomePageState extends State<HomePage> {
                             top: Radius.circular(16),
                           ),
                           image: DecorationImage(
-                            image: NetworkImage(
-                              item['image']!,
-                            ),
+                            image: NetworkImage(destination.imageUrl),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -656,7 +743,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                               const SizedBox(width: 2),
                               Text(
-                                item['rating']!,
+                                destination.rating.toString(),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,
@@ -675,7 +762,9 @@ class _HomePageState extends State<HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item['name']!,
+                          destination.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -683,7 +772,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          item['location']!,
+                          destination.area,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 12,
@@ -691,7 +782,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          item['price']!,
+                          formatRupiah(destination.price),
                           style: const TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
