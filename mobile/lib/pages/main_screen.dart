@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'beranda.dart'; // Import halaman beranda kamu
 import 'explore_page.dart'; // Import halaman explore kamu
 import 'wishlist_page.dart';
-import 'itinerary_page.dart';
+import 'itinerary_list_page.dart';
 import 'profile_page.dart';
 
 // Import halaman guest
@@ -38,7 +38,7 @@ class _MainScreenState extends State<MainScreen> {
             HomePage(onTabChanged: _switchTab), // Index 0 (Home)
             const ExplorePage(), // Index 1 (Explore)
             const WishlistPage(), // Index 2 (Favorite/Wishlist)
-            const ItineraryPage(), // Index 3 (Itinerary)
+            const ItineraryListPage(), // Index 3 (Itinerary)
             const ProfilePage(), // Index 4 (Profile)
           ]
         : [

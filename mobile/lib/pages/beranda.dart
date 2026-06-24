@@ -563,6 +563,7 @@ class _HomePageState extends State<HomePage> {
         'openingHours': '09:00 -\n21:00',
         'description':
             'Menara Pandang Purwokerto merupakan landmark ikonik yang menawarkan pemandangan kota Purwokerto dari ketinggian. Cocok untuk menikmati sunset dan suasana kota di malam hari dengan lampu-lampu yang gemerlap.',
+        'image': 'https://images.unsplash.com/photo-1596422846543-75c6fc18a523?w=300',
       },
       {
         'name': 'Taman Balai...',
@@ -576,6 +577,7 @@ class _HomePageState extends State<HomePage> {
         'openingHours': '06:00 -\n18:00',
         'description':
             'Taman Balai Kemambang adalah taman kota yang asri dan teduh, cocok untuk bersantai bersama keluarga. Dilengkapi dengan kolam ikan, area bermain anak, dan jogging track yang nyaman.',
+        'image': 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=300',
       },
     ];
 
@@ -589,7 +591,7 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(
                   builder: (context) => DetailDestinasiScreen(
                     title: item['fullName']!,
-                    imageUrl: item['imageUrl'] as String,
+                    imageUrl: item['image']!,
                     rating: item['rating']!,
                     reviewCount: item['reviewCount']!,
                     location: item['fullLocation']!,
@@ -621,13 +623,13 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Container(
                         height: 120,
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.vertical(
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(16),
                           ),
                           image: DecorationImage(
                             image: NetworkImage(
-                              'https://via.placeholder.com/150',
+                              item['image']!,
                             ),
                             fit: BoxFit.cover,
                           ),
