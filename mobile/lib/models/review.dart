@@ -15,14 +15,7 @@ ReviewStatus _parseStatus(String? statusStr) {
   }
 }
 
-String _statusToString(ReviewStatus status) {
-  switch (status) {
-    case ReviewStatus.pending: return 'pending';
-    case ReviewStatus.public: return 'public';
-    case ReviewStatus.reported: return 'reported';
-    case ReviewStatus.hidden: return 'hidden';
-  }
-}
+
 
 /// Model review/ulasan user dari backend.
 class Review {

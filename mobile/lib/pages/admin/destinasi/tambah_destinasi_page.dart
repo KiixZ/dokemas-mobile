@@ -215,7 +215,8 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
       request.files.add(
         await http.MultipartFile.fromPath('thumbnail', _images[0].path),
       );
-      for (int j = 1; j < _images.length; j++) {
+      // Semua gambar yang dipilih akan masuk ke galeri (termasuk gambar pertama).
+      for (int j = 0; j < _images.length; j++) {
         request.files.add(
           await http.MultipartFile.fromPath('images[$j]', _images[j].path),
         );

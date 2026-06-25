@@ -64,13 +64,7 @@ class _AdminReviewPageState extends State<AdminReviewPage> {
     final token = context.read<AuthProvider>().token;
     if (token == null) return;
 
-    String statusString;
-    switch (newStatus) {
-      case ReviewStatus.pending: statusString = 'pending'; break;
-      case ReviewStatus.public: statusString = 'public'; break;
-      case ReviewStatus.reported: statusString = 'reported'; break;
-      case ReviewStatus.hidden: statusString = 'hidden'; break;
-    }
+    String statusString = newStatus.name;
 
     try {
       final response = await http.patch(
