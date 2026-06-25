@@ -437,11 +437,11 @@ class _HomePageState extends State<HomePage> {
               location: destination.area,
               price: formatRupiah(destination.price),
               distance: '15 mnt',
-              // MENGGUNAKAN closeHour SEARA DINAMIS
               openingHours:
                   '${destination.openHour} -\n${destination.closeHour}',
               description:
                   'Nikmati keindahan pesona destinasi wisata terbaik di Banyumas.',
+              galleryImages: destination.images.map((img) => img.imageUrl).toList(),
             ),
           ),
         );
@@ -607,11 +607,11 @@ class _HomePageState extends State<HomePage> {
                     location: destination.area,
                     price: formatRupiah(destination.price),
                     distance: '5 km',
-                    // MENGGUNAKAN closeHour SECARA DINAMIS
                     openingHours:
                         '${destination.openHour} -\n${destination.closeHour}',
                     description:
                         'Nikmati keseruan berwisata di tempat terpopuler daerah Banyumas.',
+                    galleryImages: destination.images.map((img) => img.imageUrl).toList(),
                   ),
                 ),
               );

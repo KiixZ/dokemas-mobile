@@ -18,6 +18,7 @@ class DetailDestinasiScreen extends StatefulWidget {
   final String distance;
   final String openingHours;
   final String description;
+  final List<String> galleryImages;
 
   const DetailDestinasiScreen({
     super.key,
@@ -31,6 +32,7 @@ class DetailDestinasiScreen extends StatefulWidget {
     required this.distance,
     required this.openingHours,
     required this.description,
+    this.galleryImages = const [],
   });
 
   @override
@@ -672,6 +674,40 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
+
+                        // SEKSI GALERI FOTO
+                        if (widget.galleryImages.isNotEmpty) ...[
+                          const Text(
+                            'Galeri Foto',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xff0d1e3d),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SizedBox(
+                            height: 120,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: widget.galleryImages.length,
+                              itemBuilder: (context, index) {
+                                return Container(
+                                  width: 160,
+                                  margin: const EdgeInsets.only(right: 12),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    image: DecorationImage(
+                                      image: NetworkImage(widget.galleryImages[index]),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
 
                         // SEKSI FASILITAS TERSEDIA
                         const Text(

@@ -305,6 +305,7 @@ class _ExplorePageState extends State<ExplorePage> {
                       openingHours: '${item.openHour} -\n${item.closeHour}',
                       description:
                           'Kategori: ${item.category}. Fasilitas: ${item.facilities.map((f) => f.name).join(", ")}',
+                      galleryImages: item.images.map((img) => img.imageUrl).toList(),
                     ),
                   ),
                 );

@@ -33,20 +33,24 @@ class ImageService
         $source = $file->getRealPath();
 
         if ($this->convertWithGd($source, $fullPath, $maxWidth, $quality)) {
+            @chmod($fullPath, 0644);
             return $relPath;
         }
 
         if ($this->convertWithImagick($source, $fullPath, $maxWidth, $quality)) {
+            @chmod($fullPath, 0644);
             return $relPath;
         }
 
         if ($this->convertWithBinary($source, $fullPath, $quality)) {
+            @chmod($fullPath, 0644);
             return $relPath;
         }
 
         // fallback: simpan file asli tanpa konversi
         $fallback = trim($dir, '/').'/'.$name.'.'.$file->getClientOriginalExtension();
         $file->storeAs($dir, basename($fallback), 'public');
+        @chmod(Storage::disk('public')->path($fallback), 0644);
 
         return $fallback;
     }

@@ -15,7 +15,7 @@ class DestinationController extends Controller
 
     public function index(Request $request)
     {
-        $query = Destination::query()->with('category')->withCount('reviews');
+        $query = Destination::query()->with(['category', 'images'])->withCount('reviews');
 
         if ($search = $request->query('search')) {
             $query->where(function ($q) use ($search) {
