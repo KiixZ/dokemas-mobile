@@ -293,6 +293,7 @@ class _ExplorePageState extends State<ExplorePage> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => DetailDestinasiScreen(
+                      destinationId: item.id ?? 0,
                       title: item.name,
                       imageUrl: item.imageUrl,
                       rating: item.rating.toString(),

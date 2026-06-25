@@ -429,6 +429,7 @@ class _HomePageState extends State<HomePage> {
           context,
           MaterialPageRoute(
             builder: (context) => DetailDestinasiScreen(
+              destinationId: destination.id ?? 0,
               title: destination.name,
               imageUrl: destination.imageUrl,
               rating: destination.rating.toString(),
@@ -598,6 +599,7 @@ class _HomePageState extends State<HomePage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => DetailDestinasiScreen(
+                    destinationId: destination.id ?? 0,
                     title: destination.name,
                     imageUrl: destination.imageUrl,
                     rating: destination.rating.toString(),

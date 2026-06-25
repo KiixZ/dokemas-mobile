@@ -17,10 +17,10 @@ class ItineraryProvider with ChangeNotifier {
 
   /// Header standar untuk request yang membutuhkan autentikasi.
   Map<String, String> _authHeaders(String token) => {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      };
+    'Authorization': 'Bearer $token',
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+  };
 
   // ─── LIST ─────────────────────────────────────────────────────────────
 
@@ -39,8 +39,9 @@ class ItineraryProvider with ChangeNotifier {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        _itineraries =
-            data.map((item) => ItineraryModel.fromJson(item)).toList();
+        _itineraries = data
+            .map((item) => ItineraryModel.fromJson(item))
+            .toList();
       } else {
         _errorMessage = 'Gagal memuat data itinerary (${response.statusCode})';
       }
@@ -69,8 +70,7 @@ class ItineraryProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        _selectedItinerary =
-            ItineraryModel.fromJson(jsonDecode(response.body));
+        _selectedItinerary = ItineraryModel.fromJson(jsonDecode(response.body));
       } else {
         _errorMessage =
             'Gagal memuat detail itinerary (${response.statusCode})';
@@ -95,9 +95,7 @@ class ItineraryProvider with ChangeNotifier {
     String? note,
   }) async {
     try {
-      final body = <String, dynamic>{
-        'title': title,
-      };
+      final body = <String, dynamic>{'title': title};
       if (startDate != null) {
         body['start_date'] = startDate.toIso8601String().split('T').first;
       }
@@ -193,15 +191,54 @@ class ItineraryProvider with ChangeNotifier {
     }
   }
 
+  // ─── ADD ITEM ─────────────────────────────────────────────────────────
+
+  /// Menambahkan destinasi ke dalam itinerary.
+  Future<String?> addItem(
+    String token,
+    int itineraryId, {
+    required int destinationId,
+    DateTime? visitDate,
+    String? visitTime, // format: HH:mm
+    String? note,
+  }) async {
+    try {
+      final body = <String, dynamic>{'destination_id': destinationId};
+      if (visitDate != null) {
+        body['visit_date'] = visitDate.toIso8601String().split('T').first;
+      }
+      if (visitTime != null) {
+        body['visit_time'] = visitTime;
+      }
+      if (note != null && note.trim().isNotEmpty) {
+        body['note'] = note.trim();
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConfig.itineraries}/$itineraryId/items'),
+        headers: _authHeaders(token),
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 201) {
+        // Refresh list setelah berhasil menambah item (opsional tapi disarankan)
+        await fetchItineraries(token);
+        return null; // Sukses
+      } else {
+        final errorData = jsonDecode(response.body);
+        return errorData['message'] ?? 'Gagal menambahkan kegiatan.';
+      }
+    } catch (e) {
+      debugPrint('Error addItem: $e');
+      return 'Terjadi kesalahan koneksi.';
+    }
+  }
+
   // ─── REMOVE ITEM ─────────────────────────────────────────────────────
 
   /// Menghapus satu item kegiatan dari itinerary.
   /// Mengembalikan `null` jika sukses, atau pesan error.
-  Future<String?> removeItem(
-    String token,
-    int itineraryId,
-    int itemId,
-  ) async {
+  Future<String?> removeItem(String token, int itineraryId, int itemId) async {
     try {
       final response = await http.delete(
         Uri.parse('${ApiConfig.itineraries}/$itineraryId/items/$itemId'),
