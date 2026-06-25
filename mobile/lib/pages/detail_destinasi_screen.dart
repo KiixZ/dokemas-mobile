@@ -5,6 +5,7 @@ import '../providers/itinerary_provider.dart';
 import '../models/itinerary_model.dart';
 import 'user/itinerary/itinerary_list_page.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'auth/login_page.dart';
 
 class DetailDestinasiScreen extends StatefulWidget {
   // Deklarasi variabel penampung data dinamis dari beranda
@@ -848,9 +849,22 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                         final token = context.read<AuthProvider>().token;
                         if (token != null) {
                           await context.read<ItineraryProvider>().fetchItineraries(token);
-                        }
-                        if (context.mounted) {
-                          _showPilihItineraryDialog(context);
+                          if (context.mounted) {
+                            _showPilihItineraryDialog(context);
+                          }
+                        } else {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Silahkan login terlebih dahulu untuk menambahkan itinerary'),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const LoginPage()),
+                            );
+                          }
                         }
                       },
                       icon: const Icon(

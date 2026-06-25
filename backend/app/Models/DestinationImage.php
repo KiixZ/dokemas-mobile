@@ -15,7 +15,7 @@ class DestinationImage extends Model
 
     protected function imageUrl(): Attribute
     {
-        return Attribute::get(fn () => $this->image_path ? Storage::disk('public')->url($this->image_path) : null);
+        return Attribute::get(fn (mixed $value, array $attributes) => !empty($attributes['image_path']) ? Storage::disk('public')->url($attributes['image_path']) : null);
     }
 
     public function destination(): BelongsTo
