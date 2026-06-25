@@ -17,7 +17,7 @@ class ExplorePage extends StatefulWidget {
 class _ExplorePageState extends State<ExplorePage> {
   late TextEditingController _searchController;
   String _currentQuery = '';
-  
+
   // Default filter kategori diganti 'Semua'
   String _selectedCategory = 'Semua';
 
@@ -58,7 +58,11 @@ class _ExplorePageState extends State<ExplorePage> {
                   if (Navigator.canPop(context)) ...[
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: const Icon(Icons.arrow_back_ios, color: AppColors.primaryDark, size: 20),
+                      child: const Icon(
+                        Icons.arrow_back_ios,
+                        color: AppColors.primaryDark,
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(width: 10),
                   ],
@@ -121,7 +125,10 @@ class _ExplorePageState extends State<ExplorePage> {
                     style: const TextStyle(fontSize: 14, color: Colors.black),
                     decoration: InputDecoration(
                       hintText: 'Cari tempat wisata terdekat...',
-                      hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                      hintStyle: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 14,
+                      ),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -136,7 +143,11 @@ class _ExplorePageState extends State<ExplorePage> {
                                   _currentQuery = '';
                                 });
                               },
-                              child: const Icon(Icons.clear, color: Colors.grey, size: 18),
+                              child: const Icon(
+                                Icons.clear,
+                                color: Colors.grey,
+                                size: 18,
+                              ),
                             )
                           : null,
                     ),
@@ -188,7 +199,9 @@ class _ExplorePageState extends State<ExplorePage> {
                 color: isSelected ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isSelected ? Colors.transparent : Colors.grey.withValues(alpha: 0.2),
+                  color: isSelected
+                      ? Colors.transparent
+                      : Colors.grey.withValues(alpha: 0.2),
                 ),
               ),
               child: Center(
@@ -196,7 +209,9 @@ class _ExplorePageState extends State<ExplorePage> {
                   tag,
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                     color: isSelected ? Colors.white : Colors.grey[700],
                   ),
                 ),
@@ -213,7 +228,9 @@ class _ExplorePageState extends State<ExplorePage> {
       future: _futureDestinations,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
         }
 
         if (snapshot.hasError) {
@@ -227,7 +244,9 @@ class _ExplorePageState extends State<ExplorePage> {
         }
 
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('Tidak ada destinasi dari database.'));
+          return const Center(
+            child: Text('Tidak ada destinasi dari database.'),
+          );
         }
 
         final allItems = snapshot.data!;
@@ -239,7 +258,9 @@ class _ExplorePageState extends State<ExplorePage> {
           final query = _currentQuery.toLowerCase();
 
           bool matchesSearch = name.contains(query) || area.contains(query);
-          bool matchesCategory = _selectedCategory == 'Semua' || item.category == _selectedCategory;
+          bool matchesCategory =
+              _selectedCategory == 'Semua' ||
+              item.category == _selectedCategory;
 
           return matchesSearch && matchesCategory;
         }).toList();
@@ -265,7 +286,7 @@ class _ExplorePageState extends State<ExplorePage> {
           itemBuilder: (context, index) {
             final item = filteredItems[index];
             return GestureDetector(
-               onTap: () {
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -275,10 +296,12 @@ class _ExplorePageState extends State<ExplorePage> {
                       rating: item.rating.toString(),
                       reviewCount: '${item.reviews} ulasan',
                       location: item.area,
-                      price: formatRupiah(item.price), 
-                      distance: '-', // Bisa diganti logika jarak jika lat/lng dihitung
+                      price: formatRupiah(item.price),
+                      distance:
+                          '-', // Bisa diganti logika jarak jika lat/lng dihitung
                       openingHours: '${item.openHour} -\n${item.closeHour}',
-                      description: 'Kategori: ${item.category}. Fasilitas: ${item.facilities.map((f) => f.name).join(", ")}', 
+                      description:
+                          'Kategori: ${item.category}. Fasilitas: ${item.facilities.map((f) => f.name).join(", ")}',
                     ),
                   ),
                 );
@@ -303,7 +326,9 @@ class _ExplorePageState extends State<ExplorePage> {
                         children: [
                           Container(
                             decoration: const BoxDecoration(
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(16),
+                              ),
                             ),
                             clipBehavior: Clip.antiAlias,
                             child: Image.network(
@@ -312,21 +337,34 @@ class _ExplorePageState extends State<ExplorePage> {
                               width: double.infinity,
                               height: double.infinity,
                               errorBuilder: (context, error, stackTrace) =>
-                                  Container(color: Colors.grey.shade200, child: const Icon(Icons.broken_image, color: Colors.grey)),
+                                  Container(
+                                    color: Colors.grey.shade200,
+                                    child: const Icon(
+                                      Icons.broken_image,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                             ),
                           ),
                           Positioned(
                             top: 8,
                             right: 8,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.5),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.star, color: Colors.amber, size: 12),
+                                  const Icon(
+                                    Icons.star,
+                                    color: Colors.amber,
+                                    size: 12,
+                                  ),
                                   const SizedBox(width: 2),
                                   Text(
                                     item.rating.toString(),
@@ -352,19 +390,29 @@ class _ExplorePageState extends State<ExplorePage> {
                             item.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              const Icon(Icons.location_on, size: 12, color: Colors.grey),
+                              const Icon(
+                                Icons.location_on,
+                                size: 12,
+                                color: Colors.grey,
+                              ),
                               const SizedBox(width: 2),
                               Expanded(
                                 child: Text(
                                   item.area,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: Colors.grey, fontSize: 11),
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 11,
+                                  ),
                                 ),
                               ),
                             ],

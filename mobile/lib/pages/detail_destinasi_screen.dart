@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'itinerary_list_page.dart';
 // Note: Untuk fitur 'Lihat Rute' asli ke Google Maps, silakan tambahkan library url_launcher di pubspec.yaml
 // import 'package:url_launcher/url_launcher.dart'; 
 
@@ -34,14 +35,101 @@ class DetailDestinasiScreen extends StatefulWidget {
 class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
   bool _isFavorite = false;
 
-  // Fungsi untuk memunculkan dialog Tambah ke Itinerary
-  void _showTambahItineraryDialog(BuildContext context) {
+  final List<Map<String, dynamic>> _dummyItineraries = [
+    {
+      'title': 'Liburan ke Baturraden',
+      'startDate': DateTime(2026, 6, 21),
+      'endDate': DateTime(2026, 6, 22),
+    },
+    {
+      'title': 'Wisata Kuliner Purwokerto',
+      'startDate': DateTime(2026, 7, 1),
+      'endDate': DateTime(2026, 7, 3),
+    },
+  ];
+
+  void _showPilihItineraryDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          contentPadding: EdgeInsets.zero,
+          title: const Text('Pilih Itinerary', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xff0f172a))),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: _dummyItineraries.length,
+                  separatorBuilder: (context, index) => const Divider(),
+                  itemBuilder: (context, index) {
+                    final itinerary = _dummyItineraries[index];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(itinerary['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(
+                        '${itinerary['startDate'].day}/${itinerary['startDate'].month}/${itinerary['startDate'].year} - ${itinerary['endDate'].day}/${itinerary['endDate'].month}/${itinerary['endDate'].year}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.teal),
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showTambahItineraryDialog(context, itinerary);
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ItineraryListPage(autoOpenAddForm: true),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.add, color: Colors.white, size: 18),
+                    label: const Text('Buat Itinerary Baru', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Fungsi untuk memunculkan dialog Tambah ke Itinerary
+  void _showTambahItineraryDialog(BuildContext context, Map<String, dynamic> itinerary) {
+    DateTime? selectedDate;
+    TimeOfDay? selectedTime;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              contentPadding: EdgeInsets.zero,
           content: SizedBox(
             width: MediaQuery.of(context).size.width * 0.9,
             child: Column(
@@ -77,16 +165,26 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                         const SizedBox(height: 6),
                         TextField(
                           readOnly: true,
-                          onTap: () {
-                            showDatePicker(
+                          controller: TextEditingController(
+                            text: selectedDate != null
+                                ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
+                                : '',
+                          ),
+                          onTap: () async {
+                            final DateTime? picked = await showDatePicker(
                               context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime(2030),
+                              initialDate: itinerary['startDate'],
+                              firstDate: itinerary['startDate'],
+                              lastDate: itinerary['endDate'],
                             );
+                            if (picked != null) {
+                              setDialogState(() {
+                                selectedDate = picked;
+                              });
+                            }
                           },
                           decoration: InputDecoration(
-                            hintText: 'mm/dd/yyyy',
+                            hintText: 'Pilih Tanggal',
                             hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
@@ -96,17 +194,28 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                         const SizedBox(height: 16),
                         const Text('Pilih Waktu', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Color(0xff475569))),
                         const SizedBox(height: 6),
-                        DropdownButtonFormField<String>(
-                          value: 'Pagi',
-                          items: <String>['Pagi', 'Siang', 'Sore', 'Malam'].map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value, style: const TextStyle(fontSize: 14)),
+                        TextField(
+                          readOnly: true,
+                          controller: TextEditingController(
+                            text: selectedTime != null
+                                ? selectedTime!.format(context)
+                                : '',
+                          ),
+                          onTap: () async {
+                            final TimeOfDay? picked = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.now(),
                             );
-                          }).toList(),
-                          onChanged: (newValue) {},
+                            if (picked != null) {
+                              setDialogState(() {
+                                selectedTime = picked;
+                              });
+                            }
+                          },
                           decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            hintText: 'Pilih Waktu',
+                            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
                             enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.grey[300]!)),
                           ),
@@ -149,6 +258,8 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
               ],
             ),
           ),
+        );
+          },
         );
       },
     );
@@ -389,7 +500,7 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                   Expanded(
                     flex: 5,
                     child: ElevatedButton.icon(
-                      onPressed: () => _showTambahItineraryDialog(context),
+                      onPressed: () => _showPilihItineraryDialog(context),
                       icon: const Icon(Icons.add_circle_outline, color: Colors.white, size: 18),
                       label: const Text('Tambah ke Itinerary', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(

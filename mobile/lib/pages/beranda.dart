@@ -25,7 +25,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String _selectedCategory = 'Alam';
-  
+
   late Future<List<Destination>> _futureDestinations;
 
   final List<Map<String, dynamic>> _categories = [
@@ -48,10 +48,14 @@ class _HomePageState extends State<HomePage> {
         return NetworkImage(avatar);
       }
       final domain = ApiConfig.baseUrl.replaceAll('/api', '');
-      final fullUrl = avatar.startsWith('/') ? '$domain$avatar' : '$domain/$avatar';
+      final fullUrl = avatar.startsWith('/')
+          ? '$domain$avatar'
+          : '$domain/$avatar';
       return NetworkImage(fullUrl);
     }
-    return const NetworkImage('https://via.placeholder.com/150/grey/white?text=?');
+    return const NetworkImage(
+      'https://via.placeholder.com/150/grey/white?text=?',
+    );
   }
 
   void _showAllCategoriesDialog() {
@@ -160,9 +164,11 @@ class _HomePageState extends State<HomePage> {
           future: _futureDestinations,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+              return const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              );
             }
-            
+
             if (snapshot.hasError) {
               return Center(
                 child: Padding(
@@ -180,7 +186,8 @@ class _HomePageState extends State<HomePage> {
 
             // BIAR DINAMIS: Filter destinasi berdasarkan kategori aktif yang dipilih user
             final filteredDestinations = allDestinations.where((destination) {
-              return destination.category.toLowerCase() == _selectedCategory.toLowerCase();
+              return destination.category.toLowerCase() ==
+                  _selectedCategory.toLowerCase();
             }).toList();
 
             return RefreshIndicator(
@@ -200,23 +207,27 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 20),
                     _buildSearchBar(context),
                     const SizedBox(height: 25),
-                    
+
                     _buildSectionTitle(
-                      'Kategori Wisata', 
+                      'Kategori Wisata',
                       'Lihat Semua',
                       onActionTap: () => _showAllCategoriesDialog(),
                     ),
                     const SizedBox(height: 15),
-                    _buildCategoryList(), 
+                    _buildCategoryList(),
                     const SizedBox(height: 25),
-                    
+
                     _buildSectionTitle('Rekomendasi Untuk Kamu', ''),
                     const SizedBox(height: 15),
-                    _buildRecommendationCard(filteredDestinations.isNotEmpty ? filteredDestinations.first : null),
+                    _buildRecommendationCard(
+                      filteredDestinations.isNotEmpty
+                          ? filteredDestinations.first
+                          : null,
+                    ),
                     const SizedBox(height: 25),
-                    
+
                     _buildSectionTitle(
-                      'Destinasi Populer', 
+                      'Destinasi Populer',
                       'Eksplor',
                       onActionTap: () {
                         widget.onTabChanged?.call(1);
@@ -239,11 +250,13 @@ class _HomePageState extends State<HomePage> {
   Widget _buildHeader(bool isLoggedIn, String? userName, String? userAvatar) {
     return Row(
       children: [
-         CircleAvatar(
+        CircleAvatar(
           radius: 24,
-          backgroundImage: isLoggedIn 
-            ? _resolveAvatarImage(userAvatar)
-            : const NetworkImage('https://via.placeholder.com/150/grey/white?text=?'),
+          backgroundImage: isLoggedIn
+              ? _resolveAvatarImage(userAvatar)
+              : const NetworkImage(
+                  'https://via.placeholder.com/150/grey/white?text=?',
+                ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -394,7 +407,8 @@ class _HomePageState extends State<HomePage> {
         ),
         if (actionText.isNotEmpty)
           InkWell(
-            onTap: onActionTap, // Memanggil fungsi dinamis yang disuntikkan dari atas
+            onTap:
+                onActionTap, // Memanggil fungsi dinamis yang disuntikkan dari atas
             borderRadius: BorderRadius.circular(4),
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -501,8 +515,10 @@ class _HomePageState extends State<HomePage> {
               price: formatRupiah(destination.price),
               distance: '15 mnt',
               // MENGGUNAKAN closeHour SEARA DINAMIS
-              openingHours: '${destination.openHour} -\n${destination.closeHour}',
-              description: 'Nikmati keindahan pesona destinasi wisata terbaik di Banyumas.',
+              openingHours:
+                  '${destination.openHour} -\n${destination.closeHour}',
+              description:
+                  'Nikmati keindahan pesona destinasi wisata terbaik di Banyumas.',
             ),
           ),
         );
@@ -570,20 +586,37 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            const Icon(Icons.star, color: Colors.amber, size: 16),
+                            const Icon(
+                              Icons.star,
+                              color: Colors.amber,
+                              size: 16,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               destination.rating.toString(),
-                              style: const TextStyle(color: Colors.white, fontSize: 12),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
                             ),
                             const SizedBox(width: 6),
-                            const Text('•', style: TextStyle(color: Colors.white)),
+                            const Text(
+                              '•',
+                              style: TextStyle(color: Colors.white),
+                            ),
                             const SizedBox(width: 6),
-                            const Icon(Icons.directions_car, color: Colors.white, size: 16),
+                            const Icon(
+                              Icons.directions_car,
+                              color: Colors.white,
+                              size: 16,
+                            ),
                             const SizedBox(width: 4),
                             const Text(
                               '15 mnt',
-                              style: TextStyle(color: Colors.white, fontSize: 12),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -591,7 +624,10 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.circular(8),
@@ -641,15 +677,17 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(
                   builder: (context) => DetailDestinasiScreen(
                     title: destination.name,
-                    imageUrl: destination.imageUrl, 
+                    imageUrl: destination.imageUrl,
                     rating: destination.rating.toString(),
                     reviewCount: '${destination.reviews} ulasan',
                     location: destination.area,
                     price: formatRupiah(destination.price),
                     distance: '5 km',
                     // MENGGUNAKAN closeHour SECARA DINAMIS
-                    openingHours: '${destination.openHour} -\n${destination.closeHour}',
-                    description: 'Nikmati keseruan berwisata di tempat terpopuler daerah Banyumas.',
+                    openingHours:
+                        '${destination.openHour} -\n${destination.closeHour}',
+                    description:
+                        'Nikmati keseruan berwisata di tempat terpopuler daerah Banyumas.',
                   ),
                 ),
               );
@@ -688,14 +726,21 @@ class _HomePageState extends State<HomePage> {
                         top: 8,
                         right: 8,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.star, color: Colors.amber, size: 12),
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 12,
+                              ),
                               const SizedBox(width: 2),
                               Text(
                                 destination.rating.toString(),
