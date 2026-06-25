@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'beranda.dart'; // Import halaman beranda kamu
-import 'explore_page.dart'; // Import halaman explore kamu
+import 'beranda.dart';
+import 'explore_page.dart';
 import 'wishlist_page.dart';
-import 'itinerary_list_page.dart';
-import 'profile_page.dart';
-
-// Import halaman guest
+import 'user/itinerary/itinerary_list_page.dart';
+import 'user/profile/profile_page.dart';
 import 'guest/guest_wishlist_page.dart';
 import 'guest/guest_itinerary_page.dart';
 import 'guest/guest_profile_page.dart';

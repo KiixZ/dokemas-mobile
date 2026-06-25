@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
-import '../theme/app_text_styles.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_text_styles.dart';
 
 class RiwayatItineraryPage extends StatelessWidget {
   const RiwayatItineraryPage({super.key});
@@ -54,7 +54,8 @@ class RiwayatItineraryPage extends StatelessWidget {
           {
             'jam': '19:00',
             'judul': 'Alun-alun Purwokerto',
-            'deskripsi': 'Menikmati suasana malam dan kuliner sekitar alun-alun.',
+            'deskripsi':
+                'Menikmati suasana malam dan kuliner sekitar alun-alun.',
           },
         ],
       },
@@ -120,9 +121,7 @@ class RiwayatItineraryPage extends StatelessWidget {
         children: [
           Text(
             'Riwayat rencana perjalanan yang pernah dibuat.',
-            style: AppTextStyles.body.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.lg),
 
@@ -202,10 +201,7 @@ class _RiwayatCard extends StatelessWidget {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: AppColors.border,
-                    width: 1,
-                  ),
+                  border: Border.all(color: AppColors.border, width: 1),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.04),
@@ -303,10 +299,7 @@ class DetailRiwayatItineraryPage extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.border,
-                width: 1,
-              ),
+              border: Border.all(color: AppColors.border, width: 1),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,15 +312,9 @@ class DetailRiwayatItineraryPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                _InfoRow(
-                  icon: Icons.calendar_month_rounded,
-                  text: tanggal,
-                ),
+                _InfoRow(icon: Icons.calendar_month_rounded, text: tanggal),
                 const SizedBox(height: AppSpacing.sm),
-                _InfoRow(
-                  icon: Icons.description_outlined,
-                  text: jumlah,
-                ),
+                _InfoRow(icon: Icons.description_outlined, text: jumlah),
               ],
             ),
           ),
@@ -414,10 +401,7 @@ class _TimelineDetailItem extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.border,
-                  width: 1,
-                ),
+                border: Border.all(color: AppColors.border, width: 1),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,27 +447,18 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _InfoRow({
-    required this.icon,
-    required this.text,
-  });
+  const _InfoRow({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(
-          icon,
-          color: AppColors.textSecondary,
-          size: 18,
-        ),
+        Icon(icon, color: AppColors.textSecondary, size: 18),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
             text,
-            style: AppTextStyles.body.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
           ),
         ),
       ],

@@ -5,7 +5,7 @@ import '../../../theme/app_text_styles.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import 'edit_profil_page.dart';
-import '../../change_password_page.dart';
+import '../../user/profile/change_password_page.dart';
 import '../../main_screen.dart';
 
 /// Body profil admin: kartu identitas + menu akun + logout.

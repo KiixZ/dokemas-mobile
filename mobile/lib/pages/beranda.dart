@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../components/global_header.dart';
 import 'package:mobile/components/filter_bottom_sheet.dart';
 import 'package:mobile/pages/detail_destinasi_screen.dart';
 import '../theme/app_colors.dart';
@@ -154,11 +155,11 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final bool isLoggedIn = authProvider.isLoggedIn;
-    final String? userName = authProvider.user?.name;
     final String? userAvatar = authProvider.user?.avatar;
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: const GlobalHeader(),
       body: SafeArea(
         child: FutureBuilder<List<Destination>>(
           future: _futureDestinations,
@@ -203,8 +204,6 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 15),
-                    _buildHeader(isLoggedIn, userName, userAvatar),
-                    const SizedBox(height: 20),
                     _buildSearchBar(context),
                     const SizedBox(height: 25),
 
@@ -243,83 +242,6 @@ class _HomePageState extends State<HomePage> {
           },
         ),
       ),
-    );
-  }
-
-  // 1. HEADER SECTION (TOMBOL NOTIFIKASI AKTIF)
-  Widget _buildHeader(bool isLoggedIn, String? userName, String? userAvatar) {
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 24,
-          backgroundImage: isLoggedIn
-              ? _resolveAvatarImage(userAvatar)
-              : const NetworkImage(
-                  'https://via.placeholder.com/150/grey/white?text=?',
-                ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    isLoggedIn && userName != null && userName.isNotEmpty
-                        ? 'Halo, $userName '
-                        : 'Halo ',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const Text('👋', style: TextStyle(fontSize: 18)),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: const [
-                  Icon(Icons.location_on, size: 16, color: AppColors.primary),
-                  SizedBox(width: 4),
-                  Text(
-                    'Purwokerto, Jawa Tengah',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const NotificationPage()),
-            );
-          },
-          borderRadius: BorderRadius.circular(50),
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withValues(alpha: 0.1),
-                  spreadRadius: 1,
-                  blurRadius: 5,
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.notifications_none_outlined,
-              color: AppColors.primary,
-            ),
-          ),
-        ),
-      ],
     );
   }
 

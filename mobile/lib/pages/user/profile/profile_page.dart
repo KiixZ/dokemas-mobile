@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../../components/global_header.dart';
 
-import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
-import '../theme/app_text_styles.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_text_styles.dart';
 import 'edit_profile_page.dart';
 import 'riwayat_itinerary_page.dart';
 import 'change_password_page.dart';
 import 'ulasan_saya_page.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import 'main_screen.dart';
+import '../../../providers/auth_provider.dart';
+import '../../main_screen.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -116,54 +117,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        titleSpacing: AppSpacing.md,
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundImage: NetworkImage(user?.avatarUrl ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop'),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            RichText(
-              text: TextSpan(
-                style: AppTextStyles.title,
-                children: [
-                  const TextSpan(text: 'Halo, '),
-                  TextSpan(
-                  text: user?.name ?? 'Guest',
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const TextSpan(text: '👋'),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).clearSnackBars();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Membuka Notifikasi (Placeholder)'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-            icon: const Icon(
-              Icons.notifications_none_rounded,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-        ],
-      ),
+      appBar: const GlobalHeader(),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(
@@ -209,13 +163,16 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       child: CircleAvatar(
                         radius: 46,
-                        backgroundImage: NetworkImage(user?.avatarUrl ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop'),
+                        backgroundImage: NetworkImage(
+                          user?.avatarUrl ??
+                              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop',
+                        ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Text(
-                user?.name ?? 'Guest',
-                style: AppTextStyles.heading2.copyWith(
+                      user?.name ?? 'Guest',
+                      style: AppTextStyles.heading2.copyWith(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
@@ -225,13 +182,13 @@ class _ProfilePageState extends State<ProfilePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
-                          Icons.location_on_outlined,
+                          Icons.email_outlined,
                           color: AppColors.textSecondary,
                           size: 16,
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          'Banyumas, Jawa Tengah',
+                          user?.email ?? 'Belum ada email',
                           style: AppTextStyles.body.copyWith(
                             color: AppColors.textSecondary,
                           ),

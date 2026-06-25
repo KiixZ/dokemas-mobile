@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
-import '../theme/app_text_styles.dart';
-import '../widgets/date_selector.dart';
-import '../widgets/timeline_item.dart';
+import '../../../components/global_header.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_text_styles.dart';
+import '../../../widgets/date_selector.dart';
+import '../../../widgets/timeline_item.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import '../../../providers/auth_provider.dart';
 
 class ItineraryPage extends StatefulWidget {
   const ItineraryPage({super.key});
@@ -126,51 +127,13 @@ class _ItineraryPageState extends State<ItineraryPage> {
         : {
             'titleHeader': 'Belum Ada Itinerary',
             'dateRangeHeader': '',
-            'items': []
+            'items': [],
           };
     final List<dynamic> activeActivityItems = activeItinerary['items'] ?? [];
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        titleSpacing: AppSpacing.md,
-        title: Row(
-          children: [
-            const CircleAvatar(
-              radius: 18,
-              backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            RichText(
-              text: TextSpan(
-                style: AppTextStyles.title,
-                children: [
-                  TextSpan(
-                    text: userName.isNotEmpty ? 'Halo, ' : 'Halo!',
-                  ),
-                  TextSpan(
-                    text: userName.isNotEmpty ? '$userName ' : '',
-                    style: const TextStyle(color: AppColors.primary),
-                  ),
-                  const TextSpan(text: '👋'),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-        ],
-      ),
+      appBar: const GlobalHeader(),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

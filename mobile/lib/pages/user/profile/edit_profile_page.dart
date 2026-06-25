@@ -2,19 +2,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../models/user_model.dart';
-import '../providers/auth_provider.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
-import '../theme/app_text_styles.dart';
+import '../../../models/user_model.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_text_styles.dart';
 
 class EditProfilePage extends StatefulWidget {
   final UserModel user;
 
-  const EditProfilePage({
-    super.key,
-    required this.user,
-  });
+  const EditProfilePage({super.key, required this.user});
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
@@ -60,7 +57,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
       if (pickedFile != null) {
         setState(() {
-          _imageFile = File(pickedFile.path); // Update foto di layar secara realtime
+          _imageFile = File(
+            pickedFile.path,
+          ); // Update foto di layar secara realtime
           _isImageChanged = true;
         });
       }

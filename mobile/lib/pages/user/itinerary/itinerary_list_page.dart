@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
-import '../theme/app_text_styles.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_spacing.dart';
+import '../../../theme/app_text_styles.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import '../../../components/global_header.dart';
+import '../../../providers/auth_provider.dart';
 import 'itinerary_detail_page.dart';
 
 class ItineraryListPage extends StatefulWidget {
@@ -166,16 +167,27 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
   String _getDateRange(List<dynamic> items) {
     if (items.isEmpty) return 'Belum ada tanggal';
 
-    final List<DateTime> dates =
-        items.map((item) => item['date'] as DateTime).toList();
+    final List<DateTime> dates = items
+        .map((item) => item['date'] as DateTime)
+        .toList();
     dates.sort();
 
     final DateTime first = dates.first;
     final DateTime last = dates.last;
 
     const List<String> bulanNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Ags',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
 
     if (first.year == last.year &&
@@ -204,8 +216,18 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
   /// Format tanggal ke string yang mudah dibaca
   String _formatDate(DateTime date) {
     const List<String> bulanNames = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Ags',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
     ];
     return '${date.day} ${bulanNames[date.month - 1]} ${date.year}';
   }
@@ -231,9 +253,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
               ),
               decoration: const BoxDecoration(
                 color: AppColors.surface,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: SingleChildScrollView(
                 child: Padding(
@@ -299,15 +319,11 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                             fillColor: AppColors.background,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: AppColors.border,
-                              ),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: AppColors.border,
-                              ),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -349,8 +365,8 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                                   InkWell(
                                     borderRadius: BorderRadius.circular(12),
                                     onTap: () async {
-                                      final DateTime? picked =
-                                          await showDatePicker(
+                                      final DateTime?
+                                      picked = await showDatePicker(
                                         context: context,
                                         initialDate:
                                             startDate ?? DateTime.now(),
@@ -358,15 +374,14 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                                         lastDate: DateTime(2030),
                                         builder: (context, child) {
                                           return Theme(
-                                            data:
-                                                Theme.of(context).copyWith(
+                                            data: Theme.of(context).copyWith(
                                               colorScheme:
                                                   const ColorScheme.light(
-                                                primary: AppColors.primary,
-                                                onPrimary:
-                                                    AppColors.onPrimary,
-                                                surface: AppColors.surface,
-                                              ),
+                                                    primary: AppColors.primary,
+                                                    onPrimary:
+                                                        AppColors.onPrimary,
+                                                    surface: AppColors.surface,
+                                                  ),
                                             ),
                                             child: child!,
                                           );
@@ -390,8 +405,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                                       ),
                                       decoration: BoxDecoration(
                                         color: AppColors.background,
-                                        borderRadius:
-                                            BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
                                           color: AppColors.border,
                                         ),
@@ -411,10 +425,10 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                                                   : 'Pilih tanggal',
                                               style: AppTextStyles.body
                                                   .copyWith(
-                                                color: startDate != null
-                                                    ? AppColors.textPrimary
-                                                    : AppColors.textMuted,
-                                              ),
+                                                    color: startDate != null
+                                                        ? AppColors.textPrimary
+                                                        : AppColors.textMuted,
+                                                  ),
                                             ),
                                           ),
                                         ],
@@ -441,26 +455,25 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                                   InkWell(
                                     borderRadius: BorderRadius.circular(12),
                                     onTap: () async {
-                                      final DateTime? picked =
-                                          await showDatePicker(
+                                      final DateTime?
+                                      picked = await showDatePicker(
                                         context: context,
-                                        initialDate: endDate ??
+                                        initialDate:
+                                            endDate ??
                                             startDate ??
                                             DateTime.now(),
-                                        firstDate:
-                                            startDate ?? DateTime(2024),
+                                        firstDate: startDate ?? DateTime(2024),
                                         lastDate: DateTime(2030),
                                         builder: (context, child) {
                                           return Theme(
-                                            data:
-                                                Theme.of(context).copyWith(
+                                            data: Theme.of(context).copyWith(
                                               colorScheme:
                                                   const ColorScheme.light(
-                                                primary: AppColors.primary,
-                                                onPrimary:
-                                                    AppColors.onPrimary,
-                                                surface: AppColors.surface,
-                                              ),
+                                                    primary: AppColors.primary,
+                                                    onPrimary:
+                                                        AppColors.onPrimary,
+                                                    surface: AppColors.surface,
+                                                  ),
                                             ),
                                             child: child!,
                                           );
@@ -479,8 +492,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                                       ),
                                       decoration: BoxDecoration(
                                         color: AppColors.background,
-                                        borderRadius:
-                                            BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
                                           color: AppColors.border,
                                         ),
@@ -500,10 +512,10 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                                                   : 'Pilih tanggal',
                                               style: AppTextStyles.body
                                                   .copyWith(
-                                                color: endDate != null
-                                                    ? AppColors.textPrimary
-                                                    : AppColors.textMuted,
-                                              ),
+                                                    color: endDate != null
+                                                        ? AppColors.textPrimary
+                                                        : AppColors.textMuted,
+                                                  ),
                                             ),
                                           ),
                                         ],
@@ -530,8 +542,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                           controller: noteController,
                           maxLines: 3,
                           decoration: InputDecoration(
-                            hintText:
-                                'Tambahkan catatan untuk perjalananmu...',
+                            hintText: 'Tambahkan catatan untuk perjalananmu...',
                             hintStyle: AppTextStyles.body.copyWith(
                               color: AppColors.textMuted,
                             ),
@@ -547,15 +558,11 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                             fillColor: AppColors.background,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: AppColors.border,
-                              ),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(
-                                color: AppColors.border,
-                              ),
+                              borderSide: BorderSide(color: AppColors.border),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -595,8 +602,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                                     endDate ?? startDate!;
 
                                 // Generate list tanggal dari start sampai end
-                                final List<Map<String, dynamic>> dateItems =
-                                    [];
+                                final List<Map<String, dynamic>> dateItems = [];
                                 DateTime current = startDate!;
                                 while (!current.isAfter(effectiveEndDate)) {
                                   dateItems.add({
@@ -614,8 +620,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
 
                                 setState(() {
                                   _allItineraries.add({
-                                    'titleHeader':
-                                        titleController.text.trim(),
+                                    'titleHeader': titleController.text.trim(),
                                     'note': noteController.text.trim(),
                                     'items': dateItems,
                                   });
@@ -695,46 +700,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        titleSpacing: AppSpacing.md,
-        title: Row(
-          children: [
-            const CircleAvatar(
-              radius: 18,
-              backgroundImage:
-                  NetworkImage('https://i.pravatar.cc/150?img=11'),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            RichText(
-              text: TextSpan(
-                style: AppTextStyles.title,
-                children: [
-                  TextSpan(
-                    text: userName.isNotEmpty ? 'Halo, ' : 'Halo!',
-                  ),
-                  TextSpan(
-                    text: userName.isNotEmpty ? '$userName ' : '',
-                    style: const TextStyle(color: AppColors.primary),
-                  ),
-                  const TextSpan(text: '👋'),
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.notifications_none,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-        ],
-      ),
+      appBar: const GlobalHeader(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddItineraryModal(context),
         backgroundColor: AppColors.primary,
@@ -793,10 +759,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                   color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(
-                  Icons.delete_outline,
-                  color: Colors.red,
-                ),
+                child: const Icon(Icons.delete_outline, color: Colors.red),
               ),
 
               // Background merah saat di-swipe ke KIRI
@@ -808,10 +771,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                   color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(
-                  Icons.delete_outline,
-                  color: Colors.red,
-                ),
+                child: const Icon(Icons.delete_outline, color: Colors.red),
               ),
 
               // Konfirmasi sebelum hapus
@@ -887,7 +847,8 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                             titleHeader: title,
                             itineraryItems: List<Map<String, dynamic>>.from(
                               items.map(
-                                  (item) => Map<String, dynamic>.from(item)),
+                                (item) => Map<String, dynamic>.from(item),
+                              ),
                             ),
                           ),
                         ),
@@ -897,10 +858,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                       padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: AppColors.border,
-                          width: 1,
-                        ),
+                        border: Border.all(color: AppColors.border, width: 1),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.04),
@@ -916,8 +874,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color:
-                                  AppColors.primary.withValues(alpha: 0.1),
+                              color: AppColors.primary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Icon(
@@ -950,8 +907,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                                     const SizedBox(width: 4),
                                     Text(
                                       dateRange,
-                                      style:
-                                          AppTextStyles.caption.copyWith(
+                                      style: AppTextStyles.caption.copyWith(
                                         color: AppColors.textSecondary,
                                       ),
                                     ),
@@ -968,8 +924,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
                                     const SizedBox(width: 4),
                                     Text(
                                       '$totalActivities kegiatan · $totalDays hari',
-                                      style:
-                                          AppTextStyles.caption.copyWith(
+                                      style: AppTextStyles.caption.copyWith(
                                         color: AppColors.textSecondary,
                                       ),
                                     ),
