@@ -19,5 +19,6 @@ class ApiConfig {
   static const String adminDestinations = '$baseUrl/admin/destinations';
   static const String adminReviews = '$baseUrl/admin/reviews';
   static const String adminDashboard = '$baseUrl/admin/dashboard';
+  static const String itineraries = '$baseUrl/itineraries';
 }
 

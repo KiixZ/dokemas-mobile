@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../providers/itinerary_provider.dart';
+import '../models/itinerary_model.dart';
 import 'user/itinerary/itinerary_list_page.dart';
-// Note: Untuk fitur 'Lihat Rute' asli ke Google Maps, silakan tambahkan library url_launcher di pubspec.yaml
-// import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DetailDestinasiScreen extends StatefulWidget {
   // Deklarasi variabel penampung data dinamis dari beranda
+  final int destinationId;
   final String title;
   final String imageUrl;
   final String rating;
@@ -18,6 +22,7 @@ class DetailDestinasiScreen extends StatefulWidget {
 
   const DetailDestinasiScreen({
     super.key,
+    required this.destinationId,
     required this.title,
     required this.imageUrl,
     required this.rating,
@@ -37,20 +42,9 @@ class DetailDestinasiScreen extends StatefulWidget {
 class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
   bool _isFavorite = false;
 
-  final List<Map<String, dynamic>> _dummyItineraries = [
-    {
-      'title': 'Liburan ke Baturraden',
-      'startDate': DateTime(2026, 6, 21),
-      'endDate': DateTime(2026, 6, 22),
-    },
-    {
-      'title': 'Wisata Kuliner Purwokerto',
-      'startDate': DateTime(2026, 7, 1),
-      'endDate': DateTime(2026, 7, 3),
-    },
-  ];
-
   void _showPilihItineraryDialog(BuildContext context) {
+    final itineraries = context.read<ItineraryProvider>().itineraries;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -70,33 +64,39 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ListView.separated(
-                  shrinkWrap: true,
-                  itemCount: _dummyItineraries.length,
-                  separatorBuilder: (context, index) => const Divider(),
-                  itemBuilder: (context, index) {
-                    final itinerary = _dummyItineraries[index];
-                    return ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        itinerary['title'],
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        '${itinerary['startDate'].day}/${itinerary['startDate'].month}/${itinerary['startDate'].year} - ${itinerary['endDate'].day}/${itinerary['endDate'].month}/${itinerary['endDate'].year}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                      trailing: const Icon(
-                        Icons.chevron_right,
-                        color: Colors.teal,
-                      ),
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showTambahItineraryDialog(context, itinerary);
-                      },
-                    );
-                  },
-                ),
+                if (itineraries.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Text('Belum ada itinerary, silakan buat baru.'),
+                  )
+                else
+                  ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: itineraries.length,
+                    separatorBuilder: (context, index) => const Divider(),
+                    itemBuilder: (context, index) {
+                      final itinerary = itineraries[index];
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          itinerary.title,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          itinerary.dateRangeText,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        trailing: const Icon(
+                          Icons.chevron_right,
+                          color: Colors.teal,
+                        ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showTambahItineraryDialog(context, itinerary);
+                        },
+                      );
+                    },
+                  ),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
@@ -145,10 +145,12 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
   // Fungsi untuk memunculkan dialog Tambah ke Itinerary
   void _showTambahItineraryDialog(
     BuildContext context,
-    Map<String, dynamic> itinerary,
+    ItineraryModel itinerary,
   ) {
     DateTime? selectedDate;
     TimeOfDay? selectedTime;
+    final noteController = TextEditingController();
+    bool isLoading = false;
 
     showDialog(
       context: context,
@@ -221,9 +223,9 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                               onTap: () async {
                                 final DateTime? picked = await showDatePicker(
                                   context: context,
-                                  initialDate: itinerary['startDate'],
-                                  firstDate: itinerary['startDate'],
-                                  lastDate: itinerary['endDate'],
+                                  initialDate: itinerary.startDate ?? DateTime.now(),
+                                  firstDate: itinerary.startDate ?? DateTime.now(),
+                                  lastDate: itinerary.endDate ?? DateTime.now().add(const Duration(days: 365)),
                                 );
                                 if (picked != null) {
                                   setDialogState(() {
@@ -318,6 +320,7 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                             ),
                             const SizedBox(height: 6),
                             TextField(
+                              controller: noteController,
                               maxLines: 3,
                               decoration: InputDecoration(
                                 hintText: 'Contoh: Bawa baju ganti...',
@@ -355,7 +358,49 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                         ),
                       ),
                       child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                                setDialogState(() => isLoading = true);
+                                final token = context.read<AuthProvider>().token;
+                                if (token == null) {
+                                  setDialogState(() => isLoading = false);
+                                  return;
+                                }
+
+                                String? visitTimeStr;
+                                if (selectedTime != null) {
+                                  visitTimeStr =
+                                      '${selectedTime!.hour.toString().padLeft(2, '0')}:${selectedTime!.minute.toString().padLeft(2, '0')}';
+                                }
+
+                                final provider = context.read<ItineraryProvider>();
+                                final error = await provider.addItem(
+                                  token,
+                                  itinerary.id,
+                                  destinationId: widget.destinationId,
+                                  visitDate: selectedDate,
+                                  visitTime: visitTimeStr,
+                                  note: noteController.text,
+                                );
+
+                                if (!context.mounted) return;
+                                setDialogState(() => isLoading = false);
+
+                                if (error == null) {
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Berhasil ditambahkan ke itinerary.'),
+                                      backgroundColor: Colors.teal,
+                                    ),
+                                  );
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(error)),
+                                  );
+                                }
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xff2cd4bf),
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -364,14 +409,24 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                           ),
                           elevation: 0,
                         ),
-                        child: const Text(
-                          'Simpan ke Itinerary',
-                          style: TextStyle(
-                            color: Color(0xff0f172a),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor:
+                                      AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Text(
+                                'Simpan ke Itinerary',
+                                style: TextStyle(
+                                  color: Color(0xff0f172a),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -385,17 +440,24 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
   }
 
   // Fungsi Logika untuk Membuka Rute Peta
-  void _bukaRutePeta() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Membuka Google Maps menuju ${widget.title}...'),
-        action: SnackBarAction(label: 'OK', onPressed: () {}),
-      ),
-    );
+  Future<void> _bukaRutePeta() async {
+    final String googleMapsUrl =
+        'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(widget.title)}';
+    final Uri url = Uri.parse(googleMapsUrl);
 
-    // Jika url_launcher sudah diinstall, aktifkan kode di bawah ini:
-    // const String urlMaps = "https://www.google.com/maps/search/?api=1&query=Baturraden+Banyumas";
-    // launchUrl(Uri.parse(urlMaps), mode: LaunchMode.externalApplication);
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Tidak dapat membuka maps';
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuka peta untuk ${widget.title}')),
+        );
+      }
+    }
   }
 
   @override
@@ -782,7 +844,15 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                   Expanded(
                     flex: 5,
                     child: ElevatedButton.icon(
-                      onPressed: () => _showPilihItineraryDialog(context),
+                      onPressed: () async {
+                        final token = context.read<AuthProvider>().token;
+                        if (token != null) {
+                          await context.read<ItineraryProvider>().fetchItineraries(token);
+                        }
+                        if (context.mounted) {
+                          _showPilihItineraryDialog(context);
+                        }
+                      },
                       icon: const Icon(
                         Icons.add_circle_outline,
                         color: Colors.white,
