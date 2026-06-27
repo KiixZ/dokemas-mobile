@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +27,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _emailController;
 
   // 3. Penyimpan file foto yang dipilih user
-  File? _imageFile;
+  XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
 
   bool _isLoading = false;
@@ -57,9 +58,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
       if (pickedFile != null) {
         setState(() {
-          _imageFile = File(
-            pickedFile.path,
-          ); // Update foto di layar secara realtime
+          _imageFile = pickedFile; // Update foto di layar secara realtime
           _isImageChanged = true;
         });
       }
@@ -127,7 +126,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final error = await authProvider.updateProfile(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
-        avatarPath: _isImageChanged ? _imageFile?.path : null,
+        avatarFile: _isImageChanged ? _imageFile : null,
       );
 
       setState(() => _isLoading = false);
@@ -192,7 +191,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       radius: 60,
                       backgroundColor: AppColors.border,
                       backgroundImage: _imageFile != null
-                          ? FileImage(_imageFile!) as ImageProvider
+                          ? (kIsWeb ? NetworkImage(_imageFile!.path) : FileImage(File(_imageFile!.path))) as ImageProvider
                           : NetworkImage(widget.user.avatarUrl),
                     ),
                   ),
