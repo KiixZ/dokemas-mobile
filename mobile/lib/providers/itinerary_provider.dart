@@ -15,6 +15,28 @@ class ItineraryProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  List<ItineraryModel> get activeItineraries {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return _itineraries.where((item) {
+      if (item.endDate == null && item.startDate == null) return true;
+      final end = item.endDate ?? item.startDate!;
+      final endDateOnly = DateTime(end.year, end.month, end.day);
+      return !endDateOnly.isBefore(today);
+    }).toList();
+  }
+
+  List<ItineraryModel> get historyItineraries {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    return _itineraries.where((item) {
+      if (item.endDate == null && item.startDate == null) return false;
+      final end = item.endDate ?? item.startDate!;
+      final endDateOnly = DateTime(end.year, end.month, end.day);
+      return endDateOnly.isBefore(today);
+    }).toList();
+  }
+
   /// Header standar untuk request yang membutuhkan autentikasi.
   Map<String, String> _authHeaders(String token) => {
     'Authorization': 'Bearer $token',

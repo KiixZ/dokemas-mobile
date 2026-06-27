@@ -537,7 +537,7 @@ class _ItineraryListPageState extends State<ItineraryListPage> {
   @override
   Widget build(BuildContext context) {
     final itineraryProvider = context.watch<ItineraryProvider>();
-    final itineraries = itineraryProvider.itineraries;
+    final itineraries = itineraryProvider.activeItineraries;
     final isLoading = itineraryProvider.isLoading;
     final errorMessage = itineraryProvider.errorMessage;
 

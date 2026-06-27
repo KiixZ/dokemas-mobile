@@ -23,5 +23,6 @@ class ApiConfig {
   static const String itineraries = '$baseUrl/itineraries';
   static const String wishlist = '$baseUrl/wishlist';
   static const String wishlistToggle = '$baseUrl/wishlist/toggle';
+  static const String reviews = '$baseUrl/reviews';
 }
 
