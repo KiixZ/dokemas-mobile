@@ -115,7 +115,7 @@ RUN echo 'server {' > /etc/nginx/http.d/default.conf \
     && echo '    add_header Access-Control-Allow-Origin * always;' >> /etc/nginx/http.d/default.conf \
     && echo '    add_header Access-Control-Allow-Methods "GET, OPTIONS" always;' >> /etc/nginx/http.d/default.conf \
     && echo '    add_header Access-Control-Allow-Headers "Origin, Content-Type, Accept, Authorization" always;' >> /etc/nginx/http.d/default.conf \
-    && echo '    try_files $uri $uri/ /index.php?$query_string;' >> /etc/nginx/http.d/default.conf \
+    && echo '    try_files $uri $uri/ =404;' >> /etc/nginx/http.d/default.conf \
     && echo '  }' >> /etc/nginx/http.d/default.conf \
     && echo '  location / { try_files $uri $uri/ /index.php?$query_string; }' >> /etc/nginx/http.d/default.conf \
     && echo '  location ~ \.php$ {' >> /etc/nginx/http.d/default.conf \
