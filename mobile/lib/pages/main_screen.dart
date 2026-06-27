@@ -9,6 +9,7 @@ import 'guest/guest_itinerary_page.dart';
 import 'guest/guest_profile_page.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/wishlist_provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -23,6 +24,17 @@ class _MainScreenState extends State<MainScreen> {
   void _switchTab(int index) {
     setState(() {
       _currentIndex = index;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final token = context.read<AuthProvider>().token;
+      if (token != null) {
+        context.read<WishlistProvider>().fetchWishlist(token);
+      }
     });
   }
 
