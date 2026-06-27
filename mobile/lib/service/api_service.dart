@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/destination.dart';
 import '../models/category.dart';
 import '../models/facility.dart';
+import '../models/review.dart';
 import '../config/api_config.dart';
 
 class ApiService {
@@ -36,6 +37,7 @@ class ApiService {
   Future<List<Category>> fetchCategories() async {
     try {
       final response = await http.get(Uri.parse(ApiConfig.categories));
+
       if (response.statusCode == 200) {
         final List<dynamic> body = jsonDecode(response.body);
         return body.map((dynamic item) => Category.fromJson(item)).toList();
@@ -50,11 +52,37 @@ class ApiService {
   Future<List<Facility>> fetchFacilities() async {
     try {
       final response = await http.get(Uri.parse(ApiConfig.facilities));
+
       if (response.statusCode == 200) {
         final List<dynamic> body = jsonDecode(response.body);
         return body.map((dynamic item) => Facility.fromJson(item)).toList();
       } else {
         throw Exception('Gagal mengambil data fasilitas');
+      }
+    } catch (e) {
+      throw Exception('Gagal terhubung ke server backend: $e');
+    }
+  }
+
+  Future<List<Review>> fetchMyReviews(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse(ApiConfig.myReviews),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final decodedData = jsonDecode(response.body);
+        final List<dynamic> body = decodedData['data'] ?? [];
+
+        return body.map((dynamic item) => Review.fromJson(item)).toList();
+      } else {
+        throw Exception(
+          'Gagal mengambil data ulasan (Status: ${response.statusCode})',
+        );
       }
     } catch (e) {
       throw Exception('Gagal terhubung ke server backend: $e');
