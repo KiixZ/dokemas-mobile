@@ -76,7 +76,15 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final decodedData = jsonDecode(response.body);
-        final List<dynamic> body = decodedData['data'] ?? [];
+        List<dynamic> body;
+
+        if (decodedData is Map<String, dynamic>) {
+          body = decodedData['data'] ?? [];
+        } else if (decodedData is List) {
+          body = decodedData;
+        } else {
+          throw Exception('Format data tidak dikenali');
+        }
 
         return body.map((dynamic item) => Review.fromJson(item)).toList();
       } else {
