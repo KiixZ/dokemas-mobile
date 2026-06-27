@@ -46,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('profile/avatar', [AuthController::class, 'updateProfile']);
 
     // Reviews
+    Route::get('me/reviews', [ReviewController::class, 'myReviews']);
     Route::post('destinations/{destination}/reviews', [ReviewController::class, 'store']);
     Route::put('reviews/{review}', [ReviewController::class, 'update']);
     Route::delete('reviews/{review}', [ReviewController::class, 'destroy']);
