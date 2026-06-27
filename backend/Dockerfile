@@ -11,7 +11,7 @@ RUN apk add --no-cache \
     oniguruma-dev libxml2-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
-        pdo pdo_mysql mbstring exif pcntl bcmath gd xml opcache
+    pdo pdo_mysql mbstring exif pcntl bcmath gd xml opcache
 
 COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
@@ -61,7 +61,7 @@ RUN apk add --no-cache --virtual .build-deps \
     oniguruma-dev libxml2-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) \
-        pdo pdo_mysql mbstring exif pcntl bcmath gd xml opcache \
+    pdo pdo_mysql mbstring exif pcntl bcmath gd xml opcache \
     && apk del .build-deps
 
 # PHP config
@@ -111,6 +111,12 @@ RUN echo 'server {' > /etc/nginx/http.d/default.conf \
     && echo '  server_name _;' >> /etc/nginx/http.d/default.conf \
     && echo '  root /var/www/html/public;' >> /etc/nginx/http.d/default.conf \
     && echo '  index index.php;' >> /etc/nginx/http.d/default.conf \
+    && echo '  location /storage/ {' >> /etc/nginx/http.d/default.conf \
+    && echo '    add_header Access-Control-Allow-Origin * always;' >> /etc/nginx/http.d/default.conf \
+    && echo '    add_header Access-Control-Allow-Methods "GET, OPTIONS" always;' >> /etc/nginx/http.d/default.conf \
+    && echo '    add_header Access-Control-Allow-Headers "Origin, Content-Type, Accept, Authorization" always;' >> /etc/nginx/http.d/default.conf \
+    && echo '    try_files $uri $uri/ =404;' >> /etc/nginx/http.d/default.conf \
+    && echo '  }' >> /etc/nginx/http.d/default.conf \
     && echo '  location / { try_files $uri $uri/ /index.php?$query_string; }' >> /etc/nginx/http.d/default.conf \
     && echo '  location ~ \.php$ {' >> /etc/nginx/http.d/default.conf \
     && echo '    fastcgi_pass unix:/var/run/php-fpm.sock;' >> /etc/nginx/http.d/default.conf \

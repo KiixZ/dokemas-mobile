@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/api_config.dart';
 import '../models/user_model.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AuthProvider with ChangeNotifier {
   bool _isLoggedIn = false;
@@ -46,7 +47,9 @@ class AuthProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        _user = UserModel.fromJson(jsonDecode(response.body));
+        final data = jsonDecode(response.body);
+        final userData = data['user'] ?? data['data'] ?? data;
+        _user = UserModel.fromJson(userData);
         notifyListeners();
       } else {
         // Jika token tidak valid / expired
@@ -154,7 +157,9 @@ class AuthProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        _user = UserModel.fromJson(jsonDecode(response.body));
+        final data = jsonDecode(response.body);
+        final userData = data['user'] ?? data['data'] ?? data;
+        _user = UserModel.fromJson(userData);
         notifyListeners();
         return null; // Sukses
       } else {
@@ -171,7 +176,7 @@ class AuthProvider with ChangeNotifier {
   Future<String?> updateProfile({
     required String name,
     required String email,
-    String? avatarPath,
+    XFile? avatarFile,
   }) async {
     if (_token == null) return 'Anda belum login.';
     try {
@@ -186,9 +191,14 @@ class AuthProvider with ChangeNotifier {
       request.fields['name'] = name;
       request.fields['email'] = email;
 
-      if (avatarPath != null) {
+      if (avatarFile != null) {
+        final bytes = await avatarFile.readAsBytes();
         request.files.add(
-          await http.MultipartFile.fromPath('avatar', avatarPath),
+          http.MultipartFile.fromBytes(
+            'avatar',
+            bytes,
+            filename: avatarFile.name,
+          ),
         );
       }
 
@@ -196,7 +206,15 @@ class AuthProvider with ChangeNotifier {
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
-        _user = UserModel.fromJson(jsonDecode(response.body));
+        final data = jsonDecode(response.body);
+        final userData = data['user'] ?? data['data'] ?? data;
+        _user = UserModel.fromJson(userData);
+        
+        // Evict image cache to force reload of the new avatar
+        if (_user?.avatarUrl != null) {
+          NetworkImage(_user!.avatarUrl).evict();
+        }
+        
         notifyListeners();
         return null; // Sukses
       } else {

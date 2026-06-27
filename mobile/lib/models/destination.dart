@@ -7,7 +7,10 @@ class DestinationImage {
   const DestinationImage({required this.id, required this.imageUrl});
 
   factory DestinationImage.fromJson(Map<String, dynamic> json) {
-    return DestinationImage(id: json['id'], imageUrl: json['image_url'] ?? '');
+    return DestinationImage(
+      id: json['id'], 
+      imageUrl: (json['image_url'] ?? '').toString().replaceFirst('http://', 'https://')
+    );
   }
 }
 
@@ -131,7 +134,7 @@ class Destination {
       lng: json['longitude'] != null
           ? double.tryParse(json['longitude'].toString())
           : null,
-      thumbnailUrl: json['thumbnail_url'] ?? '',
+      thumbnailUrl: (json['thumbnail_url'] ?? '').toString().replaceFirst('http://', 'https://'),
       facilities: json['facilities'] != null
           ? (json['facilities'] as List)
                 .map((e) => Facility.fromJson(e))

@@ -18,6 +18,14 @@ class ReviewController extends Controller
             ->get();
     }
 
+    public function myReviews(Request $request)
+    {
+        return $request->user()->reviews()
+            ->with('destination:id,name,cover_image')
+            ->latest()
+            ->get();
+    }
+
     public function store(Request $request, Destination $destination)
     {
         $data = $request->validate([
