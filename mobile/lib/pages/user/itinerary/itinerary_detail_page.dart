@@ -11,10 +11,12 @@ import '../../../models/itinerary_model.dart';
 
 class ItineraryDetailPage extends StatefulWidget {
   final int itineraryId;
+  final bool isReadOnly;
 
   const ItineraryDetailPage({
     super.key,
     required this.itineraryId,
+    this.isReadOnly = false,
   });
 
   @override
@@ -689,17 +691,18 @@ class _ItineraryDetailPageState extends State<ItineraryDetailPage> {
                       ),
                     ),
                     // Tombol Edit untuk mengubah judul, tanggal, catatan
-                    IconButton(
-                      onPressed: () {
-                        _showEditItineraryModal(context, itinerary);
-                      },
-                      icon: const Icon(
-                        Icons.edit_outlined,
-                        size: 20,
-                        color: AppColors.textSecondary,
+                    if (!widget.isReadOnly)
+                      IconButton(
+                        onPressed: () {
+                          _showEditItineraryModal(context, itinerary);
+                        },
+                        icon: const Icon(
+                          Icons.edit_outlined,
+                          size: 20,
+                          color: AppColors.textSecondary,
+                        ),
+                        visualDensity: VisualDensity.compact,
                       ),
-                      visualDensity: VisualDensity.compact,
-                    ),
                   ],
                 ),
                 const SizedBox(height: 4),

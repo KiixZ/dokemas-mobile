@@ -1,36 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
+import '../../../models/review.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/review_provider.dart';
 
-class UlasanSayaPage extends StatelessWidget {
+class UlasanSayaPage extends StatefulWidget {
   const UlasanSayaPage({super.key});
 
   @override
+  State<UlasanSayaPage> createState() => _UlasanSayaPageState();
+}
+
+class _UlasanSayaPageState extends State<UlasanSayaPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadReviews();
+    });
+  }
+
+  void _loadReviews() {
+    final token = context.read<AuthProvider>().token;
+    if (token != null) {
+      context.read<ReviewProvider>().fetchReviews(token);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> ulasanSaya = [
-      {
-        'destinasi': 'Lokawisata Baturraden',
-        'tanggal': '17 Juni 2026',
-        'rating': '5.0',
-        'ulasan':
-            'Tempatnya sejuk, bersih, dan cocok untuk liburan keluarga. Pemandangan alamnya juga bagus.',
-      },
-      {
-        'destinasi': 'Soto Sokaraja H. Loso',
-        'tanggal': '15 Juni 2026',
-        'rating': '4.5',
-        'ulasan':
-            'Sotonya enak dan rasanya khas. Cocok banget buat makan siang setelah jalan-jalan.',
-      },
-      {
-        'destinasi': 'Menara Pandang Teratai',
-        'tanggal': '13 Juni 2026',
-        'rating': '4.7',
-        'ulasan':
-            'Tempatnya menarik buat foto dan menikmati suasana kota Purwokerto dari atas.',
-      },
-    ];
+    // Ambil data user yang sedang login
+    final user = context.watch<AuthProvider>().user;
+    final currentUserId = user?.id ?? -1;
+
+    // Ambil data dari provider
+    final reviewProvider = context.watch<ReviewProvider>();
+    final allReviews = reviewProvider.reviews;
+    final isLoading = reviewProvider.isLoading;
+    final errorMessage = reviewProvider.errorMessage;
+
+    // Filter agar hanya memunculkan ulasan milik user yang sedang login
+    final ulasanSaya = allReviews.where((r) => r.userId == currentUserId).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -55,99 +68,178 @@ class UlasanSayaPage extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          Text(
-            'Daftar ulasan yang pernah kamu berikan pada destinasi wisata.',
-            style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          ...ulasanSaya.map((item) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: AppSpacing.md),
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border, width: 1),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _loadReviews();
+        },
+        color: AppColors.primary,
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          children: [
+            Text(
+              'Daftar ulasan yang pernah kamu berikan pada destinasi wisata.',
+              style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            if (isLoading && ulasanSaya.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 60),
+                  child: CircularProgressIndicator(
+                    color: AppColors.primary,
                   ),
-                ],
+                ),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.star_border_rounded,
-                      color: AppColors.primary,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item['destinasi']!,
-                          style: AppTextStyles.body.copyWith(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w800,
+
+            if (errorMessage != null && ulasanSaya.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 60),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.cloud_off_outlined,
+                        size: 64,
+                        color: AppColors.textMuted.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        errorMessage,
+                        style: AppTextStyles.body.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      ElevatedButton.icon(
+                        onPressed: _loadReviews,
+                        icon: const Icon(Icons.refresh, size: 18),
+                        label: const Text('Coba Lagi'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.onPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        const SizedBox(height: 6),
-                        Row(
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            if (!isLoading && ulasanSaya.isEmpty && errorMessage == null)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 60),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.star_border_rounded,
+                        size: 64,
+                        color: AppColors.textMuted.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        'Kamu belum pernah memberikan ulasan.',
+                        style: AppTextStyles.body.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            if (!isLoading || ulasanSaya.isNotEmpty)
+              ...ulasanSaya.map((item) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border, width: 1),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.star_border_rounded,
+                          color: AppColors.primary,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
-                              Icons.star_rounded,
-                              size: 16,
-                              color: Color(0xFFFBBF24),
-                            ),
-                            const SizedBox(width: 4),
                             Text(
-                              item['rating']!,
-                              style: AppTextStyles.caption.copyWith(
+                              item.destinationName,
+                              style: AppTextStyles.body.copyWith(
                                 color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star_rounded,
+                                  size: 16,
+                                  color: Color(0xFFFBBF24),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  item.rating.toStringAsFixed(1),
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  item.date,
+                                  style: AppTextStyles.caption.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
                             Text(
-                              item['tanggal']!,
+                              item.comment,
                               style: AppTextStyles.caption.copyWith(
                                 color: AppColors.textSecondary,
+                                height: 1.4,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          item['ulasan']!,
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.textSecondary,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            );
-          }),
-        ],
+                );
+              }),
+          ],
+        ),
       ),
     );
   }

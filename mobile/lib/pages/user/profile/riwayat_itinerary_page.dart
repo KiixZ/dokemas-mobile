@@ -1,97 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/itinerary_provider.dart';
+import '../itinerary/itinerary_detail_page.dart';
 
-class RiwayatItineraryPage extends StatelessWidget {
+class RiwayatItineraryPage extends StatefulWidget {
   const RiwayatItineraryPage({super.key});
 
   @override
+  State<RiwayatItineraryPage> createState() => _RiwayatItineraryPageState();
+}
+
+class _RiwayatItineraryPageState extends State<RiwayatItineraryPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadItineraries();
+    });
+  }
+
+  void _loadItineraries() {
+    final token = context.read<AuthProvider>().token;
+    if (token != null) {
+      context.read<ItineraryProvider>().fetchItineraries(token);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> riwayatItinerary = [
-      {
-        'judul': 'Liburan ke Baturraden',
-        'tanggal': '12 Ags - 14 Ags 2026',
-        'jumlah': '4 destinasi',
-        'detail': [
-          {
-            'jam': '08:00',
-            'judul': 'Berangkat dari pusat kota',
-            'deskripsi': 'Persiapan perjalanan menuju kawasan Baturraden.',
-          },
-          {
-            'jam': '09:00',
-            'judul': 'Lokawisata Baturraden',
-            'deskripsi': 'Menikmati suasana alam dan area wisata utama.',
-          },
-          {
-            'jam': '12:00',
-            'judul': 'Makan siang',
-            'deskripsi': 'Istirahat dan makan siang di sekitar kawasan wisata.',
-          },
-          {
-            'jam': '14:00',
-            'judul': 'Curug Bayan',
-            'deskripsi': 'Mengunjungi area air terjun dan berfoto.',
-          },
-        ],
-      },
-      {
-        'judul': 'Wisata Kuliner Purwokerto',
-        'tanggal': '05 Jul - 07 Jul 2026',
-        'jumlah': '3 destinasi',
-        'detail': [
-          {
-            'jam': '10:00',
-            'judul': 'Soto Sokaraja H. Loso',
-            'deskripsi': 'Mencoba kuliner khas Banyumas.',
-          },
-          {
-            'jam': '13:00',
-            'judul': 'Mendoan Purwokerto',
-            'deskripsi': 'Mencicipi makanan ringan khas daerah.',
-          },
-          {
-            'jam': '19:00',
-            'judul': 'Alun-alun Purwokerto',
-            'deskripsi':
-                'Menikmati suasana malam dan kuliner sekitar alun-alun.',
-          },
-        ],
-      },
-      {
-        'judul': 'Jelajah Kota Banyumas',
-        'tanggal': '20 Jun 2026',
-        'jumlah': '5 destinasi',
-        'detail': [
-          {
-            'jam': '08:30',
-            'judul': 'Museum Bank Rakyat Indonesia',
-            'deskripsi': 'Melihat sejarah dan koleksi museum.',
-          },
-          {
-            'jam': '10:30',
-            'judul': 'Menara Pandang Teratai',
-            'deskripsi': 'Melihat pemandangan kota dari area menara.',
-          },
-          {
-            'jam': '13:00',
-            'judul': 'Taman Kota',
-            'deskripsi': 'Istirahat dan menikmati suasana kota.',
-          },
-          {
-            'jam': '15:00',
-            'judul': 'Pusat Oleh-oleh',
-            'deskripsi': 'Membeli buah tangan khas Banyumas.',
-          },
-          {
-            'jam': '17:00',
-            'judul': 'Kembali',
-            'deskripsi': 'Perjalanan pulang setelah kegiatan selesai.',
-          },
-        ],
-      },
-    ];
+    final itineraryProvider = context.watch<ItineraryProvider>();
+    final riwayatItinerary = itineraryProvider.historyItineraries;
+    final isLoading = itineraryProvider.isLoading;
+    final errorMessage = itineraryProvider.errorMessage;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -116,36 +60,217 @@ class RiwayatItineraryPage extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          Text(
-            'Riwayat rencana perjalanan yang pernah dibuat.',
-            style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: AppSpacing.lg),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _loadItineraries();
+        },
+        color: AppColors.primary,
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          children: [
+            Text(
+              'Riwayat rencana perjalanan yang pernah dibuat.',
+              style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.lg),
 
-          ...riwayatItinerary.map((item) {
-            return _RiwayatCard(
-              judul: item['judul'],
-              tanggal: item['tanggal'],
-              jumlah: item['jumlah'],
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DetailRiwayatItineraryPage(
-                      judul: item['judul'],
-                      tanggal: item['tanggal'],
-                      jumlah: item['jumlah'],
-                      detail: List<Map<String, String>>.from(item['detail']),
+            if (isLoading && riwayatItinerary.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 60),
+                  child: CircularProgressIndicator(
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
+
+            if (errorMessage != null && riwayatItinerary.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 60),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.cloud_off_outlined,
+                        size: 64,
+                        color: AppColors.textMuted.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        errorMessage,
+                        style: AppTextStyles.body.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      ElevatedButton.icon(
+                        onPressed: _loadItineraries,
+                        icon: const Icon(Icons.refresh, size: 18),
+                        label: const Text('Coba Lagi'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.onPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            if (!isLoading && riwayatItinerary.isEmpty && errorMessage == null)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 60),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.history_outlined,
+                        size: 64,
+                        color: AppColors.textMuted.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        'Belum ada riwayat perjalanan.',
+                        style: AppTextStyles.body.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            if (!isLoading || riwayatItinerary.isNotEmpty)
+              ...riwayatItinerary.map((item) {
+                return Dismissible(
+                  key: ValueKey('riwayat_${item.id}'),
+                  direction: DismissDirection.horizontal,
+                  background: Container(
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.only(left: AppSpacing.md),
+                    margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(16),
                     ),
+                    child: const Icon(Icons.delete_outline, color: Colors.red),
+                  ),
+                  secondaryBackground: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: AppSpacing.md),
+                    margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(Icons.delete_outline, color: Colors.red),
+                  ),
+                  confirmDismiss: (direction) async {
+                    final bool? konfirmasi = await showDialog<bool>(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext dialogContext) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          title: const Text(
+                            'Hapus Riwayat?',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          content: Text(
+                            'Apakah kamu yakin ingin menghapus "${item.title}" beserta seluruh kegiatan di dalamnya?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.of(dialogContext).pop(false),
+                              child: const Text(
+                                'Batal',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () =>
+                                  Navigator.of(dialogContext).pop(true),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: const Text(
+                                'Hapus',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    return konfirmasi ?? false;
+                  },
+                  onDismissed: (direction) async {
+                    final token = context.read<AuthProvider>().token;
+                    if (token == null) return;
+
+                    final error = await context
+                        .read<ItineraryProvider>()
+                        .deleteItinerary(token, item.id);
+
+                    if (!context.mounted) return;
+
+                    if (error != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(error),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      _loadItineraries();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '"${item.title}" berhasil dihapus dari riwayat',
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
+                  },
+                  child: _RiwayatCard(
+                    judul: item.title,
+                    tanggal: item.dateRangeText,
+                    jumlah: '${item.itemsCount} destinasi',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ItineraryDetailPage(
+                            itineraryId: item.id,
+                            isReadOnly: true,
+                          ),
+                        ),
+                      ).then((_) {
+                        _loadItineraries();
+                      });
+                    },
                   ),
                 );
-              },
-            );
-          }),
-        ],
+              }),
+          ],
+        ),
       ),
     );
   }
@@ -204,7 +329,7 @@ class _RiwayatCard extends StatelessWidget {
                   border: Border.all(color: AppColors.border, width: 1),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
+                      color: Colors.black.withValues(alpha: 0.04),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -243,197 +368,6 @@ class _RiwayatCard extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class DetailRiwayatItineraryPage extends StatelessWidget {
-  final String judul;
-  final String tanggal;
-  final String jumlah;
-  final List<Map<String, String>> detail;
-
-  const DetailRiwayatItineraryPage({
-    super.key,
-    required this.judul,
-    required this.tanggal,
-    required this.jumlah,
-    required this.detail,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_rounded,
-            color: AppColors.textPrimary,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Text(
-          'Detail Itinerary',
-          style: AppTextStyles.title.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border, width: 1),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  judul,
-                  style: AppTextStyles.heading2.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _InfoRow(icon: Icons.calendar_month_rounded, text: tanggal),
-                const SizedBox(height: AppSpacing.sm),
-                _InfoRow(icon: Icons.description_outlined, text: jumlah),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'Jadwal Perjalanan',
-            style: AppTextStyles.title.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          ...detail.asMap().entries.map((entry) {
-            final index = entry.key;
-            final item = entry.value;
-
-            return _TimelineDetailItem(
-              jam: item['jam'] ?? '',
-              judul: item['judul'] ?? '',
-              deskripsi: item['deskripsi'] ?? '',
-              isLast: index == detail.length - 1,
-            );
-          }),
-        ],
-      ),
-    );
-  }
-}
-
-class _TimelineDetailItem extends StatelessWidget {
-  final String jam;
-  final String judul;
-  final String deskripsi;
-  final bool isLast;
-
-  const _TimelineDetailItem({
-    required this.jam,
-    required this.judul,
-    required this.deskripsi,
-    required this.isLast,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 54,
-            child: Text(
-              jam,
-              style: AppTextStyles.body.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              Container(
-                width: 13,
-                height: 13,
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              if (!isLast)
-                Expanded(
-                  child: Container(
-                    width: 2,
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    color: AppColors.border,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.only(bottom: AppSpacing.md),
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border, width: 1),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.access_time_rounded,
-                        color: AppColors.primary,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          judul,
-                          style: AppTextStyles.body.copyWith(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    deskripsi,
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textSecondary,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
               ),
             ),
           ),
