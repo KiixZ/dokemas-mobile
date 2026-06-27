@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/admin/dashboard_provider.dart';
 import 'providers/itinerary_provider.dart';
+import 'providers/wishlist_provider.dart';
 import 'theme/app_theme.dart';
 import 'pages/splash_screen.dart';
 
@@ -20,6 +21,7 @@ class DokemasApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => ItineraryProvider()),
+        ChangeNotifierProvider(create: (_) => WishlistProvider()),
       ],
       child: MaterialApp(
         title: 'DOKEMAS',

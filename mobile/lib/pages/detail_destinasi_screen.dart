@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/itinerary_provider.dart';
+import '../providers/wishlist_provider.dart';
 import '../models/itinerary_model.dart';
 import 'user/itinerary/itinerary_list_page.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -41,8 +42,6 @@ class DetailDestinasiScreen extends StatefulWidget {
 }
 
 class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
-  bool _isFavorite = false;
-
   void _showPilihItineraryDialog(BuildContext context) {
     final itineraries = context.read<ItineraryProvider>().itineraries;
 
@@ -512,13 +511,42 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                   iconColor: Colors.white,
                   onTap: () => Navigator.pop(context),
                 ),
-                _buildCircleIconButton(
-                  icon: _isFavorite ? Icons.favorite : Icons.favorite_border,
-                  iconColor: _isFavorite ? Colors.red : Colors.white,
-                  onTap: () {
-                    setState(() {
-                      _isFavorite = !_isFavorite;
-                    });
+                Consumer<WishlistProvider>(
+                  builder: (context, wishlistProvider, child) {
+                    final bool isFavorite = wishlistProvider.isWishlisted(widget.destinationId);
+                    return _buildCircleIconButton(
+                      icon: isFavorite ? Icons.favorite : Icons.favorite_border,
+                      iconColor: isFavorite ? Colors.red : Colors.white,
+                      onTap: () async {
+                        final token = context.read<AuthProvider>().token;
+                        if (token == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Silahkan login terlebih dahulu untuk menyimpan ke wishlist'),
+                              backgroundColor: Colors.orange,
+                            ),
+                          );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginPage()),
+                          );
+                          return;
+                        }
+                        
+                        bool newStatus = await wishlistProvider.toggleWishlist(token, widget.destinationId);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).clearSnackBars();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(newStatus ? '${widget.title} ditambahkan ke Wishlist' : '${widget.title} dihapus dari Wishlist'),
+                              duration: const Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: newStatus ? Colors.teal : Colors.grey[800],
+                            ),
+                          );
+                        }
+                      },
+                    );
                   },
                 ),
               ],
