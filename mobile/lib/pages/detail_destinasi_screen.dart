@@ -468,14 +468,12 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
       backgroundColor: const Color(0xfff8fafd),
       body: Stack(
         children: [
-          // 1. Gambar Latar Belakang Dinamis (Header) - Dibuat memenuhi layar bagian atas
+          // 1. Gambar Latar Belakang Dinamis (Header)
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            height:
-                screenHeight *
-                0.5, // Sedikit ditinggikan agar background di belakang sheet terlihat luas
+            height: screenHeight * 0.5,
             child: Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
@@ -498,7 +496,7 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
             ),
           ),
 
-          // 2. Tombol Aksi Atas (Tetap mengambang di atas gambar)
+          // 2. Tombol Aksi Atas
           Positioned(
             top: MediaQuery.of(context).padding.top + 10,
             left: 16,
@@ -553,15 +551,13 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
             ),
           ),
 
-          // 3. Konten Utama Menggunakan DraggableScrollableSheet agar bisa ditarik secara dinamis
+          // 3. Konten Utama Menggunakan DraggableScrollableSheet
           Positioned.fill(
             child: DraggableScrollableSheet(
-              initialChildSize:
-                  0.65, // Posisi awal lembar detail (65% tinggi layar)
-              minChildSize: 0.55, // Batas minimum lembar diseret ke bawah
-              maxChildSize: 0.90, // Batas maksimum lembar diseret ke atas
-              snap:
-                  true, // Lembar otomatis nge-snap/pas ke posisi terdekat saat dilepas
+              initialChildSize: 0.65, 
+              minChildSize: 0.55, 
+              maxChildSize: 0.90, 
+              snap: true, 
               builder: (BuildContext context, ScrollController scrollController) {
                 return Container(
                   decoration: const BoxDecoration(
@@ -578,16 +574,13 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                       ),
                     ],
                   ),
-                  // STRUKTUR FIX: Menjadikan SingleChildScrollView anak langsung dari Container agar gesture terdeteksi sempurna
                   child: SingleChildScrollView(
-                    controller:
-                        scrollController, // <--- Menghubungkan langsung drag gesture ke sheet
+                    controller: scrollController, 
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     physics: const BouncingScrollPhysics(),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Penanda Garis Handle Abu-abu (Ditempatkan paling atas di dalam scrollview)
                         Center(
                           child: Container(
                             margin: const EdgeInsets.symmetric(vertical: 12),
@@ -600,7 +593,6 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                           ),
                         ),
 
-                        // Isi data utama destinasi wisata
                         Text(
                           widget.title,
                           style: const TextStyle(
@@ -704,7 +696,6 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // SEKSI GALERI FOTO
                         if (widget.galleryImages.isNotEmpty) ...[
                           const Text(
                             'Galeri Foto',
@@ -738,7 +729,6 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                           const SizedBox(height: 24),
                         ],
 
-                        // SEKSI FASILITAS TERSEDIA
                         const Text(
                           'Fasilitas Available',
                           style: TextStyle(
@@ -770,7 +760,6 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Ulasan Pilihan Header
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -815,7 +804,7 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                         _buildReviewCard(),
                         const SizedBox(
                           height: 130,
-                        ), // Ganjal area bawah scrollview agar konten tidak terpotong tombol fixed
+                        ),
                       ],
                     ),
                   ),
@@ -824,7 +813,7 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
             ),
           ),
 
-          // 4. Bottom Action Buttons (Fixed di dasar layar agar tidak ikut tergulung)
+          // 4. Bottom Action Buttons
           Positioned(
             bottom: 0,
             left: 0,
@@ -1057,7 +1046,7 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
   }
 }
 
-// --- SCREEN DAFTAR ULASAN SEBELUMNYA ---
+// --- SCREEN DAFTAR ULASAN ---
 class DaftarUlasanScreen extends StatefulWidget {
   const DaftarUlasanScreen({super.key});
 
@@ -1244,7 +1233,24 @@ class _DaftarUlasanScreenState extends State<DaftarUlasanScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.rate_review_outlined, color: Colors.teal),
-            onPressed: () => _showTulisUlasanDialog(context),
+            onPressed: () {
+              // Modifikasi logika di IconButton AppBar
+              final token = context.read<AuthProvider>().token;
+              if (token != null) {
+                _showTulisUlasanDialog(context);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Silahkan login terlebih dahulu untuk menulis ulasan'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                );
+              }
+            },
           ),
         ],
       ),
@@ -1265,7 +1271,24 @@ class _DaftarUlasanScreenState extends State<DaftarUlasanScreen> {
               },
             ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showTulisUlasanDialog(context),
+        onPressed: () {
+          // Modifikasi logika di FloatingActionButton
+          final token = context.read<AuthProvider>().token;
+          if (token != null) {
+            _showTulisUlasanDialog(context);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Silahkan login terlebih dahulu untuk menulis ulasan'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
+          }
+        },
         label: const Text(
           'Tulis Ulasan',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
