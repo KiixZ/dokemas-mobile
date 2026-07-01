@@ -63,6 +63,9 @@ php artisan scramble:export   # -> api.json
 |--------|------|-----|
 | POST | `/register` | daftar user |
 | POST | `/login` | login |
+| POST | `/forgot-password` | request OTP reset password |
+| POST | `/verify-otp` | verifikasi OTP reset password |
+| POST | `/reset-password` | reset password dengan OTP |
 | GET  | `/categories` | list kategori (+jumlah destinasi) |
 | GET  | `/categories/{id}` | detail kategori |
 | GET  | `/facilities` | list fasilitas |

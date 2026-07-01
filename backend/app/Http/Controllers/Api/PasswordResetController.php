@@ -16,7 +16,12 @@ use Illuminate\Validation\ValidationException;
 class PasswordResetController extends Controller
 {
     /**
-     * Handle the forgot password request (generate and send OTP).
+     * Lupa Password
+     * 
+     * Request OTP untuk mereset password. OTP akan dikirimkan ke email pengguna.
+     * 
+     * @tags Auth
+     * @unauthenticated
      */
     public function forgotPassword(Request $request)
     {
@@ -48,7 +53,12 @@ class PasswordResetController extends Controller
     }
 
     /**
-     * Verify if the provided OTP is valid.
+     * Verifikasi OTP Reset Password
+     * 
+     * Memeriksa apakah OTP yang dimasukkan valid dan belum kedaluwarsa (berlaku 15 menit).
+     * 
+     * @tags Auth
+     * @unauthenticated
      */
     public function verifyOtp(Request $request)
     {
@@ -65,7 +75,12 @@ class PasswordResetController extends Controller
     }
 
     /**
-     * Handle the password reset request.
+     * Reset Password
+     * 
+     * Mengatur ulang password menggunakan OTP yang valid.
+     * 
+     * @tags Auth
+     * @unauthenticated
      */
     public function resetPassword(Request $request)
     {
