@@ -8,6 +8,8 @@ Future<Map<String, dynamic>?> showFilterBottomSheet(
   String initialRating = '',
   String initialKategori = '',
   List<String>? initialFasilitas,
+  List<String> availableCategories = const ['Alam', 'Air Terjun', 'Budaya', 'Kuliner', 'Keluarga', 'Edukasi', 'Religi'],
+  List<String> availableFacilities = const ['Parkir', 'Toilet', 'Mushola', 'Warung', 'Gazebo', 'Spot Foto', 'Wahana Air', 'Penginapan', 'Wifi'],
 }) {
   String selectedHarga = initialHarga;
   String selectedJarak = initialJarak;
@@ -89,7 +91,7 @@ Future<Map<String, dynamic>?> showFilterBottomSheet(
 
                 _buildFilterTitle('Kategori'),
                 _buildFilterRow(
-                  ['Alam', 'Air Terjun', 'Budaya', 'Kuliner', 'Keluarga', 'Edukasi', 'Religi'],
+                  availableCategories,
                   selectedKategori,
                   (value) => setModalState(() {
                     selectedKategori = selectedKategori == value ? '' : value;
@@ -100,7 +102,7 @@ Future<Map<String, dynamic>?> showFilterBottomSheet(
                 Wrap(
                   spacing: 10,
                   runSpacing: 8,
-                  children: ['Parkir', 'Toilet', 'Mushola', 'Warung', 'Gazebo', 'Spot Foto', 'Wahana Air', 'Penginapan', 'Wifi'].map((fasilitas) {
+                  children: availableFacilities.map((fasilitas) {
                     final isSelected = selectedFasilitas.contains(fasilitas);
                     return _buildFilterChip(
                       label: fasilitas,

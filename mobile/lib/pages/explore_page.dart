@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile/components/filter_bottom_sheet.dart';
 import 'package:mobile/pages/detail_destinasi_screen.dart';
 import '../theme/app_colors.dart';
+import '../models/category.dart';
+import '../models/facility.dart';
 import '../models/destination.dart'; // Import model destinasi timmu
 import '../service/api_service.dart'; // Import service API
 import '../widgets/destination_card.dart';
@@ -28,8 +30,10 @@ class _ExplorePageState extends State<ExplorePage> {
   String _selectedRating = '';
   List<String> _selectedFasilitas = [];
 
-  // Menggabungkan 'Semua' dengan list kategori yang ada di file model temanmu
-  final List<String> _tags = ['Semua', ...destinationCategories];
+  // State for fetched categories and facilities
+  List<Category> _categories = [];
+  List<Facility> _facilities = [];
+  bool _isLoadingFilters = true;
 
   // Variabel penampung request data async
   late Future<List<Destination>> _futureDestinations;
@@ -41,6 +45,27 @@ class _ExplorePageState extends State<ExplorePage> {
     _currentQuery = widget.searchQuery ?? '';
     // Fetch data dari database lewat API sekali saja saat page di-load
     _futureDestinations = ApiService().fetchDestinations();
+    _loadFilters();
+  }
+
+  Future<void> _loadFilters() async {
+    try {
+      final categories = await ApiService().fetchCategories();
+      final facilities = await ApiService().fetchFacilities();
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+          _facilities = facilities;
+          _isLoadingFilters = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+         setState(() {
+           _isLoadingFilters = false;
+         });
+      }
+    }
   }
 
   @override
@@ -174,6 +199,8 @@ class _ExplorePageState extends State<ExplorePage> {
               initialRating: _selectedRating,
               initialKategori: _selectedCategory == 'Semua' ? '' : _selectedCategory,
               initialFasilitas: List.from(_selectedFasilitas),
+              availableCategories: _categories.isNotEmpty ? _categories.map((c) => c.name).toList() : const ['Alam', 'Keluarga', 'Kuliner', 'Edukasi', 'Religi'],
+              availableFacilities: _facilities.isNotEmpty ? _facilities.map((f) => f.name).toList() : const ['Parkir', 'Toilet', 'Mushola', 'Warung', 'Gazebo', 'Spot Foto', 'Wahana Air', 'Penginapan', 'Wifi'],
             );
             if (result != null) {
               setState(() {
@@ -201,14 +228,29 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 
   Widget _buildQuickTags() {
+    if (_isLoadingFilters) {
+      return const SizedBox(
+        height: 40,
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+          ),
+        ),
+      );
+    }
+    
+    final List<String> tags = ['Semua', ..._categories.map((c) => c.name)];
+
     return SizedBox(
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _tags.length,
+        itemCount: tags.length,
         itemBuilder: (context, index) {
-          final tag = _tags[index];
+          final tag = tags[index];
           final isSelected = _selectedCategory == tag;
 
           return GestureDetector(
