@@ -1,49 +1,77 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
-import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import 'otp_verification_page.dart';
 
+class ResetPasswordPage extends StatefulWidget {
+  final String email;
+  final String otp;
 
-class ForgotPasswordPage extends StatefulWidget {
-  const ForgotPasswordPage({super.key});
+  const ResetPasswordPage({super.key, required this.email, required this.otp});
 
   @override
-  State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
+  State<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
-class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleSendInstructions() async {
+  Future<void> _handleResetPassword() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      
-      final email = _emailController.text.trim();
+
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      
-      final error = await authProvider.forgotPassword(email);
-      
+      final error = await authProvider.resetPassword(
+        widget.email,
+        widget.otp,
+        _passwordController.text,
+        _confirmPasswordController.text,
+      );
+
       setState(() => _isLoading = false);
-      
+
       if (!mounted) return;
 
       if (error == null) {
-        // Berhasil, pindah ke halaman verifikasi OTP
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OtpVerificationPage(email: email),
+        // Berhasil
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: Row(
+              children: const [
+                Icon(Icons.check_circle_outline, color: AppColors.success),
+                SizedBox(width: 8),
+                Text('Berhasil'),
+              ],
+            ),
+            content: const Text(
+              'Kata sandi Anda telah berhasil direset. Silakan login kembali menggunakan kata sandi baru Anda.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  // Kembali ke halaman login
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                },
+                child: const Text('Ke Halaman Login', style: TextStyle(color: AppColors.primary)),
+              ),
+            ],
           ),
         );
       } else {
@@ -68,8 +96,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: AppSpacing.lg),
-                // Card Utama
                 Container(
                   width: double.infinity,
                   constraints: const BoxConstraints(maxWidth: 400),
@@ -90,15 +116,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Tombol Back di kiri atas card
                         IconButton(
                           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
+                          onPressed: () => Navigator.pop(context),
                         ),
                         
-                        // Logo Bulat Minimalis dengan Ikon Kunci/Lock Reset
                         Center(
                           child: Container(
                             width: 80,
@@ -108,7 +130,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
-                              Icons.lock_reset, // Ikon gembok dengan lingkaran tanda panah
+                              Icons.password_outlined,
                               color: AppColors.primary,
                               size: 40,
                             ),
@@ -116,10 +138,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         ),
                         const SizedBox(height: AppSpacing.md),
 
-                        // Judul & Sub-judul
                         Center(
                           child: Text(
-                            'Lupa Kata Sandi?',
+                            'Buat Kata Sandi Baru',
                             style: AppTextStyles.heading1.copyWith(color: AppColors.primary),
                           ),
                         ),
@@ -128,7 +149,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                             child: Text(
-                              'Masukkan email Anda untuk menerima instruksi pemulihan kata sandi',
+                              'Silakan masukkan kata sandi baru Anda.',
                               textAlign: TextAlign.center,
                               style: AppTextStyles.caption.copyWith(fontSize: 13),
                             ),
@@ -136,36 +157,80 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         ),
                         const SizedBox(height: AppSpacing.lg),
 
-                        // Input Email Address
+                        // Input Password Baru
                         Text(
-                          'Email Address',
+                          'Kata Sandi Baru',
                           style: AppTextStyles.title.copyWith(fontSize: 13),
                         ),
                         const SizedBox(height: AppSpacing.xs),
                         TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            hintText: 'nama@email.com',
-                            prefixIcon: Icon(Icons.email_outlined, size: 20, color: AppColors.textSecondary),
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          decoration: InputDecoration(
+                            hintText: 'Masukkan kata sandi baru',
+                            prefixIcon: const Icon(Icons.lock_outline, size: 20, color: AppColors.textSecondary),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                size: 20,
+                                color: AppColors.textSecondary,
+                              ),
+                              onPressed: () {
+                                setState(() => _obscurePassword = !_obscurePassword);
+                              },
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Email tidak boleh kosong';
+                              return 'Kata sandi tidak boleh kosong';
                             }
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                              return 'Format email tidak valid';
+                            if (value.length < 6) {
+                              return 'Minimal 6 karakter';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        // Input Konfirmasi Password
+                        Text(
+                          'Konfirmasi Kata Sandi Baru',
+                          style: AppTextStyles.title.copyWith(fontSize: 13),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        TextFormField(
+                          controller: _confirmPasswordController,
+                          obscureText: _obscureConfirmPassword,
+                          decoration: InputDecoration(
+                            hintText: 'Ulangi kata sandi baru',
+                            prefixIcon: const Icon(Icons.gpp_good_outlined, size: 20, color: AppColors.textSecondary),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                size: 20,
+                                color: AppColors.textSecondary,
+                              ),
+                              onPressed: () {
+                                setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                              },
+                            ),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Konfirmasi kata sandi tidak boleh kosong';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'Kata sandi tidak cocok';
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: AppSpacing.xl),
 
-                        // Tombol Kirim Instruksi
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleSendInstructions,
+                            onPressed: _isLoading ? null : _handleResetPassword,
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
@@ -182,38 +247,18 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        'Kirim Instruksi',
+                                        'Simpan Kata Sandi',
                                         style: AppTextStyles.button.copyWith(fontSize: 15),
                                       ),
-                                      const SizedBox(width: 8),
-                                      const Icon(Icons.play_arrow_outlined, size: 18),
                                     ],
                                   ),
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.xl),
-
-                        // Footer Kembali ke Login
-                        Center(
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              '← Kembali ke Login',
-                              style: AppTextStyles.caption.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
+                        const SizedBox(height: AppSpacing.md),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
               ],
             ),
           ),

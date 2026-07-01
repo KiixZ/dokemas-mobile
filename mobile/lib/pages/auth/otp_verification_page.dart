@@ -1,49 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
-import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import 'otp_verification_page.dart';
+import 'reset_password_page.dart';
 
+class OtpVerificationPage extends StatefulWidget {
+  final String email;
 
-class ForgotPasswordPage extends StatefulWidget {
-  const ForgotPasswordPage({super.key});
+  const OtpVerificationPage({super.key, required this.email});
 
   @override
-  State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
+  State<OtpVerificationPage> createState() => _OtpVerificationPageState();
 }
 
-class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
+class _OtpVerificationPageState extends State<OtpVerificationPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _otpController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _otpController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleSendInstructions() async {
+  Future<void> _handleVerifyOtp() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      
-      final email = _emailController.text.trim();
+
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      
-      final error = await authProvider.forgotPassword(email);
-      
+      final error = await authProvider.verifyOtp(widget.email, _otpController.text.trim());
+
       setState(() => _isLoading = false);
-      
+
       if (!mounted) return;
 
       if (error == null) {
-        // Berhasil, pindah ke halaman verifikasi OTP
-        Navigator.push(
+        // Berhasil, pindah ke halaman Reset Password
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => OtpVerificationPage(email: email),
+            builder: (context) => ResetPasswordPage(email: widget.email, otp: _otpController.text.trim()),
           ),
         );
       } else {
@@ -54,6 +53,31 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           ),
         );
       }
+    }
+  }
+
+  Future<void> _handleResendOtp() async {
+    setState(() => _isLoading = true);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final error = await authProvider.forgotPassword(widget.email);
+    setState(() => _isLoading = false);
+    
+    if (!mounted) return;
+    
+    if (error == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('OTP telah dikirim ulang ke email Anda.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: AppColors.danger,
+        ),
+      );
     }
   }
 
@@ -68,8 +92,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: AppSpacing.lg),
-                // Card Utama
                 Container(
                   width: double.infinity,
                   constraints: const BoxConstraints(maxWidth: 400),
@@ -90,15 +112,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Tombol Back di kiri atas card
                         IconButton(
                           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
+                          onPressed: () => Navigator.pop(context),
                         ),
                         
-                        // Logo Bulat Minimalis dengan Ikon Kunci/Lock Reset
                         Center(
                           child: Container(
                             width: 80,
@@ -108,7 +126,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
-                              Icons.lock_reset, // Ikon gembok dengan lingkaran tanda panah
+                              Icons.pin_outlined,
                               color: AppColors.primary,
                               size: 40,
                             ),
@@ -116,10 +134,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         ),
                         const SizedBox(height: AppSpacing.md),
 
-                        // Judul & Sub-judul
                         Center(
                           child: Text(
-                            'Lupa Kata Sandi?',
+                            'Verifikasi OTP',
                             style: AppTextStyles.heading1.copyWith(color: AppColors.primary),
                           ),
                         ),
@@ -128,7 +145,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                             child: Text(
-                              'Masukkan email Anda untuk menerima instruksi pemulihan kata sandi',
+                              'Masukkan 6 digit kode OTP yang telah dikirim ke ${widget.email}',
                               textAlign: TextAlign.center,
                               style: AppTextStyles.caption.copyWith(fontSize: 13),
                             ),
@@ -136,36 +153,37 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         ),
                         const SizedBox(height: AppSpacing.lg),
 
-                        // Input Email Address
                         Text(
-                          'Email Address',
+                          'Kode OTP',
                           style: AppTextStyles.title.copyWith(fontSize: 13),
                         ),
                         const SizedBox(height: AppSpacing.xs),
                         TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
+                          controller: _otpController,
+                          keyboardType: TextInputType.number,
+                          maxLength: 6,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.heading1.copyWith(letterSpacing: 8),
                           decoration: const InputDecoration(
-                            hintText: 'nama@email.com',
-                            prefixIcon: Icon(Icons.email_outlined, size: 20, color: AppColors.textSecondary),
+                            hintText: '000000',
+                            counterText: '',
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Email tidak boleh kosong';
+                              return 'OTP tidak boleh kosong';
                             }
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                              return 'Format email tidak valid';
+                            if (value.length != 6) {
+                              return 'OTP harus 6 digit';
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: AppSpacing.xl),
 
-                        // Tombol Kirim Instruksi
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _isLoading ? null : _handleSendInstructions,
+                            onPressed: _isLoading ? null : _handleVerifyOtp,
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
@@ -182,25 +200,20 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        'Kirim Instruksi',
+                                        'Verifikasi',
                                         style: AppTextStyles.button.copyWith(fontSize: 15),
                                       ),
-                                      const SizedBox(width: 8),
-                                      const Icon(Icons.play_arrow_outlined, size: 18),
                                     ],
                                   ),
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.xl),
+                        const SizedBox(height: AppSpacing.lg),
 
-                        // Footer Kembali ke Login
                         Center(
                           child: GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
+                            onTap: _isLoading ? null : _handleResendOtp,
                             child: Text(
-                              '← Kembali ke Login',
+                              'Kirim Ulang OTP',
                               style: AppTextStyles.caption.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.primary,
@@ -208,12 +221,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.sm),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
               ],
             ),
           ),
