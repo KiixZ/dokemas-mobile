@@ -26,9 +26,12 @@ class ItineraryDetailPage extends StatefulWidget {
 class _ItineraryDetailPageState extends State<ItineraryDetailPage> {
   DateTime? _selectedDate;
 
+  late ItineraryProvider _itineraryProvider;
+
   @override
   void initState() {
     super.initState();
+    _itineraryProvider = context.read<ItineraryProvider>();
 
     // Fetch detail itinerary dari API
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -39,7 +42,7 @@ class _ItineraryDetailPageState extends State<ItineraryDetailPage> {
   @override
   void dispose() {
     // Bersihkan selected itinerary saat keluar halaman
-    context.read<ItineraryProvider>().clearSelectedItinerary();
+    _itineraryProvider.clearSelectedItinerary();
     super.dispose();
   }
 
