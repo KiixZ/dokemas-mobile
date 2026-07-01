@@ -7,9 +7,16 @@ class DestinationImage {
   const DestinationImage({required this.id, required this.imageUrl});
 
   factory DestinationImage.fromJson(Map<String, dynamic> json) {
+    String rawThumb = (json['image_url'] ?? '').toString();
+    String parsedUrl = rawThumb;
+    if (rawThumb.isNotEmpty && !rawThumb.startsWith('http')) {
+      parsedUrl = 'https://porto-backend-dokemas.rryxja.easypanel.host/storage/$rawThumb';
+    } else {
+      parsedUrl = rawThumb.replaceFirst('http://', 'https://');
+    }
     return DestinationImage(
       id: json['id'], 
-      imageUrl: (json['image_url'] ?? '').toString().replaceFirst('http://', 'https://')
+      imageUrl: parsedUrl,
     );
   }
 }
@@ -134,7 +141,13 @@ class Destination {
       lng: json['longitude'] != null
           ? double.tryParse(json['longitude'].toString())
           : null,
-      thumbnailUrl: (json['thumbnail_url'] ?? '').toString().replaceFirst('http://', 'https://'),
+      thumbnailUrl: () {
+        String rawThumb = (json['thumbnail_url'] ?? '').toString();
+        if (rawThumb.isNotEmpty && !rawThumb.startsWith('http')) {
+          return 'https://porto-backend-dokemas.rryxja.easypanel.host/storage/$rawThumb';
+        }
+        return rawThumb.replaceFirst('http://', 'https://');
+      }(),
       facilities: json['facilities'] != null
           ? (json['facilities'] as List)
                 .map((e) => Facility.fromJson(e))

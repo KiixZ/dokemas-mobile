@@ -77,7 +77,7 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
   }
 
   void _showPilihItineraryDialog(BuildContext context) {
-    final itineraries = context.read<ItineraryProvider>().itineraries;
+    final itineraries = context.read<ItineraryProvider>().activeItineraries;
 
     showDialog(
       context: context,

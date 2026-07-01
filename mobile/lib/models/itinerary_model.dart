@@ -120,7 +120,14 @@ class ItineraryItemModel {
     if (json['destination'] != null && json['destination'] is Map) {
       final dest = json['destination'] as Map<String, dynamic>;
       destName = dest['name'] ?? '';
-      destThumbnail = dest['thumbnail_url'] ?? '';
+      
+      String rawThumb = (dest['thumbnail_url'] ?? dest['image_url'] ?? '').toString();
+      if (rawThumb.isNotEmpty && !rawThumb.startsWith('http')) {
+        destThumbnail = 'https://porto-backend-dokemas.rryxja.easypanel.host/storage/$rawThumb';
+      } else {
+        destThumbnail = rawThumb.replaceFirst('http://', 'https://');
+      }
+      
       destAddress = dest['address'] ?? '';
       destId = dest['id'];
 
