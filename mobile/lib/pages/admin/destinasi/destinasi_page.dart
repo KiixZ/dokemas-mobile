@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import '../../../models/destination.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../config/api_config.dart';
 import 'tambah_destinasi_page.dart';
@@ -42,7 +42,9 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
       }
 
       // We ask for a large per_page just to get everything for now, or handle pagination later.
-      final resDest = await http.get(Uri.parse('${ApiConfig.destinations}?per_page=100'));
+      final resDest = await http.get(
+        Uri.parse('${ApiConfig.destinations}?per_page=100'),
+      );
       if (resDest.statusCode == 200) {
         final data = jsonDecode(resDest.body);
         final List<dynamic> items = data['data'] ?? [];
@@ -58,12 +60,14 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
   List<Destination> get _visible {
     return _items.where((d) {
       final okFilter = _filter == 'All' || d.category == _filter;
-      final okQuery = _query.isEmpty ||
+      final okQuery =
+          _query.isEmpty ||
           d.name.toLowerCase().contains(_query.toLowerCase()) ||
           d.area.toLowerCase().contains(_query.toLowerCase());
       return okFilter && okQuery;
     }).toList();
   }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -77,7 +81,11 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
         // Search
         Padding(
           padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.sm),
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.sm,
+          ),
           child: TextField(
             onChanged: (v) => setState(() => _query = v),
             decoration: InputDecoration(
@@ -85,8 +93,10 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
               prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
               filled: true,
               fillColor: AppColors.surface,
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 0,
+                horizontal: 12,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppSpacing.radius),
                 borderSide: const BorderSide(color: AppColors.border),
@@ -120,7 +130,9 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
                 onSelected: (_) => setState(() => _filter = f),
                 showCheckmark: false,
                 labelStyle: TextStyle(
-                  color: selected ? AppColors.onPrimary : AppColors.textSecondary,
+                  color: selected
+                      ? AppColors.onPrimary
+                      : AppColors.textSecondary,
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
                 ),
@@ -142,12 +154,18 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
         Expanded(
           child: items.isEmpty
               ? const Center(
-                  child: Text('Tidak ada destinasi',
-                      style: AppTextStyles.caption),
+                  child: Text(
+                    'Tidak ada destinasi',
+                    style: AppTextStyles.caption,
+                  ),
                 )
               : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(AppSpacing.md, 0,
-                      AppSpacing.md, AppSpacing.xl),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    0,
+                    AppSpacing.md,
+                    AppSpacing.xl,
+                  ),
                   itemCount: items.length,
                   separatorBuilder: (_, _) =>
                       const SizedBox(height: AppSpacing.md),
@@ -176,7 +194,9 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Hapus destinasi?'),
-        content: Text('Yakin hapus "${d.name}"? Aksi ini tidak bisa dibatalkan.'),
+        content: Text(
+          'Yakin hapus "${d.name}"? Aksi ini tidak bisa dibatalkan.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -184,8 +204,10 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hapus',
-                style: TextStyle(color: AppColors.danger)),
+            child: const Text(
+              'Hapus',
+              style: TextStyle(color: AppColors.danger),
+            ),
           ),
         ],
       ),
@@ -216,9 +238,9 @@ class _AdminDestinasiPageState extends State<AdminDestinasiPage> {
         }
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $e')));
         }
       }
     }
@@ -258,8 +280,11 @@ class _DestinationCard extends StatelessWidget {
                 color: AppColors.background,
                 child: dest.thumbnailUrl.isNotEmpty
                     ? Image.network(dest.thumbnailUrl, fit: BoxFit.cover)
-                    : const Icon(Icons.image_outlined,
-                        size: 40, color: AppColors.textMuted),
+                    : const Icon(
+                        Icons.image_outlined,
+                        size: 40,
+                        color: AppColors.textMuted,
+                      ),
               ),
               Positioned(
                 top: AppSpacing.sm,
@@ -277,8 +302,11 @@ class _DestinationCard extends StatelessWidget {
                 // Lokasi • kategori
                 Row(
                   children: [
-                    const Icon(Icons.location_on_outlined,
-                        size: 14, color: AppColors.textMuted),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: AppColors.textMuted,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -299,16 +327,18 @@ class _DestinationCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.star,
-                            size: 16, color: AppColors.accent),
+                        const Icon(
+                          Icons.star,
+                          size: 16,
+                          color: AppColors.accent,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           dest.rating.toString(),
                           style: AppTextStyles.title,
                         ),
                         const SizedBox(width: 4),
-                        Text('(${dest.reviews})',
-                            style: AppTextStyles.caption),
+                        Text('(${dest.reviews})', style: AppTextStyles.caption),
                       ],
                     ),
                     Text(
@@ -329,14 +359,18 @@ class _DestinationCard extends StatelessWidget {
                   children: [
                     IconButton(
                       onPressed: onEdit,
-                      icon: const Icon(Icons.edit_outlined,
-                          color: AppColors.primary),
+                      icon: const Icon(
+                        Icons.edit_outlined,
+                        color: AppColors.primary,
+                      ),
                       tooltip: 'Edit',
                     ),
                     IconButton(
                       onPressed: onDelete,
-                      icon: const Icon(Icons.delete_outline,
-                          color: AppColors.danger),
+                      icon: const Icon(
+                        Icons.delete_outline,
+                        color: AppColors.danger,
+                      ),
                       tooltip: 'Hapus',
                     ),
                   ],

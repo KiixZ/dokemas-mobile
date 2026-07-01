@@ -53,12 +53,22 @@ class Review {
     return DateFormat('MMM dd, yyyy').format(createdAt);
   }
 
+  static String? _parseAvatar(dynamic avatarStr) {
+    if (avatarStr == null) return null;
+    final String avatar = avatarStr.toString();
+    if (avatar.isEmpty) return null;
+    if (avatar.startsWith('http')) {
+      return avatar.replaceFirst('http://', 'https://');
+    }
+    return 'https://porto-backend-dokemas.rryxja.easypanel.host/storage/$avatar';
+  }
+
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
       id: json['id'],
       userId: json['user_id'] ?? json['user']?['id'] ?? 0,
       userName: json['user']?['name'] ?? 'Unknown',
-      userAvatar: json['user']?['avatar'],
+      userAvatar: _parseAvatar(json['user']?['avatar']),
       destinationId: json['destination_id'] ?? json['destination']?['id'] ?? 0,
       destinationName: json['destination']?['name'] ?? 'Unknown Destination',
       rating: (json['rating'] ?? 0).toDouble(),

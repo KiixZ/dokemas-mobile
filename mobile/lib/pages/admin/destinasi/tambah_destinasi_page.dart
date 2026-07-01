@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../models/destination.dart';
-import '../../../theme/app_colors.dart';
-import '../../../theme/app_spacing.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import '../../../models/destination.dart';
+import '../../../theme/app_colors.dart';
+import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../service/api_service.dart';
@@ -212,13 +213,23 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
 
     if (_images.isNotEmpty) {
       // Image pertama jadi thumbnail jika create. Jika edit, akan mengganti thumbnail lama (dan menambah galeri).
+      final thumbnailBytes = await _images[0].readAsBytes();
       request.files.add(
-        await http.MultipartFile.fromPath('thumbnail', _images[0].path),
+        http.MultipartFile.fromBytes(
+          'thumbnail',
+          thumbnailBytes,
+          filename: _images[0].name,
+        ),
       );
       // Semua gambar yang dipilih akan masuk ke galeri (termasuk gambar pertama).
       for (int j = 0; j < _images.length; j++) {
+        final imageBytes = await _images[j].readAsBytes();
         request.files.add(
-          await http.MultipartFile.fromPath('images[$j]', _images[j].path),
+          http.MultipartFile.fromBytes(
+            'images[$j]',
+            imageBytes,
+            filename: _images[j].name,
+          ),
         );
       }
     }
@@ -359,7 +370,10 @@ class _TambahDestinasiPageState extends State<TambahDestinasiPage> {
                                     AppSpacing.radius,
                                   ),
                                   image: DecorationImage(
-                                    image: FileImage(File(_images[index].path)),
+                                    image: kIsWeb
+                                        ? NetworkImage(_images[index].path)
+                                        : FileImage(File(_images[index].path))
+                                              as ImageProvider,
                                     fit: BoxFit.cover,
                                   ),
                                 ),

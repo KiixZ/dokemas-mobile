@@ -36,6 +36,10 @@ class _LoginPageState extends State<LoginPage> {
       final email = _emailController.text.trim();
       final password = _passwordController.text;
 
+      final navigator = Navigator.of(context, rootNavigator: true);
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
       // Tampilkan Loading
       showDialog(
         context: context,
@@ -43,50 +47,45 @@ class _LoginPageState extends State<LoginPage> {
         builder: (context) => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
       );
 
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final errorMessage = await authProvider.login(email, password);
 
-      if (!mounted) return;
-      Navigator.pop(context); // Tutup Loading
+      navigator.pop(); // Tutup Loading
 
       if (errorMessage == null) {
-
-      // --- TAMBAHKAN LOGIKA DI SINI ---
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
-      // Simpan nama user dari data user yang didapat dari authProvider
-      await prefs.setString('userName', authProvider.user?.name ?? 'User'); 
-      // --------------------------------
+        // --- TAMBAHKAN LOGIKA DI SINI ---
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        // Simpan nama user dari data user yang didapat dari authProvider
+        await prefs.setString('userName', authProvider.user?.name ?? 'User'); 
+        // --------------------------------
 
         if (authProvider.user?.role == 'admin') {
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.showSnackBar(
             const SnackBar(
               content: Text('Login sukses sebagai Admin!'),
               backgroundColor: AppColors.success,
               duration: Duration(seconds: 2),
             ),
           );
-          Navigator.pushAndRemoveUntil(
-            context,
+          navigator.pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const AdminShell()),
             (route) => false,
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.showSnackBar(
             const SnackBar(
               content: Text('Login sukses!'),
               backgroundColor: AppColors.success,
               duration: Duration(seconds: 2),
             ),
           );
-          Navigator.pushAndRemoveUntil(
-            context,
+          navigator.pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => const MainScreen()),
             (route) => false,
           );
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(errorMessage), // Tampilkan pesan error asli dari API
             backgroundColor: Colors.red,

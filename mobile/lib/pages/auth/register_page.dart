@@ -48,7 +48,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final errorMessage = await authProvider.register(name, email, password, confirmPassword);
 
       if (!mounted) return;
-      Navigator.pop(context); // Tutup Loading
+      Navigator.of(context, rootNavigator: true).pop(); // Tutup Loading
 
       if (errorMessage == null) {
         ScaffoldMessenger.of(context).showSnackBar(

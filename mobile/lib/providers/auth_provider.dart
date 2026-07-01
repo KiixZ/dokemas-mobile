@@ -44,7 +44,7 @@ class AuthProvider with ChangeNotifier {
           'Authorization': 'Bearer $_token',
           'Accept': 'application/json',
         },
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -73,7 +73,7 @@ class AuthProvider with ChangeNotifier {
           'email': email,
           'password': password,
         }),
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -114,7 +114,7 @@ class AuthProvider with ChangeNotifier {
           'password': password,
           'password_confirmation': passwordConfirmation,
         }),
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);

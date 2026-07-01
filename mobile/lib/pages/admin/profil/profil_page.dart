@@ -97,28 +97,7 @@ class AdminProfilPage extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.md),
 
-        _MenuSection(
-          title: 'Aplikasi',
-          items: [
-            _MenuItem(
-              icon: Icons.notifications_outlined,
-              label: 'Notifikasi',
-              onTap: () => _soon(context),
-            ),
-            _MenuItem(
-              icon: Icons.help_outline,
-              label: 'Bantuan',
-              onTap: () => _soon(context),
-            ),
-            _MenuItem(
-              icon: Icons.info_outline,
-              label: 'Tentang DOKEMAS',
-              onTap: () => _soon(context),
-            ),
-          ],
-        ),
         const SizedBox(height: AppSpacing.lg),
 
         // Logout

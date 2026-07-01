@@ -7,6 +7,8 @@ import '../models/itinerary_model.dart';
 import 'user/itinerary/itinerary_list_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'auth/login_page.dart';
+import '../models/review.dart';
+import '../service/api_service.dart';
 
 class DetailDestinasiScreen extends StatefulWidget {
   // Deklarasi variabel penampung data dinamis dari beranda
@@ -42,6 +44,38 @@ class DetailDestinasiScreen extends StatefulWidget {
 }
 
 class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
+  List<Review> _reviews = [];
+  bool _isLoadingReviews = true;
+  String? _reviewError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchReviews();
+  }
+
+  Future<void> _fetchReviews() async {
+    setState(() {
+      _isLoadingReviews = true;
+      _reviewError = null;
+    });
+    try {
+      final apiService = ApiService();
+      final fetchedReviews = await apiService.fetchDestinationReviews(widget.destinationId);
+      if (!mounted) return;
+      setState(() {
+        _reviews = fetchedReviews;
+        _isLoadingReviews = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _reviewError = e.toString();
+        _isLoadingReviews = false;
+      });
+    }
+  }
+
   void _showPilihItineraryDialog(BuildContext context) {
     final itineraries = context.read<ItineraryProvider>().itineraries;
 
@@ -772,14 +806,17 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                               ),
                             ),
                             TextButton(
-                              onPressed: () {
-                                Navigator.push(
+                              onPressed: () async {
+                                await Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        const DaftarUlasanScreen(),
+                                    builder: (context) => DaftarUlasanScreen(
+                                      destinationId: widget.destinationId,
+                                      destinationTitle: widget.title,
+                                    ),
                                   ),
                                 );
+                                _fetchReviews();
                               },
                               child: const Row(
                                 children: [
@@ -984,6 +1021,33 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
   }
 
   Widget _buildReviewCard() {
+    if (_isLoadingReviews) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_reviewError != null) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Center(child: Text('Gagal memuat ulasan', style: TextStyle(color: Colors.red))),
+      );
+    }
+    if (_reviews.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.15)),
+        ),
+        child: const Center(
+          child: Text('Belum ada ulasan untuk destinasi ini.'),
+        ),
+      );
+    }
+    
+    final review = _reviews.first;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -996,28 +1060,31 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
         children: [
           Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 20,
-                backgroundImage: NetworkImage(
-                  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-                ),
+                backgroundImage: review.userAvatar != null && review.userAvatar!.isNotEmpty
+                    ? NetworkImage(review.userAvatar!)
+                    : null,
+                child: (review.userAvatar == null || review.userAvatar!.isEmpty) 
+                    ? Text(review.initial)
+                    : null,
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Siti Rahmawati',
-                      style: TextStyle(
+                      review.userName,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Color(0xff0d1e3d),
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      '2 hari yang lalu',
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                      review.date,
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
                     ),
                   ],
                 ),
@@ -1025,15 +1092,18 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
               Row(
                 children: List.generate(
                   5,
-                  (index) =>
-                      const Icon(Icons.star, color: Colors.amber, size: 14),
+                  (index) => Icon(
+                    Icons.star, 
+                    color: index < review.rating ? Colors.amber : Colors.grey[300], 
+                    size: 14
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
-            'Tempatnya sangat sejuk and bersih. Air terjunnya indah banget buat foto-foto. Fasilitas lengkap, parkiran luas. Recommended banget buat liburan bareng keluarga.',
+            review.comment,
             style: TextStyle(
               fontSize: 13,
               color: Colors.grey[700],
@@ -1048,32 +1118,53 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
 
 // --- SCREEN DAFTAR ULASAN ---
 class DaftarUlasanScreen extends StatefulWidget {
-  const DaftarUlasanScreen({super.key});
+  final int destinationId;
+  final String destinationTitle;
+
+  const DaftarUlasanScreen({
+    super.key,
+    required this.destinationId,
+    required this.destinationTitle,
+  });
 
   @override
   State<DaftarUlasanScreen> createState() => _DaftarUlasanScreenState();
 }
 
 class _DaftarUlasanScreenState extends State<DaftarUlasanScreen> {
-  final List<Map<String, dynamic>> _reviewsList = [
-    {
-      'nama': 'Budi Santoso',
-      'waktu': '1 minggu yang lalu',
-      'rating': 5,
-      'isi': 'Suasananya asri sekali, akses jalan mudah dijangkau.',
-    },
-    {
-      'nama': 'Ahmad Fauzi',
-      'waktu': '3 hari yang lalu',
-      'rating': 4,
-      'isi': 'Udara segar, tapi kalau weekend agak ramai.',
-    },
-  ];
+  List<Review> _reviewsList = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchReviews();
+  }
+
+  Future<void> _fetchReviews() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      final reviews = await ApiService().fetchDestinationReviews(widget.destinationId);
+      setState(() {
+        _reviewsList = reviews;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   void _showTulisUlasanDialog(BuildContext context) {
-    String namaInput = "";
     String ulasanInput = "";
     int selectedStars = 5;
+    bool isSubmitting = false;
 
     showDialog(
       context: context,
@@ -1096,27 +1187,6 @@ class _DaftarUlasanScreenState extends State<DaftarUlasanScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Nama Lengkap',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    TextField(
-                      onChanged: (value) => namaInput = value,
-                      decoration: InputDecoration(
-                        hintText: 'Masukkan nama Anda...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 14),
                     const Text(
                       'Berikan Rating',
@@ -1177,34 +1247,60 @@ class _DaftarUlasanScreenState extends State<DaftarUlasanScreen> {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
-                  onPressed: () {
-                    if (namaInput.isNotEmpty && ulasanInput.isNotEmpty) {
-                      setState(() {
-                        _reviewsList.insert(0, {
-                          'nama': namaInput,
-                          'waktu': 'Baru saja',
-                          'rating': selectedStars,
-                          'isi': ulasanInput,
-                        });
+                  onPressed: isSubmitting ? null : () async {
+                    if (ulasanInput.trim().isNotEmpty) {
+                      setDialogState(() {
+                        isSubmitting = true;
                       });
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Ulasan berhasil disimpan!'),
-                        ),
-                      );
+                      try {
+                        final token = context.read<AuthProvider>().token!;
+                        final newReview = await ApiService().postReview(
+                          token: token,
+                          destinationId: widget.destinationId,
+                          rating: selectedStars,
+                          comment: ulasanInput.trim(),
+                        );
+                        setState(() {
+                          _reviewsList.insert(0, newReview);
+                        });
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Ulasan berhasil disimpan!'),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        setDialogState(() {
+                          isSubmitting = false;
+                        });
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(e.toString()),
+                            ),
+                          );
+                        }
+                      }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Harap isi Nama dan Ulasan Anda!'),
+                          content: Text('Harap isi Ulasan Anda!'),
                         ),
                       );
                     }
                   },
-                  child: const Text(
-                    'Kirim Ulasan',
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Kirim Ulasan',
+                          style: TextStyle(color: Colors.white),
+                        ),
                 ),
               ],
             );
@@ -1254,22 +1350,27 @@ class _DaftarUlasanScreenState extends State<DaftarUlasanScreen> {
           ),
         ],
       ),
-      body: _reviewsList.isEmpty
-          ? const Center(child: Text('Belum ada ulasan.'))
-          : ListView.separated(
-              padding: const EdgeInsets.all(20),
-              itemCount: _reviewsList.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final item = _reviewsList[index];
-                return ItemReviewCard(
-                  nama: item['nama'],
-                  waktu: item['waktu'],
-                  rating: item['rating'],
-                  isi: item['isi'],
-                );
-              },
-            ),
+      body: _isLoading 
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(child: Text('Error: $_errorMessage'))
+              : _reviewsList.isEmpty
+                  ? const Center(child: Text('Belum ada ulasan.'))
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: _reviewsList.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final item = _reviewsList[index];
+                        return ItemReviewCard(
+                          nama: item.userName,
+                          waktu: item.date,
+                          rating: item.rating.toInt(),
+                          isi: item.comment,
+                          avatarUrl: item.userAvatar,
+                        );
+                      },
+                    ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           // Modifikasi logika di FloatingActionButton
@@ -1305,6 +1406,7 @@ class ItemReviewCard extends StatelessWidget {
   final String waktu;
   final int rating;
   final String isi;
+  final String? avatarUrl;
 
   const ItemReviewCard({
     super.key,
@@ -1312,6 +1414,7 @@ class ItemReviewCard extends StatelessWidget {
     required this.waktu,
     required this.rating,
     required this.isi,
+    this.avatarUrl,
   });
 
   @override
@@ -1328,11 +1431,14 @@ class ItemReviewCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 18,
-                backgroundImage: NetworkImage(
-                  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-                ),
+                backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
+                    ? NetworkImage(avatarUrl!)
+                    : null,
+                child: (avatarUrl == null || avatarUrl!.isEmpty)
+                    ? Text(nama.isNotEmpty ? nama[0].toUpperCase() : '?')
+                    : null,
               ),
               const SizedBox(width: 10),
               Expanded(

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import '../../../models/category.dart';
 import '../../../theme/app_colors.dart';
 import '../../../theme/app_spacing.dart';
 import '../../../theme/app_text_styles.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../config/api_config.dart';
+
 /// Form tambah/edit kategori (UI only, belum simpan ke backend).
 /// Kirim [existing] buat mode edit (field ter-isi).
 class TambahKategoriPage extends StatefulWidget {
@@ -20,8 +21,7 @@ class TambahKategoriPage extends StatefulWidget {
 
 class _TambahKategoriPageState extends State<TambahKategoriPage> {
   final _formKey = GlobalKey<FormState>();
-  late final _nama =
-      TextEditingController(text: widget.existing?.name ?? '');
+  late final _nama = TextEditingController(text: widget.existing?.name ?? '');
   late IconData _icon = widget.existing?.icon ?? categoryIconOptions.first;
   late bool _active = widget.existing?.active ?? true;
 
@@ -37,7 +37,7 @@ class _TambahKategoriPageState extends State<TambahKategoriPage> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     setState(() => _isSaving = true);
     final token = context.read<AuthProvider>().token;
 
@@ -77,23 +77,27 @@ class _TambahKategoriPageState extends State<TambahKategoriPage> {
         Navigator.of(context).pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_isEdit
-                ? 'Kategori berhasil diperbarui'
-                : 'Kategori berhasil ditambahkan'),
+            content: Text(
+              _isEdit
+                  ? 'Kategori berhasil diperbarui'
+                  : 'Kategori berhasil ditambahkan',
+            ),
           ),
         );
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan kategori: ${response.statusCode}')),
+          SnackBar(
+            content: Text('Gagal menyimpan kategori: ${response.statusCode}'),
+          ),
         );
       }
     } catch (e) {
       setState(() => _isSaving = false);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
     }
   }
 
@@ -164,11 +168,13 @@ class _TambahKategoriPageState extends State<TambahKategoriPage> {
                         color: selected
                             ? AppColors.primary
                             : AppColors.background,
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusSm),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusSm,
+                        ),
                         border: Border.all(
-                          color:
-                              selected ? AppColors.primary : AppColors.border,
+                          color: selected
+                              ? AppColors.primary
+                              : AppColors.border,
                         ),
                       ),
                       child: Icon(
@@ -214,7 +220,8 @@ class _TambahKategoriPageState extends State<TambahKategoriPage> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2))
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
                     : const Icon(Icons.save_outlined),
                 label: Text(_isEdit ? 'Simpan Perubahan' : 'Simpan Kategori'),
                 style: ElevatedButton.styleFrom(
@@ -235,24 +242,23 @@ class _TambahKategoriPageState extends State<TambahKategoriPage> {
   }
 
   InputDecoration _dec(String hint) => InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: AppColors.surface,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radius),
-          borderSide: const BorderSide(color: AppColors.primary),
-        ),
-      );
+    hintText: hint,
+    filled: true,
+    fillColor: AppColors.surface,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radius),
+      borderSide: const BorderSide(color: AppColors.border),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radius),
+      borderSide: const BorderSide(color: AppColors.border),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radius),
+      borderSide: const BorderSide(color: AppColors.primary),
+    ),
+  );
 }
 
 class _Label extends StatelessWidget {

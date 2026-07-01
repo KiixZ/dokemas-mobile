@@ -24,9 +24,10 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isDarkModeEnabled = false;
 
   void _showLogoutDialog() {
+    final parentContext = context;
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
+      context: parentContext,
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radius),
         ),
@@ -39,7 +40,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text(
               'Batal',
               style: TextStyle(color: AppColors.textSecondary),
@@ -47,37 +48,35 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context); // Tutup dialog
+              Navigator.pop(dialogContext); // Tutup dialog konfirmasi
+
+              final navigator = Navigator.of(parentContext, rootNavigator: true);
+              final scaffoldMessenger = ScaffoldMessenger.of(parentContext);
+              final authProvider = Provider.of<AuthProvider>(parentContext, listen: false);
 
               // Tampilkan indikator loading (opsional tapi bagus)
               showDialog(
-                context: context,
+                context: parentContext,
                 barrierDismissible: false,
                 builder: (context) => const Center(
                   child: CircularProgressIndicator(color: AppColors.primary),
                 ),
               );
 
-              final authProvider = Provider.of<AuthProvider>(
-                context,
-                listen: false,
-              );
               await authProvider.logout();
 
-              if (!context.mounted) return;
-              Navigator.pop(context); // Tutup loading dialog
+              navigator.pop(); // Tutup loading dialog
 
               // Tidak perlu pushAndRemoveUntil secara manual ke layar Guest jika state diatur oleh AuthProvider
               // karena auth_provider akan notifyListeners() dan merender GuestProfilePage, tapi untuk amannya
               // kita arahkan ulang ke MainScreen
-              Navigator.pushAndRemoveUntil(
-                context,
+              navigator.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => const MainScreen()),
                 (route) => false,
               );
 
-              ScaffoldMessenger.of(context).clearSnackBars();
-              ScaffoldMessenger.of(context).showSnackBar(
+              scaffoldMessenger.clearSnackBars();
+              scaffoldMessenger.showSnackBar(
                 SnackBar(
                   content: const Text('Anda telah keluar dari akun'),
                   behavior: SnackBarBehavior.floating,
