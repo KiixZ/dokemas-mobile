@@ -22,6 +22,12 @@ class _ExplorePageState extends State<ExplorePage> {
   // Default filter kategori diganti 'Semua'
   String _selectedCategory = 'Semua';
 
+  // Filter variables from Bottom Sheet
+  String _selectedHarga = '';
+  String _selectedJarak = '';
+  String _selectedRating = '';
+  List<String> _selectedFasilitas = [];
+
   // Menggabungkan 'Semua' dengan list kategori yang ada di file model temanmu
   final List<String> _tags = ['Semua', ...destinationCategories];
 
@@ -160,7 +166,25 @@ class _ExplorePageState extends State<ExplorePage> {
         ),
         const SizedBox(width: 12),
         InkWell(
-          onTap: () => showFilterBottomSheet(context),
+          onTap: () async {
+            final result = await showFilterBottomSheet(
+              context,
+              initialHarga: _selectedHarga,
+              initialJarak: _selectedJarak,
+              initialRating: _selectedRating,
+              initialKategori: _selectedCategory == 'Semua' ? '' : _selectedCategory,
+              initialFasilitas: List.from(_selectedFasilitas),
+            );
+            if (result != null) {
+              setState(() {
+                _selectedHarga = result['harga'];
+                _selectedJarak = result['jarak'];
+                _selectedRating = result['rating'];
+                _selectedCategory = result['kategori'].isEmpty ? 'Semua' : result['kategori'];
+                _selectedFasilitas = result['fasilitas'];
+              });
+            }
+          },
           borderRadius: BorderRadius.circular(12),
           child: Container(
             height: 50,
@@ -263,7 +287,36 @@ class _ExplorePageState extends State<ExplorePage> {
               _selectedCategory == 'Semua' ||
               item.category == _selectedCategory;
 
-          return matchesSearch && matchesCategory;
+          bool matchesRating = true;
+          if (_selectedRating == '★ 4.0+') {
+            matchesRating = item.rating >= 4.0;
+          } else if (_selectedRating == '★ 4.5+') {
+            matchesRating = item.rating >= 4.5;
+          }
+
+          bool matchesHarga = true;
+          if (_selectedHarga == 'Gratis') {
+            matchesHarga = item.price == 0;
+          } else if (_selectedHarga == '< 10k') {
+            matchesHarga = item.price > 0 && item.price < 10000;
+          } else if (_selectedHarga == '10k - 25k') {
+            matchesHarga = item.price >= 10000 && item.price <= 25000;
+          } else if (_selectedHarga == '> 25k') {
+            matchesHarga = item.price > 25000;
+          }
+
+          bool matchesFasilitas = true;
+          if (_selectedFasilitas.isNotEmpty) {
+             final itemFasilitas = item.facilities.map((e) => e.name).toList();
+             for (var fas in _selectedFasilitas) {
+               if (!itemFasilitas.contains(fas)) {
+                 matchesFasilitas = false;
+                 break;
+               }
+             }
+          }
+
+          return matchesSearch && matchesCategory && matchesRating && matchesHarga && matchesFasilitas;
         }).toList();
 
         if (filteredItems.isEmpty) {

@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 
 // FUNGSI UTAMA UNTUK MENAMPILKAN FILTER
-void showFilterBottomSheet(BuildContext context) {
-  String selectedHarga = '< 10k';
-  String selectedJarak = '';
-  String selectedRating = '4.5+';
-  String selectedKategori = 'Air Terjun';
-  List<String> selectedFasilitas = ['Parkir Luas', 'Mushola'];
+Future<Map<String, dynamic>?> showFilterBottomSheet(
+  BuildContext context, {
+  String initialHarga = '',
+  String initialJarak = '',
+  String initialRating = '',
+  String initialKategori = '',
+  List<String>? initialFasilitas,
+}) {
+  String selectedHarga = initialHarga;
+  String selectedJarak = initialJarak;
+  String selectedRating = initialRating;
+  String selectedKategori = initialKategori;
+  List<String> selectedFasilitas = initialFasilitas ?? [];
 
-  showModalBottomSheet(
+  return showModalBottomSheet<Map<String, dynamic>>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
@@ -57,35 +64,43 @@ void showFilterBottomSheet(BuildContext context) {
                 _buildFilterRow(
                   ['Gratis', '< 10k', '10k - 25k', '> 25k'],
                   selectedHarga,
-                  (value) => setModalState(() => selectedHarga = value),
+                  (value) => setModalState(() {
+                    selectedHarga = selectedHarga == value ? '' : value;
+                  }),
                 ),
 
                 _buildFilterTitle('Jarak'),
                 _buildFilterRow(
                   ['< 5km', '5 - 10km', '> 10km'],
                   selectedJarak,
-                  (value) => setModalState(() => selectedJarak = value),
+                  (value) => setModalState(() {
+                    selectedJarak = selectedJarak == value ? '' : value;
+                  }),
                 ),
 
                 _buildFilterTitle('Rating'),
                 _buildFilterRow(
                   ['★ 4.0+', '★ 4.5+'],
                   selectedRating,
-                  (value) => setModalState(() => selectedRating = value),
+                  (value) => setModalState(() {
+                    selectedRating = selectedRating == value ? '' : value;
+                  }),
                 ),
 
                 _buildFilterTitle('Kategori'),
                 _buildFilterRow(
-                  ['Alam', 'Air Terjun', 'Budaya', 'Kuliner'],
+                  ['Alam', 'Air Terjun', 'Budaya', 'Kuliner', 'Keluarga', 'Edukasi', 'Religi'],
                   selectedKategori,
-                  (value) => setModalState(() => selectedKategori = value),
+                  (value) => setModalState(() {
+                    selectedKategori = selectedKategori == value ? '' : value;
+                  }),
                 ),
 
                 _buildFilterTitle('Fasilitas'),
                 Wrap(
                   spacing: 10,
                   runSpacing: 8,
-                  children: ['Parkir Luas', 'Toilet Umum', 'Mushola', 'Area Makan'].map((fasilitas) {
+                  children: ['Parkir', 'Toilet', 'Mushola', 'Warung', 'Gazebo', 'Spot Foto', 'Wahana Air', 'Penginapan', 'Wifi'].map((fasilitas) {
                     final isSelected = selectedFasilitas.contains(fasilitas);
                     return _buildFilterChip(
                       label: fasilitas,
@@ -122,7 +137,15 @@ void showFilterBottomSheet(BuildContext context) {
                     const SizedBox(width: 20),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          Navigator.pop(context, {
+                            'harga': selectedHarga,
+                            'jarak': selectedJarak,
+                            'rating': selectedRating,
+                            'kategori': selectedKategori,
+                            'fasilitas': selectedFasilitas,
+                          });
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xff028090),
                           padding: const EdgeInsets.symmetric(vertical: 14),
