@@ -1,4 +1,7 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../models/user_model.dart';
@@ -21,6 +24,10 @@ class _EditProfilPageState extends State<EditProfilPage> {
   late TextEditingController _emailController = TextEditingController(text: widget.user.email);
   bool _isLoading = false;
 
+  XFile? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+  bool _isImageChanged = false;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -28,14 +35,82 @@ class _EditProfilPageState extends State<EditProfilPage> {
     super.dispose();
   }
 
+  // Fungsi untuk mengambil gambar dari HP
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: source,
+        imageQuality: 80, // Kompres kualitas gambar
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = pickedFile;
+          _isImageChanged = true;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengambil gambar: $e'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
+  }
+
+  // Fungsi memunculkan pilihan bawah (Kamera / Galeri)
+  void _showImagePickerOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusLg),
+        ),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: AppColors.primary,
+                ),
+                title: Text('Pilih dari Galeri', style: AppTextStyles.body),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.photo_camera,
+                  color: AppColors.primary,
+                ),
+                title: Text('Ambil dari Kamera', style: AppTextStyles.body),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _processEditProfil() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
       final authProvider = context.read<AuthProvider>();
-      final error = await authProvider.updateProfileInfo(
-        _nameController.text,
-        _emailController.text,
+      final error = await authProvider.updateProfile(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        avatarFile: _isImageChanged ? _imageFile : null,
       );
 
       setState(() => _isLoading = false);
@@ -85,37 +160,47 @@ class _EditProfilPageState extends State<EditProfilPage> {
             // Avatar + tombol ganti foto
             Center(
               child: Stack(
+                alignment: Alignment.bottomRight,
                 children: [
-                  CircleAvatar(
-                    radius: 48,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                    child: Text(
-                      widget.user.name.isNotEmpty ? widget.user.name[0].toUpperCase() : '?',
-                      style: const TextStyle(
-                        color: AppColors.primaryDark,
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        width: 4,
                       ),
                     ),
+                    child: CircleAvatar(
+                      radius: 48,
+                      backgroundColor: AppColors.border,
+                      backgroundImage: _imageFile != null
+                          ? (kIsWeb ? NetworkImage(_imageFile!.path) : FileImage(File(_imageFile!.path))) as ImageProvider
+                          : NetworkImage(widget.user.avatarUrl),
+                      onBackgroundImageError: (exception, stackTrace) {},
+                      child: _imageFile == null && widget.user.avatarUrl.isEmpty
+                          ? Text(
+                              widget.user.name.isNotEmpty ? widget.user.name[0].toUpperCase() : '?',
+                              style: const TextStyle(
+                                color: AppColors.primaryDark,
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : null,
+                    ),
                   ),
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: InkWell(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Ganti foto (belum dibuat)')),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.camera_alt,
-                            size: 16, color: AppColors.onPrimary),
+                  GestureDetector(
+                    onTap: _showImagePickerOptions,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: AppColors.onPrimary,
+                        size: 16,
                       ),
                     ),
                   ),

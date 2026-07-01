@@ -21,7 +21,7 @@ class ReviewController extends Controller
     public function myReviews(Request $request)
     {
         return $request->user()->reviews()
-            ->with('destination:id,name,cover_image')
+            ->with('destination:id,name,thumbnail')
             ->latest()
             ->get();
     }

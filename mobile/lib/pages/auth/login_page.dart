@@ -44,7 +44,9 @@ class _LoginPageState extends State<LoginPage> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
       );
 
       final errorMessage = await authProvider.login(email, password);
@@ -56,7 +58,7 @@ class _LoginPageState extends State<LoginPage> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool('isLoggedIn', true);
         // Simpan nama user dari data user yang didapat dari authProvider
-        await prefs.setString('userName', authProvider.user?.name ?? 'User'); 
+        await prefs.setString('userName', authProvider.user?.name ?? 'User');
         // --------------------------------
 
         if (authProvider.user?.role == 'admin') {
@@ -132,7 +134,10 @@ class _LoginPageState extends State<LoginPage> {
                         Align(
                           alignment: Alignment.topLeft,
                           child: IconButton(
-                            icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: AppColors.primary,
+                            ),
                             onPressed: () => Navigator.pop(context),
                           ),
                         ),
@@ -153,12 +158,14 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         const SizedBox(height: AppSpacing.md),
-                        
+
                         // Judul & Sub-judul
                         Center(
                           child: Text(
                             'Explore Purwokerto',
-                            style: AppTextStyles.heading1.copyWith(color: AppColors.primary),
+                            style: AppTextStyles.heading1.copyWith(
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                         const SizedBox(height: AppSpacing.xs),
@@ -182,14 +189,20 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: const InputDecoration(
-                            hintText: 'user@gmail.com',
-                            prefixIcon: Icon(Icons.email_outlined, size: 20, color: AppColors.textSecondary),
+                            hintText: 'user@dokemas.test',
+                            prefixIcon: Icon(
+                              Icons.email_outlined,
+                              size: 20,
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Email tidak boleh kosong';
                             }
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                            if (!RegExp(
+                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                            ).hasMatch(value)) {
                               return 'Format email tidak valid';
                             }
                             return null;
@@ -209,7 +222,10 @@ class _LoginPageState extends State<LoginPage> {
                               onTap: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ForgotPasswordPage(),
+                                  ),
                                 );
                               },
                               child: Text(
@@ -227,16 +243,24 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _passwordController,
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
-                            hintText: 'password123',
-                            prefixIcon: const Icon(Icons.lock_outline, size: 20, color: AppColors.textSecondary),
+                            hintText: 'password',
+                            prefixIcon: const Icon(
+                              Icons.lock_outline,
+                              size: 20,
+                              color: AppColors.textSecondary,
+                            ),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                _obscurePassword
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
                                 size: 20,
                                 color: AppColors.textSecondary,
                               ),
                               onPressed: () {
-                                setState(() => _obscurePassword = !_obscurePassword);
+                                setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                );
                               },
                             ),
                           ),
@@ -260,7 +284,9 @@ class _LoginPageState extends State<LoginPage> {
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusSm,
+                                ),
                               ),
                             ),
                             child: Row(
@@ -268,7 +294,9 @@ class _LoginPageState extends State<LoginPage> {
                               children: [
                                 Text(
                                   'Sign In',
-                                  style: AppTextStyles.button.copyWith(fontSize: 15),
+                                  style: AppTextStyles.button.copyWith(
+                                    fontSize: 15,
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 const Icon(Icons.arrow_forward, size: 18),
@@ -283,7 +311,9 @@ class _LoginPageState extends State<LoginPage> {
                           children: [
                             const Expanded(child: Divider()),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.md,
+                              ),
                               child: Text(
                                 'OR',
                                 style: AppTextStyles.caption.copyWith(
@@ -304,14 +334,18 @@ class _LoginPageState extends State<LoginPage> {
                           child: OutlinedButton(
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Simulasi Login via Google...')),
+                                const SnackBar(
+                                  content: Text('Simulasi Login via Google...'),
+                                ),
                               );
                             },
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: AppColors.border),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusSm,
+                                ),
                               ),
                             ),
                             child: Row(
@@ -326,19 +360,51 @@ class _LoginPageState extends State<LoginPage> {
                                       fontFamily: 'Roboto',
                                     ),
                                     children: [
-                                      TextSpan(text: 'G', style: TextStyle(color: Color(0xFF4285F4))),
-                                      TextSpan(text: 'o', style: TextStyle(color: Color(0xFFEA4335))),
-                                      TextSpan(text: 'o', style: TextStyle(color: Color(0xFFFBBC05))),
-                                      TextSpan(text: 'g', style: TextStyle(color: Color(0xFF4285F4))),
-                                      TextSpan(text: 'l', style: TextStyle(color: Color(0xFF34A853))),
-                                      TextSpan(text: 'e', style: TextStyle(color: Color(0xFFEA4335))),
+                                      TextSpan(
+                                        text: 'G',
+                                        style: TextStyle(
+                                          color: Color(0xFF4285F4),
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: 'o',
+                                        style: TextStyle(
+                                          color: Color(0xFFEA4335),
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: 'o',
+                                        style: TextStyle(
+                                          color: Color(0xFFFBBC05),
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: 'g',
+                                        style: TextStyle(
+                                          color: Color(0xFF4285F4),
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: 'l',
+                                        style: TextStyle(
+                                          color: Color(0xFF34A853),
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: 'e',
+                                        style: TextStyle(
+                                          color: Color(0xFFEA4335),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   'Google',
-                                  style: AppTextStyles.title.copyWith(fontSize: 14),
+                                  style: AppTextStyles.title.copyWith(
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ],
                             ),
@@ -358,7 +424,9 @@ class _LoginPageState extends State<LoginPage> {
                               onTap: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const RegisterPage()),
+                                  MaterialPageRoute(
+                                    builder: (context) => const RegisterPage(),
+                                  ),
                                 );
                               },
                               child: Text(

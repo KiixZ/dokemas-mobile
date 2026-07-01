@@ -1,8 +1,9 @@
 class ApiConfig {
   // Ganti URL ini sesuai dengan URL backend yang sedang aktif
   // Pastikan diakhiri tanpa slash (/) jika endpoint sudah menggunakan /
-  static const String baseUrl = 'https://porto-backend-dokemas.rryxja.easypanel.host/api';
-  
+  static const String baseUrl =
+      'https://porto-backend-dokemas.rryxja.easypanel.host/api';
+
   // Endpoint URL Helper
   static const String login = '$baseUrl/login';
   static const String register = '$baseUrl/register';
@@ -25,4 +26,3 @@ class ApiConfig {
   static const String wishlistToggle = '$baseUrl/wishlist/toggle';
   static const String reviews = '$baseUrl/reviews';
 }
-

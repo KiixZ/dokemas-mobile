@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import '../../providers/admin/dashboard_provider.dart';
 import 'dashboard/dashboard_page.dart';
 import 'destinasi/destinasi_page.dart';
 import 'destinasi/tambah_destinasi_page.dart';
@@ -133,7 +135,12 @@ class _AdminShellState extends State<AdminShell> {
       floatingActionButton: _buildFab(),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        onDestinationSelected: (i) {
+          setState(() => _index = i);
+          if (i == 0) {
+            context.read<DashboardProvider>().fetchDashboardStats();
+          }
+        },
         backgroundColor: AppColors.surface,
         indicatorColor: AppColors.primary.withValues(alpha: 0.12),
         destinations: const [

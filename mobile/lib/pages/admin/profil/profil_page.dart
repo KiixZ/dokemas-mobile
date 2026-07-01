@@ -39,15 +39,8 @@ class AdminProfilPage extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 40,
-                backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                child: Text(
-                  initial,
-                  style: const TextStyle(
-                    color: AppColors.primaryDark,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                backgroundColor: AppColors.border,
+                backgroundImage: NetworkImage(user.avatarUrl),
               ),
               const SizedBox(height: AppSpacing.md),
               Text(user.name, style: AppTextStyles.heading2),
@@ -128,12 +121,6 @@ class AdminProfilPage extends StatelessWidget {
         const SizedBox(height: AppSpacing.xl),
       ],
     );
-  }
-
-  void _soon(BuildContext context) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Fitur belum dibuat')));
   }
 
   Future<void> _confirmLogout(BuildContext context) async {

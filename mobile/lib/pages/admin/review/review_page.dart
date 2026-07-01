@@ -284,13 +284,17 @@ class _ReviewCard extends StatelessWidget {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: color,
-                child: Text(
-                  review.initial,
-                  style: const TextStyle(
-                    color: AppColors.onPrimary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                backgroundImage: review.userAvatar != null ? NetworkImage(review.userAvatar!) : null,
+                onBackgroundImageError: review.userAvatar != null ? (e, s) {} : null,
+                child: review.userAvatar == null 
+                    ? Text(
+                        review.initial,
+                        style: const TextStyle(
+                          color: AppColors.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
