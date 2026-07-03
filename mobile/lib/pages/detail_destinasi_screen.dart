@@ -473,6 +473,74 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
     );
   }
 
+  void _showImageGalleryDialog(BuildContext context, int initialIndex) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final pageController = PageController(initialPage: initialIndex);
+        int currentPage = initialIndex;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: Colors.black87,
+              insetPadding: EdgeInsets.zero,
+              child: Stack(
+                children: [
+                  PageView.builder(
+                    controller: pageController,
+                    itemCount: widget.galleryImages.length,
+                    onPageChanged: (index) {
+                      setState(() {
+                        currentPage = index;
+                      });
+                    },
+                    itemBuilder: (context, index) {
+                      return InteractiveViewer(
+                        child: Image.network(
+                          widget.galleryImages[index],
+                          fit: BoxFit.contain,
+                        ),
+                      );
+                    },
+                  ),
+                  SafeArea(
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SafeArea(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          '${currentPage + 1} / ${widget.galleryImages.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   // Fungsi Logika untuk Membuka Rute Peta
   Future<void> _bukaRutePeta() async {
     final String googleMapsUrl =
@@ -746,14 +814,19 @@ class _DetailDestinasiScreenState extends State<DetailDestinasiScreen> {
                               scrollDirection: Axis.horizontal,
                               itemCount: widget.galleryImages.length,
                               itemBuilder: (context, index) {
-                                return Container(
-                                  width: 160,
-                                  margin: const EdgeInsets.only(right: 12),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(12),
-                                    image: DecorationImage(
-                                      image: NetworkImage(widget.galleryImages[index]),
-                                      fit: BoxFit.cover,
+                                return GestureDetector(
+                                  onTap: () => _showImageGalleryDialog(
+                                      context, index),
+                                  child: Container(
+                                    width: 160,
+                                    margin: const EdgeInsets.only(right: 12),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      image: DecorationImage(
+                                        image: NetworkImage(
+                                            widget.galleryImages[index]),
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                   ),
                                 );

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:mobile/components/filter_bottom_sheet.dart';
 import 'package:mobile/pages/detail_destinasi_screen.dart';
 import '../theme/app_colors.dart';
+import '../models/category.dart';
+import '../models/facility.dart';
 import '../models/destination.dart'; // Import model destinasi timmu
 import '../service/api_service.dart'; // Import service API
 import '../widgets/destination_card.dart';
@@ -22,8 +24,16 @@ class _ExplorePageState extends State<ExplorePage> {
   // Default filter kategori diganti 'Semua'
   String _selectedCategory = 'Semua';
 
-  // Menggabungkan 'Semua' dengan list kategori yang ada di file model temanmu
-  final List<String> _tags = ['Semua', ...destinationCategories];
+  // Filter variables from Bottom Sheet
+  String _selectedHarga = '';
+  String _selectedJarak = '';
+  String _selectedRating = '';
+  List<String> _selectedFasilitas = [];
+
+  // State for fetched categories and facilities
+  List<Category> _categories = [];
+  List<Facility> _facilities = [];
+  bool _isLoadingFilters = true;
 
   // Variabel penampung request data async
   late Future<List<Destination>> _futureDestinations;
@@ -35,6 +45,27 @@ class _ExplorePageState extends State<ExplorePage> {
     _currentQuery = widget.searchQuery ?? '';
     // Fetch data dari database lewat API sekali saja saat page di-load
     _futureDestinations = ApiService().fetchDestinations();
+    _loadFilters();
+  }
+
+  Future<void> _loadFilters() async {
+    try {
+      final categories = await ApiService().fetchCategories();
+      final facilities = await ApiService().fetchFacilities();
+      if (mounted) {
+        setState(() {
+          _categories = categories;
+          _facilities = facilities;
+          _isLoadingFilters = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+         setState(() {
+           _isLoadingFilters = false;
+         });
+      }
+    }
   }
 
   @override
@@ -160,7 +191,27 @@ class _ExplorePageState extends State<ExplorePage> {
         ),
         const SizedBox(width: 12),
         InkWell(
-          onTap: () => showFilterBottomSheet(context),
+          onTap: () async {
+            final result = await showFilterBottomSheet(
+              context,
+              initialHarga: _selectedHarga,
+              initialJarak: _selectedJarak,
+              initialRating: _selectedRating,
+              initialKategori: _selectedCategory == 'Semua' ? '' : _selectedCategory,
+              initialFasilitas: List.from(_selectedFasilitas),
+              availableCategories: _categories.isNotEmpty ? _categories.map((c) => c.name).toList() : const ['Alam', 'Keluarga', 'Kuliner', 'Edukasi', 'Religi'],
+              availableFacilities: _facilities.isNotEmpty ? _facilities.map((f) => f.name).toList() : const ['Parkir', 'Toilet', 'Mushola', 'Warung', 'Gazebo', 'Spot Foto', 'Wahana Air', 'Penginapan', 'Wifi'],
+            );
+            if (result != null) {
+              setState(() {
+                _selectedHarga = result['harga'];
+                _selectedJarak = result['jarak'];
+                _selectedRating = result['rating'];
+                _selectedCategory = result['kategori'].isEmpty ? 'Semua' : result['kategori'];
+                _selectedFasilitas = result['fasilitas'];
+              });
+            }
+          },
           borderRadius: BorderRadius.circular(12),
           child: Container(
             height: 50,
@@ -177,14 +228,29 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 
   Widget _buildQuickTags() {
+    if (_isLoadingFilters) {
+      return const SizedBox(
+        height: 40,
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+          ),
+        ),
+      );
+    }
+    
+    final List<String> tags = ['Semua', ..._categories.map((c) => c.name)];
+
     return SizedBox(
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _tags.length,
+        itemCount: tags.length,
         itemBuilder: (context, index) {
-          final tag = _tags[index];
+          final tag = tags[index];
           final isSelected = _selectedCategory == tag;
 
           return GestureDetector(
@@ -263,7 +329,36 @@ class _ExplorePageState extends State<ExplorePage> {
               _selectedCategory == 'Semua' ||
               item.category == _selectedCategory;
 
-          return matchesSearch && matchesCategory;
+          bool matchesRating = true;
+          if (_selectedRating == '★ 4.0+') {
+            matchesRating = item.rating >= 4.0;
+          } else if (_selectedRating == '★ 4.5+') {
+            matchesRating = item.rating >= 4.5;
+          }
+
+          bool matchesHarga = true;
+          if (_selectedHarga == 'Gratis') {
+            matchesHarga = item.price == 0;
+          } else if (_selectedHarga == '< 10k') {
+            matchesHarga = item.price > 0 && item.price < 10000;
+          } else if (_selectedHarga == '10k - 25k') {
+            matchesHarga = item.price >= 10000 && item.price <= 25000;
+          } else if (_selectedHarga == '> 25k') {
+            matchesHarga = item.price > 25000;
+          }
+
+          bool matchesFasilitas = true;
+          if (_selectedFasilitas.isNotEmpty) {
+             final itemFasilitas = item.facilities.map((e) => e.name).toList();
+             for (var fas in _selectedFasilitas) {
+               if (!itemFasilitas.contains(fas)) {
+                 matchesFasilitas = false;
+                 break;
+               }
+             }
+          }
+
+          return matchesSearch && matchesCategory && matchesRating && matchesHarga && matchesFasilitas;
         }).toList();
 
         if (filteredItems.isEmpty) {
