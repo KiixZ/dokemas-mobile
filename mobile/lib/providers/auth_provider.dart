@@ -257,6 +257,94 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Fungsi Lupa Password (Minta OTP)
+  Future<String?> forgotPassword(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.forgotPassword),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        return null; // Sukses
+      } else {
+        final errorData = jsonDecode(response.body);
+        return errorData['message'] ?? 'Gagal mengirim instruksi reset password.';
+      }
+    } catch (e) {
+      debugPrint('Error forgot password: $e');
+      return 'Terjadi kesalahan koneksi.';
+    }
+  }
+
+  // Fungsi Verifikasi OTP
+  Future<String?> verifyOtp(String email, String otp) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.verifyOtp),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'otp': otp,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return null; // Sukses
+      } else {
+        final errorData = jsonDecode(response.body);
+        // Error validation from laravel usually inside 'errors' or 'message'
+        if (errorData['errors'] != null && errorData['errors']['otp'] != null) {
+          return errorData['errors']['otp'][0];
+        }
+        return errorData['message'] ?? 'OTP tidak valid.';
+      }
+    } catch (e) {
+      debugPrint('Error verify OTP: $e');
+      return 'Terjadi kesalahan koneksi.';
+    }
+  }
+
+  // Fungsi Reset Password (dengan OTP)
+  Future<String?> resetPassword(String email, String otp, String password, String passwordConfirmation) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.resetPassword),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'otp': otp,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return null; // Sukses
+      } else {
+        final errorData = jsonDecode(response.body);
+        if (errorData['errors'] != null) {
+            // Gabungkan pesan error jika ada beberapa
+            return errorData['errors'].values.map((e) => e[0]).join('\n');
+        }
+        return errorData['message'] ?? 'Gagal mereset password.';
+      }
+    } catch (e) {
+      debugPrint('Error reset password: $e');
+      return 'Terjadi kesalahan koneksi.';
+    }
+  }
+
   // Fungsi Logout
   Future<void> logout() async {
     try {

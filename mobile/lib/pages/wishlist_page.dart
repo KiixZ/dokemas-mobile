@@ -45,39 +45,33 @@ class _WishlistPageState extends State<WishlistPage> {
   void _removeFavorite(Destination item) async {
     final token = context.read<AuthProvider>().token;
     if (token == null) return;
-    
+
     final wishlistProvider = context.read<WishlistProvider>();
 
     try {
-      bool result = await wishlistProvider.toggleWishlist(token, item.id!);
-      if (!result && mounted) {
+      bool newStatus = await wishlistProvider.toggleWishlist(token, item.id!);
+      if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${item.name} dihapus dari Wishlist'),
-            duration: const Duration(seconds: 4),
+            content: Text(
+              newStatus
+                  ? '${item.name} ditambahkan ke Wishlist'
+                  : '${item.name} dihapus dari Wishlist',
+            ),
+            duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            ),
-            action: SnackBarAction(
-              label: 'Batal',
-              textColor: AppColors.accent,
-              onPressed: () {
-                wishlistProvider.toggleWishlist(token, item.id!);
-                ScaffoldMessenger.of(context).clearSnackBars();
-              },
-            ),
+            backgroundColor: newStatus ? Colors.teal : Colors.grey[800],
           ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Gagal mengubah wishlist, silakan coba lagi.'),
             backgroundColor: Colors.redAccent,
-          )
+          ),
         );
       }
     }
@@ -145,7 +139,7 @@ class _WishlistPageState extends State<WishlistPage> {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           if (provider.errorMessage != null && provider.wishlist.isEmpty) {
             return Center(
               child: Column(
@@ -155,7 +149,7 @@ class _WishlistPageState extends State<WishlistPage> {
                   ElevatedButton(
                     onPressed: _fetchWishlists,
                     child: const Text('Coba Lagi'),
-                  )
+                  ),
                 ],
               ),
             );
@@ -164,11 +158,13 @@ class _WishlistPageState extends State<WishlistPage> {
           final List<Destination> filteredWishlist = _searchQuery.isEmpty
               ? provider.wishlist
               : provider.wishlist
-                  .where((item) =>
-                      item.name.toLowerCase().contains(_searchQuery) ||
-                      item.category.toLowerCase().contains(_searchQuery) ||
-                      item.area.toLowerCase().contains(_searchQuery))
-                  .toList();
+                    .where(
+                      (item) =>
+                          item.name.toLowerCase().contains(_searchQuery) ||
+                          item.category.toLowerCase().contains(_searchQuery) ||
+                          item.area.toLowerCase().contains(_searchQuery),
+                    )
+                    .toList();
 
           if (filteredWishlist.isEmpty) {
             return Center(
@@ -237,7 +233,9 @@ class _WishlistPageState extends State<WishlistPage> {
                         distance: '0 km', // Dummy
                         openingHours: '${item.openHour} - ${item.closeHour}',
                         description: item.description,
-                        galleryImages: item.images.map((img) => img.imageUrl).toList(),
+                        galleryImages: item.images
+                            .map((img) => img.imageUrl)
+                            .toList(),
                       ),
                     ),
                   );

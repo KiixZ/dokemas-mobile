@@ -25,6 +25,11 @@ Route::get('login', function () {
 })->name('login');
 Route::post('login', [AuthController::class, 'login']);
 
+// Password Reset Routes
+Route::post('forgot-password', [\App\Http\Controllers\Api\PasswordResetController::class, 'forgotPassword']);
+Route::post('verify-otp', [\App\Http\Controllers\Api\PasswordResetController::class, 'verifyOtp']);
+Route::post('reset-password', [\App\Http\Controllers\Api\PasswordResetController::class, 'resetPassword']);
+
 Route::get('categories', [CategoryController::class, 'index']);
 Route::get('categories/{category}', [CategoryController::class, 'show']);
 Route::get('facilities', [FacilityController::class, 'index']);
